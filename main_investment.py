@@ -33,7 +33,7 @@ new_returns_list = investment.extraction.update_check_new_returns(df_returns, df
 update_dict = investment.extraction.create_update_dict(df_update, days_in_month, SSgACUSTOM_Index, EOAS_Index, MXEF_Index)
 df_updater = investment.extraction.update_dict_to_df(update_dict, report_date)
 df_returns = investment.extraction.apply_update_to_df_returns(df_returns, df_updater)
-# df_returns.to_csv(directory + 'returns_NOF_201904.csv')
+df_returns.to_csv(directory + 'returns_NOF_201904.csv')
 
 """
 Adds new month market values to existing market values time-series. 
@@ -44,7 +44,7 @@ new_market_values_list = investment.extraction.update_check_new_market_values(df
 update_market_values_dict = investment.extraction.create_update_market_value_dict(df_update)
 df_updater_market_values = investment.extraction.update_market_values_dict_to_df(update_market_values_dict, report_date)
 df_market_values = investment.extraction.apply_update_to_df_market_values(df_market_values, df_updater_market_values)
-# df_market_values.to_csv(directory + 'market_values_NOF_201904.csv')
+df_market_values.to_csv(directory + 'market_values_NOF_201904.csv')
 
 """
 Adds FX sector return and market value
