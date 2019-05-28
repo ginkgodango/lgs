@@ -7,7 +7,7 @@ import numpy as np
 def load(filename, password, sheet_number=1, start_row=3, start_column='A', end_row=1000, end_column='M'):
     # Opens Excel
     app = win32com.client.Dispatch("Excel.Application")
-    # print("Excel library version:", app.Version)
+    print("Excel library version:", app.Version)
 
     # Opens the Excel file
     wb = app.Workbooks.Open(filename, False, True, None, password)

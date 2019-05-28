@@ -25,6 +25,12 @@ df_update = investment.extraction.clean(df_update)
 # df_update.to_csv(directory + 'df_update_' + str(report_date.date()) + '.csv', index=True)
 
 """
+Extracts modelcodes, jpmname, and inception dates
+"""
+df_id = df_update[['JPMName', 'Since Inc Date']].reset_index(drop=False)
+
+
+"""
 Adds new month returns to existing return time-series. 
 """
 df_returns = investment.extraction.load_returns(directory + returns_filename)
