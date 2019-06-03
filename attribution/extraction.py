@@ -2,6 +2,10 @@ import pandas as pd
 import win32com.client
 
 
+def load_table(filepath):
+    df = pd.read_csv(filepath)
+    return df
+
 def load_returns(filepath):
     df = pd.read_csv(
         filepath,
@@ -25,14 +29,14 @@ def load_market_values(filepath):
     return df
 
 
-def load_asset_allocation(filepath, sheet_number, start_cell, end_cell):
+def load_asset_allocation(filepath, sheet_number, start_cell, end_cell, app):
     start_column = start_cell.split(':')[0]
     start_row = start_cell.split(':')[1]
     end_column = end_cell.split(':')[0]
     end_row = end_cell.split(':')[1]
 
     # Opens Excel
-    app = win32com.client.Dispatch("Excel.Application")
+    # app = win32com.client.Dispatch("Excel.Application")
     # print("Excel library version:", app.Version)
 
     # Opens the Excel file
@@ -65,6 +69,6 @@ def load_asset_allocation(filepath, sheet_number, start_cell, end_cell):
 
     # Closes the workbook and then quits Excel
     wb.Close(False)
-    app.Quit()
+    #app.Quit()
 
     return df

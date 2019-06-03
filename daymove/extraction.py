@@ -187,5 +187,3 @@ def remove_nan_and_header_funds(df):
     df = df[~df['FUND'].isin(nan_and_header)].reset_index(drop=True)
 
     return df
-
-

@@ -49,6 +49,7 @@ def filter_misc_funds(df):
         'LGII:  Cash/Other',
         'LGII:  UUT Sub Total',
         'LGMO - LGS IE MESIROW OVERLAY',
+        'LGTW - LGS IE WCM',
         'LGRC - Absolute return - UUT',
         'LGRC:  Cash/Other',
         'LGRC:  UUT Sub Total',
