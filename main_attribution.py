@@ -4,6 +4,8 @@ Attribution
 import pandas as pd
 import numpy as np
 import win32com.client
+import matplotlib
+import matplotlib.pyplot as plt
 import attribution.extraction
 
 
@@ -12,7 +14,12 @@ output_directory = 'D:/automation/final/attribution/tables/'
 table_filename = 'table_NOF_201904.csv'
 returns_filename = 'returns_NOF_201904v2.csv'
 market_values_filename = 'market_values_NOF_201904.csv'
+asset_allocations_filename = 'asset_allocations_201904.csv'
 performance_report_filepath = 'D:/automation/final/investment/2019/04/LGSS Preliminary Performance April 2019_Addkeys.xlsx'
+
+latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
+latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
+latex_column_names = ['Asset Class', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 
 # Loads table
 df_table = attribution.extraction.load_table(directory + table_filename)
@@ -25,7 +32,7 @@ df_returns = df_returns.transpose().reset_index(drop=False).rename(columns={'ind
 df_returns = pd.melt(df_returns, id_vars=['Manager'], value_name='1_r')
 
 # Selects returns for this month
-df_returns = df_returns[df_returns['Date'] == df_returns['Date'].max()].reset_index(drop=True)
+# df_returns = df_returns[df_returns['Date'] == df_returns['Date'].max()].reset_index(drop=True)
 
 df_benchmarks = pd.merge(left=df_returns, right=df_table, left_on=['Manager'], right_on=['Associated Benchmark'], how='inner')
 df_benchmarks = df_benchmarks[['Date', 'Associated Benchmark', '1_r', 'ModelCode']]
@@ -48,64 +55,36 @@ df_main = pd.merge(df_returns_benchmarks, df_market_values, how='outer', on=['Ma
 
 # Loads strategy asset allocations
 asset_allocations = ['High Growth', 'Balanced Growth', 'Balanced', 'Conservative', 'Growth', 'Employer Reserve']
-sheet_numbers = [17, 17, 18, 18, 19, 19]
-start_cells = ['C:8', 'C:35', 'C:8', 'C:35', 'C:8', 'C:35']
-end_cells = ['G:22', 'G:49', 'G:22', 'G:49', 'G:22', 'G:50']
+# sheet_numbers = [17, 17, 18, 18, 19, 19]
+# start_cells = ['C:8', 'C:35', 'C:8', 'C:35', 'C:8', 'C:35']
+# end_cells = ['G:22', 'G:49', 'G:22', 'G:49', 'G:22', 'G:50']
+#
+# excel = win32com.client.Dispatch("Excel.Application")
+# df_asset_allocations = pd.DataFrame()
+# for i in range(0, len(asset_allocations)):
+#     df = attribution.extraction.load_asset_allocation(
+#         performance_report_filepath,
+#         sheet_numbers[i],
+#         start_cells[i],
+#         end_cells[i],
+#         excel
+#     )
+#     df_asset_allocations = pd.concat([df_asset_allocations, df], sort=True).reset_index(drop=True)
+# excel.Quit()
 
-excel = win32com.client.Dispatch("Excel.Application")
-df_asset_allocations = pd.DataFrame()
-for i in range(0, len(asset_allocations)):
-    df = attribution.extraction.load_asset_allocation(
-        performance_report_filepath,
-        sheet_numbers[i],
-        start_cells[i],
-        end_cells[i],
-        excel
-    )
+df_asset_allocations = pd.read_csv(
+    directory + asset_allocations_filename,
+    parse_dates=['Date'],
+    infer_datetime_format=True,
+    float_precision='round_trip'
+)
 
-    df_asset_allocations = pd.concat([df_asset_allocations, df], sort=True).reset_index(drop=True)
-excel.Quit()
 
 """
 Test for High Growth
 April 2019
 manager/sector weight * asset/total weight
 """
-# ae_large = ['BT_AE', 'Ubique_AE', 'DNR_AE', 'Blackrock_AE', 'SSgA_AE', 'DSRI_AE']
-# ae_small = ['WSCF_AE', 'ECP_AE']
-# ae = ae_large + ae_small
-#
-# ie_developed = ['LSV_IE', 'MFS_IE', 'Hermes_IE', 'Longview_IE', 'AQR_IE', 'Impax_IE']
-# ie_emerging = ['WellingtonEMEquity_IE', 'Delaware_IE']
-# ie = ie_developed + ie_emerging
-#
-# ilp = ['ILP']
-#
-# dp = ['DP']
-#
-# ae_market_value = 0
-# for manager in ae:
-#     for i in range(0, len(df_main)):
-#         if df_main['Manager'][i] == manager:
-#             ae_market_value += df_main['Market Value'][i]
-#
-# sector_weight = dict()
-# manager_weight = dict()
-# for manager in ae:
-#     for i in range(0,len(df_main)):
-#         if df_main['Manager'][i] == manager:
-#             sector_weight[manager] = df_main['Market Value'][i]/ae_market_value
-#
-#             for i in range(0, len(df_asset_allocations)):
-#                 if df_asset_allocations['Asset Class'][i] == 'Australian Equity':
-#                     # print(df_asset_allocations['Strategy'][i],manager,round(sector_weight[manager] * df_asset_allocations['Portfolio'][i]/100, 2))
-#                     pass
-#
-# ie_market_value = 0
-# for manager in ie:
-#     for i in range(0, len(df_main)):
-#         if df_main['Manager'][i] == manager:
-#             ie_market_value += df_main['Market Value'][i]
 
 
 strategy_to_modelcode_dict = {
@@ -157,9 +136,7 @@ filter_strategy_list = ['Australian Listed Property', 'Legacy Private Equity', '
 
 df_asset_allocations = df_asset_allocations[~df_asset_allocations['ModelCode'].isin(filter_list)]
 
-# df_attribution = pd.merge(df_main, df_asset_allocations, left_on=['Manager'], right_on=['ModelCode'], how='inner')
-
-df_attribution = pd.merge(df_returns_benchmarks, df_asset_allocations, left_on=['ModelCode'], right_on=['ModelCode'], how='inner')
+df_attribution = pd.merge(df_returns_benchmarks, df_asset_allocations, left_on=['Date', 'ModelCode'], right_on=['Date', 'ModelCode'], how='inner')
 
 
 # Expresses AA, SS, and Interaction as decimals
@@ -197,6 +174,7 @@ df_attribution = df_attribution.sort_values(['Date', 'Strategy', 'Manager']).res
 
 df_attribution['Total'] = df_attribution['AA'] + df_attribution['SS'] + df_attribution['Interaction']
 df_attribution['1_er'] = df_attribution['1_r'] - df_attribution['bmk_1_r']
+df_attribution['Active Contribution'] = df_attribution['1_er'] * df_attribution['Portfolio']/100
 
 # df_attribution[['AA', 'SS', 'Interaction']] = df_attribution[['AA', 'SS', 'Interaction']].astype(float).round(4)*100
 column_order = [
@@ -210,6 +188,7 @@ column_order = [
     '1_er',
     'Portfolio',
     'Benchmark',
+    'Active Contribution',
     'AA',
     'SS',
     'Interaction',
@@ -222,6 +201,7 @@ column_percentage = [
     '1_r',
     'bmk_1_r',
     '1_er',
+    'Active Contribution',
     'AA',
     'SS',
     'Interaction',
@@ -237,6 +217,7 @@ column_round = [
     '1_er',
     'Portfolio',
     'Benchmark',
+    'Active Contribution',
     'AA',
     'SS',
     'Interaction',
@@ -293,19 +274,23 @@ df_attribution_summary1 = df_attribution_summary[summary1_columns_list]
 
 df_attribution_summary1 = df_attribution_summary1.set_index('Strategy').transpose()
 
-df_attribution_summary1 = df_attribution_summary1[asset_allocations]
+df_attribution_summary1 = df_attribution_summary1[asset_allocations].reset_index(drop=False)
+
+df_attribution_summary1.columns = latex_summary1_column_names
 
 df_attribution_summary2 = df_attribution_summary[summary2_columns_list]
 
 df_attribution_summary2 = df_attribution_summary2.set_index('Strategy').transpose()
 
-df_attribution_summary2 = df_attribution_summary2[asset_allocations]
+df_attribution_summary2 = df_attribution_summary2[asset_allocations].reset_index(drop=False)
+
+df_attribution_summary2.columns = latex_summary2_column_names
 
 with open(output_directory + 'summary1.tex', 'w') as tf:
-    tf.write(df_attribution_summary1.to_latex(index=True))
+    tf.write(df_attribution_summary1.to_latex(index=False))
 
 with open(output_directory + 'summary2.tex', 'w') as tf:
-    tf.write(df_attribution_summary2.to_latex(index=True))
+    tf.write(df_attribution_summary2.to_latex(index=False))
 
 
 mv_columns_list = ['Strategy', 'Asset Class', 'Market Value']
@@ -323,6 +308,8 @@ df_mv = df_mv[~df_mv.index.isin(filter_strategy_list)]
 df_mv = df_mv.reset_index(drop=False)
 
 df_mv['Asset Class'] = [strategy_to_name_dict[df_mv['Asset Class'][i]] for i in range(0, len(df_mv))]
+
+df_mv.columns = latex_column_names
 
 with open(output_directory + 'mv.tex', 'w') as tf:
     tf.write(df_mv.to_latex(index=False))
@@ -344,6 +331,8 @@ df_aa = df_aa.reset_index(drop=False)
 
 df_aa['Asset Class'] = [strategy_to_name_dict[df_aa['Asset Class'][i]] for i in range(0, len(df_aa))]
 
+df_aa.columns = latex_column_names
+
 with open(output_directory + 'aa.tex', 'w') as tf:
     tf.write(df_aa.to_latex(index=False))
 
@@ -363,6 +352,8 @@ df_ss = df_ss[~df_ss.index.isin(filter_strategy_list)]
 df_ss = df_ss.reset_index(drop=False)
 
 df_ss['Asset Class'] = [strategy_to_name_dict[df_ss['Asset Class'][i]] for i in range(0, len(df_ss))]
+
+df_ss.columns = latex_column_names
 
 with open(output_directory + 'ss.tex', 'w') as tf:
     tf.write(df_ss.to_latex(index=False))
@@ -384,25 +375,32 @@ df_in = df_in.reset_index(drop=False)
 
 df_in['Asset Class'] = [strategy_to_name_dict[df_in['Asset Class'][i]] for i in range(0, len(df_in))]
 
+df_in.columns = latex_column_names
+
 with open(output_directory + 'in.tex', 'w') as tf:
     tf.write(df_in.to_latex(index=False))
 
 
-er_columns_list = ['Strategy', 'Asset Class', '1_er']
+ac_columns_list = ['Strategy', 'Asset Class', 'Active Contribution']
 
-df_er = df_attribution[er_columns_list]
+df_ac = df_attribution[ac_columns_list]
 
-df_er = df_er.pivot(index='Asset Class', columns='Strategy', values='1_er')
+df_ac = df_ac.pivot(index='Asset Class', columns='Strategy', values='Active Contribution')
 
-df_er = df_er[asset_allocations]
+df_ac = df_ac[asset_allocations]
 
-df_er = df_er.reindex(list(strategy_to_modelcode_dict))
+df_ac = df_ac.reindex(list(strategy_to_modelcode_dict))
 
-df_er = df_er[~df_er.index.isin(filter_strategy_list)]
+df_ac = df_ac[~df_ac.index.isin(filter_strategy_list)]
 
-df_er = df_er.reset_index(drop=False)
+# df_ac.plot.bar().axhline(linewidth=0.5, color='black')
 
-df_er['Asset Class'] = [strategy_to_name_dict[df_er['Asset Class'][i]] for i in range(0, len(df_er))]
+df_ac = df_ac.reset_index(drop=False)
 
-with open(output_directory + 'er.tex', 'w') as tf:
-    tf.write(df_er.to_latex(index=False))
+df_ac['Asset Class'] = [strategy_to_name_dict[df_ac['Asset Class'][i]] for i in range(0, len(df_ac))]
+
+df_ac.columns = latex_column_names
+
+with open(output_directory + 'ac.tex', 'w') as tf:
+    tf.write(df_ac.to_latex(index=False))
+

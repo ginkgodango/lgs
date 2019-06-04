@@ -5,7 +5,7 @@ import daymove.calculation
 import daymove.format
 
 password = "lgsinvestops@LGS"
-filepath = 'D:/automation/testing/daymove/2019/05/'
+filepath = 'D:/automation/testing/daymove/2019/06/'
 filenames = sorted(os.listdir(filepath))
 output_directory = 'D:/automation/testing/daymove/tables/'
 
