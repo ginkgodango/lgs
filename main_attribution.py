@@ -1,13 +1,17 @@
 """
 Attribution
 """
+import datetime
 import pandas as pd
 import numpy as np
 import win32com.client
 import matplotlib
 import matplotlib.pyplot as plt
 import attribution.extraction
+from dateutil.relativedelta import relativedelta
 
+start_date = datetime.datetime(2018, 7, 31)
+end_date = datetime.datetime(2018, 9, 30)
 
 directory = 'D:/automation/final/attribution/2019/04/'
 output_directory = 'D:/automation/final/attribution/tables/'
@@ -21,6 +25,17 @@ latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balance
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_column_names = ['Asset Class', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 
+periods = (end_date.year - start_date.year)*12 + (end_date.month - start_date.month) + 1
+r_portfolio = str(periods) + '_r_portfolio'
+r_benchmark = str(periods) + '_r_benchmark'
+r_excess = str(periods) + '_r_excess'
+r_active_contribution = str(periods) + '_r_active_contribution'
+w_portfolio = str(periods) + '_w_portfolio'
+w_benchmark = str(periods) + '_w_benchmark'
+AA = str(periods) + '_AA'
+SS = str(periods) + '_SS'
+Interaction = str(periods) + '_Interaction'
+
 # Loads table
 df_table = attribution.extraction.load_table(directory + table_filename)
 
@@ -31,8 +46,9 @@ df_returns = attribution.extraction.load_returns(directory + returns_filename)
 df_returns = df_returns.transpose().reset_index(drop=False).rename(columns={'index': 'Manager'})
 df_returns = pd.melt(df_returns, id_vars=['Manager'], value_name='1_r')
 
-# Selects returns for this month
+# Selects returns for this month or within a date_range
 # df_returns = df_returns[df_returns['Date'] == df_returns['Date'].max()].reset_index(drop=True)
+df_returns = df_returns[(df_returns['Date'] >= start_date) & (df_returns['Date'] <= end_date)].reset_index(drop=True)
 
 df_benchmarks = pd.merge(left=df_returns, right=df_table, left_on=['Manager'], right_on=['Associated Benchmark'], how='inner')
 df_benchmarks = df_benchmarks[['Date', 'Associated Benchmark', '1_r', 'ModelCode']]
@@ -55,22 +71,6 @@ df_main = pd.merge(df_returns_benchmarks, df_market_values, how='outer', on=['Ma
 
 # Loads strategy asset allocations
 asset_allocations = ['High Growth', 'Balanced Growth', 'Balanced', 'Conservative', 'Growth', 'Employer Reserve']
-# sheet_numbers = [17, 17, 18, 18, 19, 19]
-# start_cells = ['C:8', 'C:35', 'C:8', 'C:35', 'C:8', 'C:35']
-# end_cells = ['G:22', 'G:49', 'G:22', 'G:49', 'G:22', 'G:50']
-#
-# excel = win32com.client.Dispatch("Excel.Application")
-# df_asset_allocations = pd.DataFrame()
-# for i in range(0, len(asset_allocations)):
-#     df = attribution.extraction.load_asset_allocation(
-#         performance_report_filepath,
-#         sheet_numbers[i],
-#         start_cells[i],
-#         end_cells[i],
-#         excel
-#     )
-#     df_asset_allocations = pd.concat([df_asset_allocations, df], sort=True).reset_index(drop=True)
-# excel.Quit()
 
 df_asset_allocations = pd.read_csv(
     directory + asset_allocations_filename,
@@ -79,7 +79,8 @@ df_asset_allocations = pd.read_csv(
     float_precision='round_trip'
 )
 
-
+# Forwards the asset allocations by 1 month, which lags it 1 month relative to the returns and market values.
+df_asset_allocations['Date'] = df_asset_allocations['Date'] + pd.offsets.MonthEnd(1)
 """
 Test for High Growth
 April 2019
@@ -138,13 +139,13 @@ df_asset_allocations = df_asset_allocations[~df_asset_allocations['ModelCode'].i
 
 df_attribution = pd.merge(df_returns_benchmarks, df_asset_allocations, left_on=['Date', 'ModelCode'], right_on=['Date', 'ModelCode'], how='inner')
 
-
 # Expresses AA, SS, and Interaction as decimals
 df_attribution['AA'] = (df_attribution['Portfolio'] - df_attribution['Benchmark'])*df_attribution['bmk_1_r']/100
 
 df_attribution['SS'] = (df_attribution['1_r'] - df_attribution['bmk_1_r'])*df_attribution['Benchmark']/100
 
 df_attribution['Interaction'] = (df_attribution['1_r'] - df_attribution['bmk_1_r'])*(df_attribution['Portfolio'] - df_attribution['Benchmark'])/100
+
 
 # Converts Market Value, AA, SS, and Interaction to float
 column_float = ['Market Value', 'Portfolio', 'AA', 'SS', 'Interaction']
@@ -170,7 +171,39 @@ def weighted_average(data):
 df_attribution_total = df_attribution.groupby(['Date', 'Strategy']).apply(weighted_average).reset_index(drop=False)
 
 df_attribution = pd.concat([df_attribution, df_attribution_total], sort=False)
-df_attribution = df_attribution.sort_values(['Date', 'Strategy', 'Manager']).reset_index(drop=True)
+
+# Sorting
+strategy_sort = {
+    'High Growth': 0,
+    'Balanced Growth': 1,
+    'Balanced': 2,
+    'Conservative': 3,
+    'Growth': 4,
+    'Employer Reserve': 5
+}
+
+df_attribution['strategy_sort'] = df_attribution.Strategy.map(strategy_sort)
+
+asset_class_sort = {
+    'AE': 0,
+    'IE': 1,
+    'ALP': 2,
+    'DP': 3,
+    'ILP': 4,
+    'BO': 5,
+    'AR': 6,
+    'CO': 7,
+    'AC': 8,
+    'LPE': 9,
+    'PE': 10,
+    'OA': 11,
+    'DA': 12,
+    'OO': 13
+}
+
+df_attribution['asset_class_sort'] = df_attribution.Manager.map(asset_class_sort)
+
+df_attribution = df_attribution.sort_values(['Date', 'strategy_sort', 'asset_class_sort'])
 
 df_attribution['Total'] = df_attribution['AA'] + df_attribution['SS'] + df_attribution['Interaction']
 df_attribution['1_er'] = df_attribution['1_r'] - df_attribution['bmk_1_r']
@@ -228,8 +261,35 @@ df_attribution[column_round] = df_attribution[column_round].round(2)
 
 df_attribution['Market Value'] = (df_attribution['Market Value']/1000000).round(2)
 
+df_attribution = df_attribution.reset_index(drop=True)
+
 df_attribution_total = df_attribution[df_attribution['Manager'] == 'TO'].reset_index(drop=True)
 
+# Test of chain linking
+def test(data):
+    d = dict()
+    d[r_portfolio] = np.prod(1 + data['1_r']) - 1
+    d[r_benchmark] = np.prod(1 + data['bmk_1_r']) - 1
+    d[r_active_contribution] = np.prod(1 + data['Active Contribution']) - 1
+    d[w_portfolio] = np.average(data['Portfolio']/100)
+    d[w_benchmark] = np.average(data['Benchmark']/100)
+    d[AA] = np.prod(1 + data['AA']) - 1
+    d[SS] = np.prod(1 + data['SS']) - 1
+    d['Interaction'] = np.prod(1 + data['Interaction']) - 1
+    return pd.Series(d)
+
+
+df_test = df_attribution.copy()
+
+df_test_c = df_test.groupby(['Strategy', 'Manager']).apply(test)
+
+df_test_c[r_excess] = df_test_c[r_portfolio] - df_test_c[r_benchmark]
+
+df_test_c['Total'] = df_test_c[AA] + df_test_c[SS] + df_test_c['Interaction']
+
+df_test_c['Residual'] = df_test_c[r_active_contribution] - df_test_c['Total']
+
+"""
 summary_column_list = [
     'Strategy',
     '1_r',
@@ -404,3 +464,25 @@ df_ac.columns = latex_column_names
 with open(output_directory + 'ac.tex', 'w') as tf:
     tf.write(df_ac.to_latex(index=False))
 
+
+to_columns_list = ['Strategy', 'Asset Class', 'Total']
+
+df_to = df_attribution[to_columns_list]
+
+df_to = df_to.pivot(index='Asset Class', columns='Strategy', values='Total')
+
+df_to = df_to[asset_allocations]
+
+df_to = df_to.reindex(list(strategy_to_modelcode_dict))
+
+df_to = df_to[~df_to.index.isin(filter_strategy_list)]
+
+df_to = df_to.reset_index(drop=False)
+
+df_to['Asset Class'] = [strategy_to_name_dict[df_to['Asset Class'][i]] for i in range(0, len(df_ac))]
+
+df_to.columns = latex_column_names
+
+with open(output_directory + 'to.tex', 'w') as tf:
+    tf.write(df_to.to_latex(index=False))
+"""
