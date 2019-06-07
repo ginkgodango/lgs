@@ -270,6 +270,7 @@ def test(data):
     d = dict()
     d[r_portfolio] = np.prod(1 + data['1_r']) - 1
     d[r_benchmark] = np.prod(1 + data['bmk_1_r']) - 1
+    d[r_excess] = np.prod(1 + data['1_er']) - 1
     d[r_active_contribution] = np.prod(1 + data['Active Contribution']) - 1
     d[w_portfolio] = np.average(data['Portfolio']/100)
     d[w_benchmark] = np.average(data['Benchmark']/100)
@@ -283,7 +284,7 @@ df_test = df_attribution.copy()
 
 df_test_c = df_test.groupby(['Strategy', 'Manager']).apply(test)
 
-df_test_c[r_excess] = df_test_c[r_portfolio] - df_test_c[r_benchmark]
+# df_test_c[r_excess] = df_test_c[r_portfolio] - df_test_c[r_benchmark]
 
 df_test_c['Total'] = df_test_c[AA] + df_test_c[SS] + df_test_c['Interaction']
 
