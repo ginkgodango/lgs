@@ -75,7 +75,7 @@ def rename_funds(df):
         'LGQC - LGS CASH RE QIC CREDIT': 'QIC Credit',
         'LGML -  Cash Mutual': 'Mutual Cash',
         'LGCS:  JPM AUD LVNAV INST MFC37EU': 'JPM Cash',
-        'TOTAL - Cash': 'Cash',
+        'TOTAL - Cash': 'Managed Cash',
         'LGFI:  ARDEA WS AU INFLA BD 55675EU': 'Ardea',
         'LGBP - LGS Bonds Pimco': 'PIMCO ESG',
         'LGFW - LGS FI BRANDYWINE': 'Brandywine',
@@ -242,7 +242,7 @@ def fillna(df):
 
 def collect_sectors(df):
     sectors = [
-        'Cash',
+        'Managed Cash',
         'Bonds',
         'Australian Equities',
         'Property',
@@ -319,6 +319,7 @@ def create_latex_table(df):
         latex_string
         .replace('tabular', 'tabularx')
         .replace('llrrll', 'p{4cm}p{5cm}R{2.2}R{2.2}R{2.2}R{2.2}')
+        .replace('llrlll', 'p{4cm}p{5cm}R{2.2}R{2.2}R{2.2}R{2.2}')
         .replace('\\{', '{')
         .replace('\\}', '}')
     )
