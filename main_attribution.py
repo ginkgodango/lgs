@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2019, 1, 31)
+start_date = datetime.datetime(2018, 4, 30)
 end_date = datetime.datetime(2019, 3, 31)
 
 directory = 'D:/automation/final/attribution/2019/04/'
@@ -248,10 +248,10 @@ asset_class_sort = {
     'AR': 6,
     'CO': 7,
     'AC': 8,
-    'LPE': 9,
-    'PE': 10,
-    'OA': 11,
-    'DA': 12,
+    'PE': 9,
+    'OA': 10,
+    'DA': 11,
+    'LPE': 12,
     'OO': 13
 }
 
@@ -371,14 +371,13 @@ df_attribution_scale['Total'] = df_attribution_scale['beta'] * df_attribution_sc
 # test = df_attribution_scale.groupby(['Strategy', 'Manager']).sum()
 
 # Sum the total rows
-df_attribution_scale_total = df_attribution_scale[~df_attribution_scale['Manager'].isin(['TO'])]
-
+df_attribution_scale_1 = df_attribution_scale[~df_attribution_scale['Manager'].isin(['TO'])]
 
 def total_sum_scale(data):
     d = dict()
-    # d[market_value] = np.sum(data[market_value])
-    d['Manager'] = 'TO',
-    d['Asset Class'] = 'Total',
+    d['Market Value'] = np.sum(data['Market Value'])
+    # d['Manager'] = 'TO',
+    # d['Asset Class'] = 'Total',
     d['Portfolio'] = np.sum(data['Portfolio'])
     d['Benchmark'] = np.sum(data['Benchmark'])
     d['1_r'] = np.average(data['1_r'], weights=data['Portfolio'])
@@ -391,13 +390,61 @@ def total_sum_scale(data):
     return pd.Series(d)
 
 
-df_attribution_scale_total = df_attribution_scale_total.groupby(['Date', 'Strategy']).apply(total_sum_scale).reset_index(drop=False)
+df_attribution_scale_2 = df_attribution_scale_1.groupby(['Date', 'Strategy']).apply(total_sum_scale).reset_index(drop=False)
+df_attribution_scale_2['Manager'] = 'TO'
+df_attribution_scale_2['Asset Class'] = 'Total'
 
-df_attribution_scale_total['Total'] = df_attribution_scale_total['AA'] + df_attribution_scale_total['SS'] + df_attribution_scale_total['Interaction']
+df_attribution_scale_2['Total'] = df_attribution_scale_2['AA'] + df_attribution_scale_2['SS'] + df_attribution_scale_2['Interaction']
 
-df_attribution_final = pd.concat([df_attribution_scale, df_attribution_scale_total], sort=True)
+df_attribution_test = pd.concat([df_attribution_scale_1, df_attribution_scale_2], sort=True)
 
-"""
+df_attribution_test = df_attribution_test[column_order]
+
+
+def final(data):
+    d = dict()
+    d[market_value] = np.average(data['Market Value'])
+    d[r_portfolio] = (np.prod(1 + data['1_r']) - 1)
+    d[r_benchmark] = (np.prod(1 + data['bmk_1_r']) - 1)
+    d[w_portfolio] = np.average(data['Portfolio'])
+    d[w_benchmark] = np.average(data['Benchmark'])
+    d[AA] = np.sum(data['AA'])
+    d[SS] = np.sum(data['SS'])
+    d[interaction] = np.sum(data['Interaction'])
+    d[total_effect] = np.sum(data['Total'])
+    return pd.Series(d)
+
+
+df_attribution_test = df_attribution_test.groupby(['Strategy', 'Manager', 'Asset Class']).apply(final).reset_index(drop=False)
+# df_attribution_test['Manager'] = [df_attribution_test['Manager'][i][0] for i in range(0, len(df_attribution_test))]
+# df_attribution_test['Asset Class'] = [df_attribution_test['Asset Class'][i][0] for i in range(0, len(df_attribution_test))]
+
+# Fix active return and and r_active contribution
+df_attribution_test[r_excess] = df_attribution_test[r_portfolio] - df_attribution_test[r_benchmark]
+df_attribution_test[r_active_contribution] = df_attribution_test[w_portfolio] * df_attribution_test[r_excess]
+df_attribution_test[residual] = df_attribution_test[r_active_contribution] - df_attribution_test[total_effect]
+df_attribution_test[total] = df_attribution_test[total_effect] + df_attribution_test[residual]
+
+df_linked = df_attribution_test
+
+# Convert numbers to percentage
+column_percentage = [
+    r_portfolio,
+    r_benchmark,
+    r_excess,
+    r_active_contribution,
+    w_portfolio,
+    w_benchmark,
+    AA,
+    SS,
+    interaction,
+    total_effect,
+    residual,
+    total
+]
+
+df_linked[column_percentage] = df_linked[column_percentage]*100
+
 # ROUNDS NUMBERS
 column_round = [
     market_value,
@@ -415,11 +462,10 @@ column_round = [
     total
 ]
 
-# df_linked[column_round] = df_linked[column_round].round(4)
-
+df_linked[column_round] = df_linked[column_round].astype(float).round(2)
 
 # Makes summary tables
-df_linked_total = df_linked[df_linked['Manager'] == 'TO'].reset_index(drop=True)
+df_linked_total = df_linked[df_linked['Manager'].isin(['TO'])].reset_index(drop=True)
 
 summary_column_list = [
     'Strategy',
@@ -511,23 +557,22 @@ df_re = pivot_table(df_linked, residual)
 df_to = pivot_table(df_linked, total)
 
 with open(output_directory + 'ac.tex', 'w') as tf:
-    tf.write(df_ac.to_latex(index=False))
+    tf.write(df_ac.to_latex(index=False).replace('NaN', ''))
 
 with open(output_directory + 'mv.tex', 'w') as tf:
-    tf.write(df_mv.to_latex(index=False))
+    tf.write(df_mv.to_latex(index=False).replace('NaN', ''))
 
 with open(output_directory + 'aa.tex', 'w') as tf:
-    tf.write(df_aa.to_latex(index=False))
+    tf.write(df_aa.to_latex(index=False).replace('NaN', ''))
 
 with open(output_directory + 'ss.tex', 'w') as tf:
-    tf.write(df_ss.to_latex(index=False))
+    tf.write(df_ss.to_latex(index=False).replace('NaN', ''))
 
 with open(output_directory + 'in.tex', 'w') as tf:
-    tf.write(df_in.to_latex(index=False))
+    tf.write(df_in.to_latex(index=False).replace('NaN', ''))
 
 with open(output_directory + 're.tex', 'w') as tf:
-    tf.write(df_re.to_latex(index=False))
+    tf.write(df_re.to_latex(index=False).replace('NaN', ''))
 
 with open(output_directory + 'to.tex', 'w') as tf:
-    tf.write(df_to.to_latex(index=False))
-"""
+    tf.write(df_to.to_latex(index=False).replace('NaN', ''))
