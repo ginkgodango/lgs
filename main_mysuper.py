@@ -2,11 +2,12 @@ from datetime import datetime
 import pandas as pd
 
 
-directory = 'D:/automation/final/mysuper/2019/04/'
-filename = 'MySuper FUM 20190506.xlsx'
-report_date = datetime(2019, 4, 30)
+input_directory = 'D:/data/LGS/Internal/mysuper/2019/05/'
+output_directory = 'D:/automation/final/mysuper/'
+filename = 'MySuper FUM - 20190611.xlsx'
+report_date = datetime(2019, 5, 31)
 
-df_mysuper = pd.read_excel(directory + filename, sheet_name='Sheet1')
+df_mysuper = pd.read_excel(input_directory + filename, sheet_name='Sheet1')
 
 df_mysuper = df_mysuper[['MySuper Option', 'Amount', 'Number of Mbrs']]
 df_mysuper.columns = ['MySuper', 'Market Value', 'Member Count']
@@ -41,8 +42,7 @@ df_mysuper = df_mysuper.reindex([
 
 df_mysuper = df_mysuper.reset_index(drop=False)
 
-df_mysuper.to_csv(directory + 'output.csv', index=False)
+df_mysuper.to_csv(output_directory + 'output.csv', index=False)
 
-with open(directory + 'MySuper.tex', 'w') as tf:
+with open(output_directory + 'MySuper.tex', 'w') as tf:
     tf.write(df_mysuper.to_latex(index=False))
-

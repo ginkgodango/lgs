@@ -37,3 +37,4 @@ for filename in filenames:
 
 excel.Quit()
 df_asset_allocations.to_csv(directory + 'asset_allocations_201904.csv', index=False)
+

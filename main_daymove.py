@@ -30,7 +30,7 @@ df_today = daymove.format.format_output(df_today)
 df_today = daymove.format.filter_misc_funds(df_today)
 df_today = daymove.format.rename_funds(df_today)
 df_today = daymove.format.rename_benchmarks(df_today)
-df_today = daymove.format.aggregate_southpeak(df_today)
+# df_today = daymove.format.aggregate_southpeak(df_today)
 df_today = daymove.format.aggregate_aqr(df_today)
 df_today = daymove.format.fillna(df_today)
 

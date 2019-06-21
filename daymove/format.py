@@ -63,6 +63,14 @@ def filter_misc_funds(df):
         'LGUP:  Cash/Other',
         'LGUP:  UUT Sub Total',
         'LGTM - LGS IE TM MACQUARIE 2019'
+        'LGRC: SOUTHPEAK REAL CL A MF135EU',
+        'LGRC: SOUTHPEAK REAL DIVER MF372EU',
+        'LGRC: SOUTHPEAK REAL DIV48 MF388EU',
+        'LGRC: SOUTHPEAK REAL DIV48 MF407EU',
+        'LGRC: SOUTHPEAK REAL 48V A MF447EU',
+        'LGRC: SPK RDF 4 8 A 301117 MF448EU',
+        'LGRC: SPK REAL DIV 4 8 CLA MF476EU',
+        'LGRC: SOUTHPEAK REAL DIVER MF520EU'
     ]
 
     df = df[~df['Fund'].isin(misc_filter)].reset_index(drop=True)
@@ -127,6 +135,7 @@ def rename_funds(df):
         'LGRC: SPK REAL DIV 4 8 CLA MF476EU': 'SouthPeak MF476EU',
         'LGRC: SOUTHPEAK REAL DIVER MF520EU': 'SouthPeak MF520EU',
         'LGRC: AQR WS DELTA MP2 S2 MF585EU': 'AQR MF585EU',
+        'LGRC: AQR DELTA MP2 SR 4 MFE75EU': 'AQR MFE75EU',
         'LGRC: GMO SYS GL MAC TR B MFB06EU': 'GMO',
         'LGMI - Absolute Return re MIML': 'Macquarie',
         'LGKP - LGS Absolute Return re Kapstream': 'Kapstream',
@@ -183,7 +192,8 @@ def aggregate_southpeak(df):
 def aggregate_aqr(df):
     aqr = [
         'AQR Delta',
-        'AQR MF585EU'
+        'AQR MF585EU',
+        'AQR MFE75EU'
     ]
 
     aqr_market_value = 0
@@ -200,17 +210,24 @@ def aggregate_aqr(df):
 def rename_benchmarks(df):
     benchmark_to_name_dict = {
         'ASX Accum Small Cap Ords Index': 'ASX Accum Small Cap',
+        'S&P/ASX Small Ords Accum Index': 'ASX Accum Small Cap',
         'Aust Govt 10 Year bond yield + 4% ': 'Aus Gov 10 Yr Bond + 4%',
-        'Bloomberg Ausbond Composite Index': 'Bloomberg Ausbond Composite',
-        'Bloomberg Commodity Index Australian Dollar Hedged Total Return': 'Bloomberg Commodity',
+        'Bloomberg AusBond Bank Bill Index': 'Ausbond Bank Bill',
+        'Bloomberg AusBond Bank Bill Index + 1.0%p.a.': 'AusBond Bank Bill + 1%',
+        'Bloomberg AusBond Infl Govt 0+ Yr Index': 'AusBond Infl Govt 0+ Yr',
+        'Bloomberg Ausbond Composite Index': 'Ausbond Composite',
+        'Bloomberg Commodity Index Australian Dollar Hedged Total Return': 'Commodity',
         'CASH + 1.5% P.A': 'Cash + 1.5%',
         'EPRA/NARETT  (AUD)': 'EPRA/NARETT',
         'MSCI ACWI EX AUS': 'MSCI ACWI ex Aus',
+        'S&P/ASX 100 Accum Index ': 'S&P/ASX 100 Accum',
         'S&P 200 PROPERTY': 'S&P 200 Property',
         'S&P 300 ACC INDEX': 'S&P/ASX 300 Accum',
         'S&P/ASX 200 Accumulation Index': 'S&P/ASX 200 Accum',
         'S&P/ASX Accum 100 Index': 'S&P/ASX 100 Accum',
         'UBS BBINDEX 3 MONTH': 'UBS Bank Bill 3 Month',
+        'Mercer/IPD Australian Property Pooled Fund Index': 'Mercer/IPD Australian Property',
+        'MSCI World Value Ex Australia Net Index': 'MSCI World Value Ex Aus Net',
         np.nan: ''
     }
 
@@ -320,6 +337,7 @@ def create_latex_table(df):
         .replace('tabular', 'tabularx')
         .replace('llrrll', 'p{4cm}p{5cm}R{2.2}R{2.2}R{2.2}R{2.2}')
         .replace('llrlll', 'p{4cm}p{5cm}R{2.2}R{2.2}R{2.2}R{2.2}')
+        .replace('llllll', 'p{4cm}p{5cm}R{2.2}R{2.2}R{2.2}R{2.2}')
         .replace('\\{', '{')
         .replace('\\}', '}')
     )
