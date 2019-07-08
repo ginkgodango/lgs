@@ -1,41 +1,48 @@
 from datetime import datetime
 import pandas as pd
 import numpy as np
-input_directory = 'D:/data/LGS/JPM/monthly/'
+# input_directory = 'D:/data/LGS/JPM/monthly/'
+# output_directory = 'D:/output/LGS/alternatives/'
+# jpm_filename = '201905_LGSS Preliminary Performance May 2019_AddKeys.xlsx'
+# sustainable_filename = 'alts_sustainable_201905.xlsx'
+#
+# xlsx = pd.ExcelFile(input_directory + jpm_filename)
+#
+# df_jpm = pd.read_excel(
+#     xlsx,
+#     sheet_name='Page 8',
+#     usecols='E:O',
+#     skiprows=[0, 1, 2]
+# )
+# df_jpm = df_jpm.rename(
+#     columns={
+#         'Unnamed: 4': 'Manager',
+#         'Market Value': 'Market Value',
+#         '1 Month': '1 Month',
+#         '3 Months': '3 Month',
+#         'FYTD': 'FYTD',
+#         '1 Year': '1 Year',
+#         '3 Years': '3 Year',
+#         '5 Years': '5 Year',
+#         '7 Years': '7 Year'
+#
+#     }
+# )
+# df_jpm = df_jpm.drop(columns=['Unnamed: 6', '2 Years'], axis=1)
+#
+# # Removes NaN rows and last 2 rows which are footnotes
+# df_jpm = df_jpm[df_jpm['Manager'].notnull()][:-2].reset_index(drop=True)
+#
+# df_jpm = df_jpm.replace('-', np.nan)
+
+input_directory = 'D:/output/LGS/alternatives/'
+filename = 'alternatives_2019-05-31.csv'
 output_directory = 'D:/output/LGS/alternatives/'
-jpm_filename = '201905_LGSS Preliminary Performance May 2019_AddKeys.xlsx'
-sustainable_filename = 'alts_sustainable_201905.xlsx'
+ac_filename = 'alts_ac_2019_05_31.csv'
 
-xlsx = pd.ExcelFile(input_directory + jpm_filename)
+df_jpm = pd.read_csv(input_directory + filename, parse_dates=['Date'])
 
-df_jpm = pd.read_excel(
-    xlsx,
-    sheet_name='Page 8',
-    usecols='E:O',
-    skiprows=[0, 1, 2]
-)
-df_jpm = df_jpm.rename(
-    columns={
-        'Unnamed: 4': 'Manager',
-        'Market Value': 'Market Value',
-        '1 Month': '1 Month',
-        '3 Months': '3 Month',
-        'FYTD': 'FYTD',
-        '1 Year': '1 Year',
-        '3 Years': '3 Year',
-        '5 Years': '5 Year',
-        '7 Years': '7 Year'
-
-    }
-)
-df_jpm = df_jpm.drop(columns=['Unnamed: 6', '2 Years'], axis=1)
-
-# Removes NaN rows and last 2 rows which are footnotes
-df_jpm = df_jpm[df_jpm['Manager'].notnull()][:-2].reset_index(drop=True)
-
-df_jpm = df_jpm.replace('-', np.nan)
-
-df_jpm['Market Value'] = df_jpm['Market Value']/1000000
+# df_jpm['Market Value'] = df_jpm['Market Value']/1000000
 
 round_columns = [
     'Market Value',
@@ -86,41 +93,41 @@ df_oa = df_jpm[df_jpm['Manager'].isin(oa)].reset_index(drop=True)[1:4]
 
 df_da = df_jpm[df_jpm['Manager'].isin(da)].reset_index(drop=True)[2:5]
 
-with open(output_directory + 'PE.tex', 'w') as tf:
-    df_pe_string = (
-        df_pe
-        .to_latex(index=False)
-        .replace('NaN', '')
-        #.replace('tabular', 'tabularx')
-        .replace('llrrrrrrr', 'p{8cm}RRRRRRRR')
-        .replace('lrrrrrrrr', 'p{8cm}RRRRRRRR')
-        .replace('llrrrrrrl', 'p{8cm}RRRRRRRR')
-    )
-    tf.write(df_pe_string)
-
-with open(output_directory + 'OA.tex', 'w') as tf:
-    df_oa_string = (
-        df_oa
-        .to_latex(index=False)
-        .replace('NaN', '')
-        #.replace('tabular', 'tabularx')
-        .replace('llrrrrrrr', 'p{8cm}RRRRRRRR')
-        .replace('lrrrrrrrr', 'p{8cm}RRRRRRRR')
-        .replace('llrrrrrrl', 'p{8cm}RRRRRRRR')
-    )
-    tf.write(df_oa_string)
-
-with open(output_directory + 'DA.tex', 'w') as tf:
-    df_da_string = (
-        df_da
-        .to_latex(index=False)
-        .replace('NaN', '')
-        #.replace('tabular', 'tabularx')
-        .replace('llrrrrrrr', 'p{8cm}RRRRRRRR')
-        .replace('lrrrrrrrr', 'p{8cm}RRRRRRRR')
-        .replace('llrrrrrrl', 'p{8cm}RRRRRRRR')
-    )
-    tf.write(df_da_string)
+# with open(output_directory + 'PE.tex', 'w') as tf:
+#     df_pe_string = (
+#         df_pe
+#         .to_latex(index=False)
+#         .replace('NaN', '')
+#         #.replace('tabular', 'tabularx')
+#         .replace('llrrrrrrr', 'p{8cm}RRRRRRRR')
+#         .replace('lrrrrrrrr', 'p{8cm}RRRRRRRR')
+#         .replace('llrrrrrrl', 'p{8cm}RRRRRRRR')
+#     )
+#     tf.write(df_pe_string)
+#
+# with open(output_directory + 'OA.tex', 'w') as tf:
+#     df_oa_string = (
+#         df_oa
+#         .to_latex(index=False)
+#         .replace('NaN', '')
+#         #.replace('tabular', 'tabularx')
+#         .replace('llrrrrrrr', 'p{8cm}RRRRRRRR')
+#         .replace('lrrrrrrrr', 'p{8cm}RRRRRRRR')
+#         .replace('llrrrrrrl', 'p{8cm}RRRRRRRR')
+#     )
+#     tf.write(df_oa_string)
+#
+# with open(output_directory + 'DA.tex', 'w') as tf:
+#     df_da_string = (
+#         df_da
+#         .to_latex(index=False)
+#         .replace('NaN', '')
+#         #.replace('tabular', 'tabularx')
+#         .replace('llrrrrrrr', 'p{8cm}RRRRRRRR')
+#         .replace('lrrrrrrrr', 'p{8cm}RRRRRRRR')
+#         .replace('llrrrrrrl', 'p{8cm}RRRRRRRR')
+#     )
+#     tf.write(df_da_string)
 
 
 asset_class = None
@@ -142,8 +149,8 @@ df_jpm_benchmarks = df_jpm[df_jpm['Manager'].isin(benchmark_list)].reset_index(d
 df_jpm_main = pd.merge(
     left=df_jpm,
     right=df_jpm_benchmarks,
-    left_on=['Asset Class'],
-    right_on=['Asset Class'],
+    left_on=['Date', 'Asset Class'],
+    right_on=['Date', 'Asset Class'],
     suffixes=['_x', '_y']
 )
 
@@ -162,6 +169,29 @@ for column in columns_diff_list:
     column_y = column + '_y'
     column_z = column + '_z'
     df_jpm_main[column_z] = df_jpm_main[column_x] - df_jpm_main[column_y]
+
+
+# Outputs to active contribution table
+def active_contribution_link(data):
+    d = dict()
+    d['12-Month Average'] = np.average(data['Market Value_x'][-12:])
+    d['12_er'] = float(data['1 Year_z'][-1:])
+    return pd.Series(d)
+
+
+df_ac = df_jpm_main.groupby(['Manager_x']).apply(active_contribution_link)
+
+df_ac = df_ac.reset_index(drop=False)
+
+df_ac.columns = ['Manager', '12-Month Average', '12_er']
+
+df_ac = df_ac[df_ac['12-Month Average'].notnull()]
+
+df_ac = df_ac[~df_ac['Manager'].isin(pe + oa + da)]
+
+df_ac = df_ac.reset_index(drop=True)
+
+df_ac.to_csv(output_directory + ac_filename, index=False)
 
 # Output to sustainable table
 sustainable_columns_list = [
@@ -182,7 +212,9 @@ sustainable_managers_to_name_dict = {
     'Stafford Clean Tech Fund II L.P.': 'Clean Tech II'
 }
 
-df_sustainable = df_jpm_main[sustainable_columns_list]
+df_sustainable = df_jpm_main[df_jpm_main['Date'] == df_jpm_main['Date'].max()]
+
+df_sustainable = df_sustainable[sustainable_columns_list]
 
 df_sustainable = df_sustainable[df_sustainable['Manager_x'].isin(sustainable_managers_to_name_dict)].reset_index(drop=True)
 
@@ -207,4 +239,5 @@ df_sustainable.columns = [
     '36_r', '36_er'
 ]
 
-df_sustainable.to_excel(output_directory + sustainable_filename, index=False)
+# df_sustainable.to_excel(output_directory + sustainable_filename, index=False)
+
