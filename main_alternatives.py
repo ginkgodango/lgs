@@ -36,9 +36,9 @@ import numpy as np
 # df_jpm = df_jpm.replace('-', np.nan)
 
 input_directory = 'D:/output/LGS/alternatives/'
-filename = 'alternatives_2019-05-31.csv'
-output_directory = 'D:/output/LGS/alternatives/'
-ac_filename = 'alts_ac_2019_05_31.csv'
+filename = 'alternatives_2019-06-30.csv'
+output_directory = 'U:/CIO/#Investment_Report/Data/output/alternatives/'
+ac_filename = 'alts_ac_2019_06_30.csv'
 
 df_jpm = pd.read_csv(input_directory + filename, parse_dates=['Date'])
 
@@ -87,47 +87,67 @@ da = [
     'Excess Return'
 ]
 
-df_pe = df_jpm[df_jpm['Manager'].isin(pe)].reset_index(drop=True)[0:3]
+df_jpm1 = df_jpm[df_jpm['Date'] == df_jpm['Date'].max()].reset_index(drop=True)
 
-df_oa = df_jpm[df_jpm['Manager'].isin(oa)].reset_index(drop=True)[1:4]
+df_jpm1 = df_jpm1.drop('Date', axis=1)
 
-df_da = df_jpm[df_jpm['Manager'].isin(da)].reset_index(drop=True)[2:5]
+df_jpm1['Market Value'] = df_jpm1['Market Value']/1000000
 
-# with open(output_directory + 'PE.tex', 'w') as tf:
-#     df_pe_string = (
-#         df_pe
-#         .to_latex(index=False)
-#         .replace('NaN', '')
-#         #.replace('tabular', 'tabularx')
-#         .replace('llrrrrrrr', 'p{8cm}RRRRRRRR')
-#         .replace('lrrrrrrrr', 'p{8cm}RRRRRRRR')
-#         .replace('llrrrrrrl', 'p{8cm}RRRRRRRR')
-#     )
-#     tf.write(df_pe_string)
-#
-# with open(output_directory + 'OA.tex', 'w') as tf:
-#     df_oa_string = (
-#         df_oa
-#         .to_latex(index=False)
-#         .replace('NaN', '')
-#         #.replace('tabular', 'tabularx')
-#         .replace('llrrrrrrr', 'p{8cm}RRRRRRRR')
-#         .replace('lrrrrrrrr', 'p{8cm}RRRRRRRR')
-#         .replace('llrrrrrrl', 'p{8cm}RRRRRRRR')
-#     )
-#     tf.write(df_oa_string)
-#
-# with open(output_directory + 'DA.tex', 'w') as tf:
-#     df_da_string = (
-#         df_da
-#         .to_latex(index=False)
-#         .replace('NaN', '')
-#         #.replace('tabular', 'tabularx')
-#         .replace('llrrrrrrr', 'p{8cm}RRRRRRRR')
-#         .replace('lrrrrrrrr', 'p{8cm}RRRRRRRR')
-#         .replace('llrrrrrrl', 'p{8cm}RRRRRRRR')
-#     )
-#     tf.write(df_da_string)
+percentage_columns = [
+    '1 Month',
+    '3 Month',
+    'FYTD',
+    '1 Year',
+    '3 Year',
+    '5 Year',
+    '7 Year'
+]
+
+df_jpm1[percentage_columns] = df_jpm1[percentage_columns]*100
+
+df_jpm1 = df_jpm1.round(2)
+
+df_pe = df_jpm1[df_jpm1['Manager'].isin(pe)].reset_index(drop=True)[0:3]
+
+df_oa = df_jpm1[df_jpm1['Manager'].isin(oa)].reset_index(drop=True)[1:4]
+
+df_da = df_jpm1[df_jpm1['Manager'].isin(da)].reset_index(drop=True)[2:5]
+
+with open(output_directory + 'PE.tex', 'w') as tf:
+    df_pe_string = (
+        df_pe
+        .to_latex(index=False)
+        .replace('NaN', '')
+        #.replace('tabular', 'tabularx')
+        .replace('llrrrrrrr', 'p{8cm}RRRRRRRR')
+        .replace('lrrrrrrrr', 'p{8cm}RRRRRRRR')
+        .replace('llrrrrrrl', 'p{8cm}RRRRRRRR')
+    )
+    tf.write(df_pe_string)
+
+with open(output_directory + 'OA.tex', 'w') as tf:
+    df_oa_string = (
+        df_oa
+        .to_latex(index=False)
+        .replace('NaN', '')
+        #.replace('tabular', 'tabularx')
+        .replace('llrrrrrrr', 'p{8cm}RRRRRRRR')
+        .replace('lrrrrrrrr', 'p{8cm}RRRRRRRR')
+        .replace('llrrrrrrl', 'p{8cm}RRRRRRRR')
+    )
+    tf.write(df_oa_string)
+
+with open(output_directory + 'DA.tex', 'w') as tf:
+    df_da_string = (
+        df_da
+        .to_latex(index=False)
+        .replace('NaN', '')
+        #.replace('tabular', 'tabularx')
+        .replace('llrrrrrrr', 'p{8cm}RRRRRRRR')
+        .replace('lrrrrrrrr', 'p{8cm}RRRRRRRR')
+        .replace('llrrrrrrl', 'p{8cm}RRRRRRRR')
+    )
+    tf.write(df_da_string)
 
 
 asset_class = None

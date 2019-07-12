@@ -2,10 +2,10 @@ from datetime import datetime
 import pandas as pd
 
 
-input_directory = 'D:/data/LGS/Internal/mysuper/2019/05/'
-output_directory = 'D:/automation/final/mysuper/'
-filename = 'MySuper FUM - 20190611.xlsx'
-report_date = datetime(2019, 5, 31)
+input_directory = 'U:/CIO/#Investment_Report/Data/input/mysuper/'
+output_directory = 'U:/CIO/#Investment_Report/Data/output/mysuper/'
+filename = 'MySuper FUM - 30062019.xlsx'
+report_date = datetime(2019, 6, 30)
 
 df_mysuper = pd.read_excel(input_directory + filename, sheet_name='Sheet1')
 

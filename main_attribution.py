@@ -10,16 +10,16 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2018, 7, 31)
-end_date = datetime.datetime(2018, 9, 30)
+start_date = datetime.datetime(2019, 1, 31)
+end_date = datetime.datetime(2019, 6, 30)
 
-directory = 'D:/automation/final/attribution/2019/04/'
-output_directory = 'D:/automation/final/attribution/tables/'
-table_filename = 'table_NOF_201904.csv'
-returns_filename = 'returns_NOF_201904v2.csv'
-market_values_filename = 'market_values_NOF_201904.csv'
-asset_allocations_filename = 'asset_allocations_201904.csv'
-performance_report_filepath = 'D:/automation/final/investment/2019/04/LGSS Preliminary Performance April 2019_Addkeys.xlsx'
+input_directory = 'U:/CIO/#Investment_Report/Data/input/'
+output_directory = 'U:/CIO/#Attribution/tables/'
+
+table_filename = 'link_2019-05-31.csv'
+returns_filename = 'returns_2019-06-30.csv'
+market_values_filename = 'market_values_2019-06-30.csv'
+asset_allocations_filename = 'asset_allocations_2019-06-30.csv'
 
 latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
@@ -44,10 +44,10 @@ residual = str(periods) + '_residual'
 total = str(periods) + '_total'
 
 # Loads table
-df_table = attribution.extraction.load_table(directory + table_filename)
+df_table = attribution.extraction.load_table(input_directory + 'link/' + table_filename)
 
 # Loads returns
-df_returns = attribution.extraction.load_returns(directory + returns_filename)
+df_returns = attribution.extraction.load_returns(input_directory + 'returns/' + returns_filename)
 
 # Reshapes returns dataframe from wide to long
 df_returns = df_returns.transpose().reset_index(drop=False).rename(columns={'index': 'Manager'})
@@ -66,7 +66,7 @@ df_returns_benchmarks = pd.merge(left=df_returns, right=df_benchmarks, left_on=[
                                  right_on=['Date', 'ModelCode'], how='inner')
 
 # Loads market values
-df_market_values = attribution.extraction.load_market_values(directory + market_values_filename)
+df_market_values = attribution.extraction.load_market_values(input_directory + 'market_values/' + market_values_filename)
 
 # Reshapes market values dataframe from wide to long
 df_market_values = df_market_values.transpose().reset_index(drop=False).rename(columns={'index': 'Manager'})
@@ -82,7 +82,7 @@ df_main = pd.merge(df_returns_benchmarks, df_market_values, how='outer', on=['Ma
 asset_allocations = ['High Growth', 'Balanced Growth', 'Balanced', 'Conservative', 'Growth', 'Employer Reserve']
 
 df_asset_allocations = pd.read_csv(
-    directory + asset_allocations_filename,
+    input_directory + 'allocations/' + asset_allocations_filename,
     parse_dates=['Date'],
     infer_datetime_format=True,
     float_precision='round_trip'
