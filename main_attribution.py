@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2019, 1, 31)
+start_date = datetime.datetime(2018, 7, 31)
 end_date = datetime.datetime(2019, 6, 30)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
@@ -54,7 +54,6 @@ df_returns = df_returns.transpose().reset_index(drop=False).rename(columns={'ind
 df_returns = pd.melt(df_returns, id_vars=['Manager'], value_name='1_r')
 
 # Selects returns for this month or within a date_range
-# df_returns = df_returns[df_returns['Date'] == df_returns['Date'].max()].reset_index(drop=True)
 df_returns = df_returns[(df_returns['Date'] >= start_date) & (df_returns['Date'] <= end_date)].reset_index(drop=True)
 
 df_benchmarks = pd.merge(left=df_returns, right=df_table, left_on=['Manager'], right_on=['Associated Benchmark'],
@@ -287,21 +286,6 @@ df_attribution = df_attribution.reset_index(drop=True)
 
 
 # Test of chain linking
-# Compound returns each period
-def link(data):
-    d = dict()
-    d[market_value] = np.average(data['Market Value'])
-    d[r_portfolio] = (np.prod(1 + data['1_r']) - 1)
-    d[r_benchmark] = (np.prod(1 + data['bmk_1_r']) - 1)
-    d[r_excess] = (np.prod(1 + data['1_er']) - 1)
-    d[r_active_contribution] = (np.prod(1 + data['Active Contribution']) - 1)
-    d[w_portfolio] = np.average(data['Portfolio'])
-    d[w_benchmark] = np.average(data['Benchmark'])
-    d[AA] = (np.prod(1 + data['AA']) - 1)
-    d[SS] = (np.prod(1 + data['SS']) - 1)
-    d[interaction] = (np.prod(1 + data['Interaction']) - 1)
-    return pd.Series(d)
-
 # JPM version, calculate 3 month averages than calculate AA, SS, Interaction FIX r_diff and r_diff_sq
 def link2(data):
     d = dict()
@@ -310,13 +294,6 @@ def link2(data):
     d[r_benchmark] = (np.prod(1 + data['bmk_1_r']) - 1)
     d[r_diff] = np.sum(data['1_r'] - data['bmk_1_r'])
     d[r_diff_sq] = np.sum((data['1_r'] - data['bmk_1_r'])**2)
-    # d[r_excess] = (np.prod(1 + data['1_er']) - 1)
-    # d[r_active_contribution] = (np.prod(1 + data['Active Contribution']) - 1)
-    # d[w_portfolio] = np.average(data['Portfolio'])
-    # d[w_benchmark] = np.average(data['Benchmark'])
-    # d[AA] = (np.prod(1 + data['AA']) - 1)
-    # d[SS] = (np.prod(1 + data['SS']) - 1)
-    # d[interaction] = (np.prod(1 + data['Interaction']) - 1)
     return pd.Series(d)
 
 
@@ -326,16 +303,6 @@ df_linked = df_linked.groupby(['Strategy', 'Asset Class', 'Manager']).apply(link
 
 # JPM Version
 df_linked[r_excess] = df_linked[r_portfolio] - df_linked[r_benchmark]
-# df_linked[r_active_contribution] = df_linked[r_excess] * df_linked[w_portfolio]
-# df_linked[AA] = (df_linked[w_portfolio] - df_linked[w_benchmark]) * df_linked[r_benchmark]
-# df_linked[SS] = (df_linked[r_portfolio] - df_linked[r_benchmark]) * df_linked[w_benchmark]
-# df_linked[interaction] = (df_linked[w_portfolio] - df_linked[w_benchmark]) * (df_linked[r_portfolio] - df_linked[r_benchmark])
-
-
-# Summing effects
-# df_linked[total_effect] = df_linked[AA] + df_linked[SS] + df_linked[interaction]
-# df_linked[residual] = df_linked[r_active_contribution] - df_linked[total_effect]
-# df_linked[total] = df_linked[total_effect] + df_linked[residual]
 df_linked = df_linked.reset_index(drop=False)
 
 df_linked_test = df_linked[df_linked['Manager'].isin(['TO'])]
@@ -368,16 +335,12 @@ df_attribution_scale['SS'] = df_attribution_scale['beta'] * df_attribution_scale
 df_attribution_scale['Interaction'] = df_attribution_scale['beta'] * df_attribution_scale['Interaction']
 df_attribution_scale['Total'] = df_attribution_scale['beta'] * df_attribution_scale['Total']
 
-# test = df_attribution_scale.groupby(['Strategy', 'Manager']).sum()
-
 # Sum the total rows
 df_attribution_scale_1 = df_attribution_scale[~df_attribution_scale['Manager'].isin(['TO'])]
 
 def total_sum_scale(data):
     d = dict()
     d['Market Value'] = np.sum(data['Market Value'])
-    # d['Manager'] = 'TO',
-    # d['Asset Class'] = 'Total',
     d['Portfolio'] = np.sum(data['Portfolio'])
     d['Benchmark'] = np.sum(data['Benchmark'])
     d['1_r'] = np.average(data['1_r'], weights=data['Portfolio'])
@@ -386,7 +349,6 @@ def total_sum_scale(data):
     d['AA'] = np.sum(data['AA'])
     d['SS'] = np.sum(data['SS'])
     d['Interaction'] = np.sum(data['Interaction'])
-    #d['Total'] = np.sum(data[total])
     return pd.Series(d)
 
 
@@ -416,8 +378,6 @@ def final(data):
 
 
 df_attribution_test = df_attribution_test.groupby(['Strategy', 'Manager', 'Asset Class']).apply(final).reset_index(drop=False)
-# df_attribution_test['Manager'] = [df_attribution_test['Manager'][i][0] for i in range(0, len(df_attribution_test))]
-# df_attribution_test['Asset Class'] = [df_attribution_test['Asset Class'][i][0] for i in range(0, len(df_attribution_test))]
 
 # Fix active return and and r_active contribution
 df_attribution_test[r_excess] = df_attribution_test[r_portfolio] - df_attribution_test[r_benchmark]

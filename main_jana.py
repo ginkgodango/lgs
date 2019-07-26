@@ -48,7 +48,7 @@ df_r = pd.read_csv(
         parse_dates=['Date'],
         infer_datetime_format=True,
         float_precision='round_trip',
-        usecols=['Date','AUBI_Index']
+        usecols=['Date', 'AUBI_Index']
         )
 
 df_r['2_Year'] = df_r['AUBI_Index'].rolling(24).apply(lambda r: (np.prod(1+r)**(1/2))-1)
