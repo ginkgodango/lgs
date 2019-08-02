@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2018, 7, 31)
+start_date = datetime.datetime(2019, 6, 30)
 end_date = datetime.datetime(2019, 6, 30)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
-output_directory = 'U:/CIO/#Attribution/tables/'
+output_directory = 'U:/CIO/#Attribution/tables/base/'
 
 table_filename = 'link_2019-05-31.csv'
 returns_filename = 'returns_2019-06-30.csv'
