@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2019, 6, 30)
+start_date = datetime.datetime(2018, 7, 31)
 end_date = datetime.datetime(2019, 6, 30)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
@@ -253,7 +253,6 @@ asset_class_sort = {
     'LPE': 12,
     'OO': 13
 }
-
 df_attribution['asset_class_sort'] = df_attribution.Manager.map(asset_class_sort)
 
 df_attribution = df_attribution.sort_values(['Date', 'strategy_sort', 'asset_class_sort'])

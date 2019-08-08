@@ -5,7 +5,7 @@ import daymove.calculation
 import daymove.format
 
 password = "lgsinvestops@LGS"
-filepath = 'D:/data/LGS/JPM/daymove/2019/07/'
+filepath = 'D:/data/LGS/JPM/daymove/2019/08/'
 filenames = sorted(os.listdir(filepath))
 output_directory = 'D:/automation/final/daymove/tables/'
 
@@ -84,3 +84,7 @@ with open(output_directory + 'INACTIVE_FUNDS.tex', 'w') as tf:
 with open(output_directory + 'REPORT_DATE.tex', 'w') as tf:
     date_today = df_main['Date'].max()
     tf.write(date_today.strftime('%d %B %Y'))
+
+df_output = df_main.sort_values(['Sector', 'FUND', 'Date'])
+
+df_output.to_csv('D:/automation/final/daymove/daymove_201908.csv', index=False)
