@@ -209,14 +209,14 @@ def aggregate_aqr(df):
 
 def rename_benchmarks(df):
     benchmark_to_name_dict = {
-        'ASX Accum Small Cap Ords Index': 'ASX Accum Small Cap',
-        'S&P/ASX Small Ords Accum Index': 'ASX Accum Small Cap',
-        'Aust Govt 10 Year bond yield + 4% ': 'Aus Gov 10 Yr Bond + 4%',
-        'Bloomberg AusBond Bank Bill Index': 'Ausbond Bank Bill',
-        'Bloomberg AusBond Bank Bill Index + 1.0%p.a.': 'AusBond Bank Bill + 1%',
+        'ASX Accum Small Cap Ords Index': 'S&P/ASX Accum Small Cap',
+        'S&P/ASX Small Ords Accum Index': 'S&P/ASX Accum Small Cap',
+        'Aust Govt 10 Year bond yield + 4% ': 'Aus Gov 10 Yr Bond + 4.0%',
+        'Bloomberg AusBond Bank Bill Index': 'AusBond Bank Bill',
+        'Bloomberg AusBond Bank Bill Index + 1.0%p.a.': 'AusBond Bank Bill + 1.0%',
         'Bloomberg AusBond Infl Govt 0+ Yr Index': 'AusBond Infl Govt 0+ Yr',
-        'Bloomberg Ausbond Composite Index': 'Ausbond Composite',
-        'Bloomberg Commodity Index Australian Dollar Hedged Total Return': 'Commodity',
+        'Bloomberg Ausbond Composite Index': 'AusBond Composite',
+        'Bloomberg Commodity Index Australian Dollar Hedged Total Return': 'Bloomberg Commodity',
         'CASH + 1.5% P.A': 'Cash + 1.5%',
         'EPRA/NARETT  (AUD)': 'EPRA/NARETT',
         'MSCI ACWI EX AUS': 'MSCI ACWI ex Aus',
@@ -228,6 +228,15 @@ def rename_benchmarks(df):
         'UBS BBINDEX 3 MONTH': 'UBS Bank Bill 3 Month',
         'Mercer/IPD Australian Property Pooled Fund Index': 'Mercer/IPD Australian Property',
         'MSCI World Value Ex Australia Net Index': 'MSCI World Value Ex Aus Net',
+        'Barclays Capital Global Agg Index (Hedged)': 'Barclays Capital Global Agg',
+        'Bloomberg AusBond Composite 0+ Yr Index': 'Ausbond Composite 0+ Yr',
+        'S&P/ASX 200 Accum Index': 'S&P/ASX 200 Accum',
+        'S&P/ASX 300 Accum Index': 'S&P/ASX 300 Accum',
+        'MSCI ACWI ex Australia': 'MSCI ACWI ex Aus',
+        'MSCI ACWI ex Australia(Net) 40% Hedged': 'MSCI ACWI ex Aus 40% Hedged',
+        'Bloomberg AusBond Bank Bill Index + 2.0%p.a.': 'AusBond Bank Bill + 2.0%',
+        'Bloomberg AusBond Bank Bill Index + 1.5%p.a.':  'AusBond Bank Bill + 1.5%',
+        'Zero': '',
         np.nan: ''
     }
 

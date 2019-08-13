@@ -5,9 +5,10 @@ import daymove.calculation
 import daymove.format
 
 password = "lgsinvestops@LGS"
-filepath = 'D:/data/LGS/JPM/daymove/2019/08/'
+filepath = 'U:/CIO/#Daymove/files/2019/08/'
+filepath = 'U:/CIO/#Daymove/files/2019/test/'
 filenames = sorted(os.listdir(filepath))
-output_directory = 'D:/automation/final/daymove/tables/'
+output_directory = 'U:/CIO/#Daymove/tables/'
 
 df_main = pd.DataFrame()
 
