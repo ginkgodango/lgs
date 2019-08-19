@@ -156,7 +156,8 @@ def rename_funds(df):
         'TOTAL - LGS Opportunistic Alternatives Sector': 'Opportunistic Alternatives',
         'LGDD - DA REBAL': 'Defensive Alts',
         'TOTAL - LGS Defensive Alternatives Sector': 'Defensive Alternatives',
-        'TOTAL LGS (LGSMAN)': 'TOTAL LGS'
+        'TOTAL LGS (LGSMAN)': 'TOTAL LGS',
+        'LGRC:  ARDEA REAL OUTCOME MFF50EU': 'Ardea Real'
     }
 
     df['Fund'] = [

@@ -36,9 +36,10 @@ import numpy as np
 # df_jpm = df_jpm.replace('-', np.nan)
 
 input_directory = 'D:/output/LGS/alternatives/'
-filename = 'alternatives_2019-06-30.csv'
-output_directory = 'U:/CIO/#Investment_Report/Data/output/alternatives/'
-ac_filename = 'alts_ac_2019_06_30.csv'
+filename = 'alternatives_2019-07-31.csv'
+output_directory = 'U:/CIO/#Investment_Report/Data/input/alternatives/'
+ac_filename = 'alts_ac_2019_07_31.csv'
+sustainable_filename = 'sustainable_alts_2019_07_31.xlsx'
 
 df_jpm = pd.read_csv(input_directory + filename, parse_dates=['Date'])
 
@@ -221,15 +222,25 @@ sustainable_columns_list = [
 ]
 
 sustainable_managers_to_name_dict = {
-    'IFM Australian Infrastructure Wholesale Fund': 'IFM Australian Infra',
-    'AMP Capital Community Infrastructure': 'AMP Community Infra',
     'ACTIS Emerging Markets 3 Fund': 'Actis EM III',
+    'Actis Energy 4': 'Actis EM IV',
     'Archer Capital Growth Fund 2B': 'Archer Growth II',
-    'EQT VI': 'EQT VI',
+    'Growth Fund III': 'Archer Growth III',
+    'Quentin Ayers Cerberus IREP III': 'Cerberus III',
+    'Cerberus INS IV LP': 'Cerberus IV',
     'Quentin Ayers EQT Infrastructure Fund': 'EQT Infra I',
     'EQT Infrastructure Fund II': 'EQT Infra II',
+    'EQT Infrasturcture III': 'EQT Infra III',
+    'EQT VI': 'EQT Infra VI',
     'Stafford Clean Tech Fund': 'Clean Tech I',
-    'Stafford Clean Tech Fund II L.P.': 'Clean Tech II'
+    'Stafford Clean Tech Fund II L.P.': 'Clean Tech II',
+    'Quadrant Private Equity No 3D': 'Quadrant III',
+    'Quadrant PE 4': 'Quadrant IV',
+    'Quadrant PE V': 'Quadrant V',
+    'Quadrant Private Equity 6 LP': 'Quadrant VI',
+    'AMP Capital Community Infrastructure': 'AMP Community Infra',
+    'IFM Australian Infrastructure Wholesale Fund': 'IFM Australian Infra',
+    'Lighthouse Solar Fund': 'Lighthouse'
 }
 
 df_sustainable = df_jpm_main[df_jpm_main['Date'] == df_jpm_main['Date'].max()]
@@ -258,6 +269,5 @@ df_sustainable.columns = [
     '12_r', '12_er',
     '36_r', '36_er'
 ]
-
-# df_sustainable.to_excel(output_directory + sustainable_filename, index=False)
+df_sustainable.to_excel(output_directory + sustainable_filename, index=False)
 

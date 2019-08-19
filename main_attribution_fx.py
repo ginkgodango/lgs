@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2019, 6, 30)
+start_date = datetime.datetime(2018, 7, 31)
 end_date = datetime.datetime(2019, 6, 30)
 periods = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month) + 1
 
@@ -15,7 +15,7 @@ periods = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.
 hedge_ratio_change_date = datetime.datetime(2018, 10, 4)
 hedge_ratio_periods_old = ((hedge_ratio_change_date.year - start_date.year) * 12 + (hedge_ratio_change_date.month - start_date.month))/ periods
 hedge_ratio_periods_new = ((end_date.year - hedge_ratio_change_date.year) * 12 + (end_date.month - hedge_ratio_change_date.month) + 1)/ periods
-hedge_ratio_old = 0.4
+hedge_ratio_old = 0.3
 hedge_ratio_new = 0.4
 hedge_ratio_adj = hedge_ratio_old * hedge_ratio_periods_old + hedge_ratio_new * hedge_ratio_periods_new
 
@@ -265,6 +265,10 @@ df_fx_hedged = pd.merge(left=df_fx, right=df_ie, left_on=['Strategy', 'Date'], r
 
 # df_fx_hedged['R_bar'] = df_fx_hedged['R_bar'] * df_fx_hedged['Portfolio']
 
+# BHB Special Case
+df_fx_hedged['R_bar'] = 0
+# End BHB Special Case
+
 df_fx_hedged['AA'] = (df_fx_hedged['Portfolio_sub'] - df_fx_hedged['Benchmark_sub']) * (df_fx_hedged['bmk_1_r'] - df_fx_hedged['R_bar'])
 
 df_fx_hedged['SS'] = df_fx_hedged['Benchmark_sub'] * (df_fx_hedged['1_r'] - df_fx_hedged['bmk_1_r'])
@@ -335,13 +339,14 @@ df_hedged_scale = pd.merge(
     how='inner'
 )
 
+# Calculates the scaling factor
 df_hedged_scale['beta'] = df_hedged_scale['A'] + df_hedged_scale['C']*(df_hedged_scale['R']-df_hedged_scale['R_bar'])
 
+# Multiplies AA, SS, In, and Total by the scaling factor
 df_hedged_scale['AA'] = df_hedged_scale['beta'] * df_hedged_scale['AA']
 df_hedged_scale['SS'] = df_hedged_scale['beta'] * df_hedged_scale['SS']
 df_hedged_scale['In'] = df_hedged_scale['beta'] * df_hedged_scale['In']
 df_hedged_scale['Total'] = df_hedged_scale['beta'] * df_hedged_scale['Total']
-
 
 # Sum the total rows
 df_hedged_scale_1 = df_hedged_scale[~df_hedged_scale['Manager'].isin(['IEh'])]

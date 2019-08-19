@@ -6,7 +6,7 @@ import daymove.format
 
 password = "lgsinvestops@LGS"
 filepath = 'U:/CIO/#Daymove/files/2019/08/'
-filepath = 'U:/CIO/#Daymove/files/2019/test/'
+# filepath = 'U:/CIO/#Daymove/files/2019/test/'
 filenames = sorted(os.listdir(filepath))
 output_directory = 'U:/CIO/#Daymove/tables/'
 
