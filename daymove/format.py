@@ -238,6 +238,7 @@ def rename_benchmarks(df):
         'Bloomberg AusBond Bank Bill Index + 2.0%p.a.': 'AusBond Bank Bill + 2.0%',
         'Bloomberg AusBond Bank Bill Index + 1.5%p.a.':  'AusBond Bank Bill + 1.5%',
         'Zero': '',
+        'ZERO': '',
         np.nan: ''
     }
 
