@@ -75,3 +75,4 @@ df_jpm['36_vol'] = (
     .reset_index(drop=False)['Return_JPM']
 )
 
+df_jpm.to_csv('U:/CIO/#Investment_Report/Data/output/verification/jpm_calculate.csv', index=False)

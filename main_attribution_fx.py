@@ -403,6 +403,7 @@ def final(data):
     d[SS] = np.sum(data['SS'])
     d[interaction] = np.sum(data['In'])
     d[total_effect] = np.sum(data['Total'])
+    d[r_active_contribution] = (np.prod(1 + data['1_r']*data['Portfolio_sub']) - 1) - (np.prod(1 + data['bmk_1_r']*data['Benchmark_sub']) - 1)
     return pd.Series(d)
 
 
@@ -410,25 +411,31 @@ df_attribution_fx = df_attribution_fx.groupby(['Strategy', 'Manager']).apply(fin
 
 # Fix active return and and r_active contribution
 df_attribution_fx[r_excess] = df_attribution_fx[r_portfolio] - df_attribution_fx[r_benchmark]
-df_attribution_fx[r_active_contribution] = df_attribution_fx[w_portfolio] * df_attribution_fx[r_excess]
+# df_attribution_fx[r_active_contribution] = df_attribution_fx[w_portfolio] * df_attribution_fx[r_excess]
 
 
 # Fix IEh active contribution
-def final_ieh_ac(data):
-    d = dict()
-    d[r_active_contribution] = np.dot(data[w_portfolio], data[r_excess])
-    return pd.Series(d)
+# def final_ieh_ac(data):
+#     d = dict()
+#     d[r_active_contribution] = np.dot(data[w_portfolio], data[r_excess])
+#     return pd.Series(d)
+#
+# df_attribution_fx_ieh = df_attribution_fx[~df_attribution_fx['Manager'].isin(['IEh'])]
+# df_attribution_fx_ieh = df_attribution_fx_ieh.groupby(['Strategy']).apply(final_ieh_ac).to_dict()
+#
+# fx_ac = []
+# for i in range(0,len(df_attribution_fx)):
+#     if df_attribution_fx['Manager'][i] == 'IEh':
+#         fx_ac.append(df_attribution_fx_ieh[r_active_contribution][df_attribution_fx['Strategy'][i]])
+#     else:
+#         fx_ac.append(df_attribution_fx[r_active_contribution][i])
+# df_attribution_fx[r_active_contribution] = fx_ac
 
-df_attribution_fx_ieh = df_attribution_fx[~df_attribution_fx['Manager'].isin(['IEh'])]
-df_attribution_fx_ieh = df_attribution_fx_ieh.groupby(['Strategy']).apply(final_ieh_ac).to_dict()
+df_attribution_fx_ieh = df_attribution_fx[df_attribution_fx['Manager'].isin(['IEh'])]
+df_attribution_fx_ieh[r_active_contribution] = df_attribution_fx[r_excess]
 
-fx_ac = []
-for i in range(0,len(df_attribution_fx)):
-    if df_attribution_fx['Manager'][i] == 'IEh':
-        fx_ac.append(df_attribution_fx_ieh[r_active_contribution][df_attribution_fx['Strategy'][i]])
-    else:
-        fx_ac.append(df_attribution_fx[r_active_contribution][i])
-df_attribution_fx[r_active_contribution] = fx_ac
+df_attribution_fx = df_attribution_fx[~df_attribution_fx['Manager'].isin(['IEh'])]
+df_attribution_fx = pd.concat([df_attribution_fx, df_attribution_fx_ieh]).reset_index(drop=True)
 
 # Calculates residual and total
 df_attribution_fx[residual] = df_attribution_fx[r_active_contribution] - df_attribution_fx[total_effect]
@@ -498,6 +505,9 @@ with open(output_directory + 'fx_in.tex', 'w') as tf:
 
 with open(output_directory + 'fx_re.tex', 'w') as tf:
     tf.write(df_re.to_latex(index=False).replace('NaN', ''))
+
+with open(output_directory + 'fx_te.tex', 'w') as tf:
+    tf.write(df_te.to_latex(index=False).replace('NaN', ''))
 
 with open(output_directory + 'fx_to.tex', 'w') as tf:
     tf.write(df_to.to_latex(index=False).replace('NaN', ''))
