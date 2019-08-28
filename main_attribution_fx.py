@@ -229,13 +229,6 @@ df_fx['bmk_1_r'] = fx_benchmarks
 df_fx['Portfolio_sub'] = fx_portfolio_sub
 df_fx['Benchmark_sub'] = fx_benchmark_sub
 
-# Adds portfolio and benchmark weights
-# df_fx['Portfolio_sub'] = [fx_dict['IE'][df_fx['Manager'][i]]['allocation'] for i in range(0, len(df_fx))]
-# df_fx['Benchmark_sub'] = [fx_dict['IE'][df_fx['Manager'][i]]['allocation'] for i in range(0, len(df_fx))]
-
-# Removes previous level effects
-# df_fx['Portfolio_sub'] = df_fx['Portfolio_sub']*df_fx['Benchmark']/df_fx['Portfolio']
-
 df_hedged = df_main[df_main['Manager'].isin(['IE'])]
 df_hedged = df_hedged.rename(columns={
     'Manager': 'Asset Class',
@@ -244,7 +237,6 @@ df_hedged = df_hedged.rename(columns={
     'bmk_1_r': 'R_bar'
 })
 
-# Start Testing
 def build_ie_aggregate(data):
     d = dict()
     d['Asset Class'] = 'IE',
@@ -259,11 +251,6 @@ df_ie['R'] = [df_ie['R'][i][0] for i in range(0,len(df_ie))]
 df_ie = df_ie[['Strategy', 'Date', 'R', 'R_bar']]
 
 df_fx_hedged = pd.merge(left=df_fx, right=df_ie, left_on=['Strategy', 'Date'], right_on=['Strategy', 'Date'], how='inner')
-# End Testing
-
-# df_fx_hedged = pd.merge(left=df_fx, right=df_hedged, left_on='Date', right_on='Date', how='inner')
-
-# df_fx_hedged['R_bar'] = df_fx_hedged['R_bar'] * df_fx_hedged['Portfolio']
 
 # BHB Special Case
 df_fx_hedged['R_bar'] = 0
@@ -353,12 +340,10 @@ df_hedged_scale_1 = df_hedged_scale[~df_hedged_scale['Manager'].isin(['IEh'])]
 
 def total_sum_scale(data):
     d = dict()
-    #d['Market Value'] = np.sum(data['Market Value'])
     d['Portfolio_sub'] = np.sum(data['Portfolio_sub'])
     d['Benchmark_sub'] = np.sum(data['Benchmark_sub'])
     d['1_r'] = np.dot(data['1_r'], data['Portfolio_sub'])
     d['bmk_1_r'] = np.dot(data['bmk_1_r'], data['Benchmark_sub'])
-    #d['Active Contribution'] = np.sum(data['Active Contribution'])
     d['AA'] = np.sum(data['AA'])
     d['SS'] = np.sum(data['SS'])
     d['In'] = np.sum(data['In'])
@@ -411,25 +396,6 @@ df_attribution_fx = df_attribution_fx.groupby(['Strategy', 'Manager']).apply(fin
 
 # Fix active return and and r_active contribution
 df_attribution_fx[r_excess] = df_attribution_fx[r_portfolio] - df_attribution_fx[r_benchmark]
-# df_attribution_fx[r_active_contribution] = df_attribution_fx[w_portfolio] * df_attribution_fx[r_excess]
-
-
-# Fix IEh active contribution
-# def final_ieh_ac(data):
-#     d = dict()
-#     d[r_active_contribution] = np.dot(data[w_portfolio], data[r_excess])
-#     return pd.Series(d)
-#
-# df_attribution_fx_ieh = df_attribution_fx[~df_attribution_fx['Manager'].isin(['IEh'])]
-# df_attribution_fx_ieh = df_attribution_fx_ieh.groupby(['Strategy']).apply(final_ieh_ac).to_dict()
-#
-# fx_ac = []
-# for i in range(0,len(df_attribution_fx)):
-#     if df_attribution_fx['Manager'][i] == 'IEh':
-#         fx_ac.append(df_attribution_fx_ieh[r_active_contribution][df_attribution_fx['Strategy'][i]])
-#     else:
-#         fx_ac.append(df_attribution_fx[r_active_contribution][i])
-# df_attribution_fx[r_active_contribution] = fx_ac
 
 df_attribution_fx_ieh = df_attribution_fx[df_attribution_fx['Manager'].isin(['IEh'])]
 df_attribution_fx_ieh[r_active_contribution] = df_attribution_fx[r_excess]
@@ -450,18 +416,6 @@ df_output = df_attribution_fx[output_columns]
 percentage_column = [r_portfolio, r_benchmark, r_active_contribution, AA, SS, interaction, residual, total_effect, total]
 
 df_output[percentage_column] = (df_output[percentage_column]*100).round(2)
-
-# df_output = df_output.reset_index(drop=True)
-#
-# fx_sort = {
-#     'IEu': 0,
-#     'IECurrencyOverlay_IE': 1,
-#     'IEh': 2
-# }
-#
-# df_output['fx_sort'] = [fx_sort[df_output['Manager'][i]] for i in range(0, len(df_output))]
-#
-# df_output = df_output.sort_values(['Strategy', 'fx_sort']).reset_index(drop=True)
 
 manager_to_name_dict = {
     'IEu': '1. Int\'l Equity (Unhedged)',
@@ -511,58 +465,3 @@ with open(output_directory + 'fx_te.tex', 'w') as tf:
 
 with open(output_directory + 'fx_to.tex', 'w') as tf:
     tf.write(df_to.to_latex(index=False).replace('NaN', ''))
-
-
-# #Output Below Here
-# output_columns = ['Strategy', 'Manager', 'Date', '1_r', 'bmk_1_r', '1_er', 'AA', 'SS', 'In', 'Total']
-#
-# df_output = df_fx_hedged[output_columns]
-#
-# percentage_column = ['1_r', 'bmk_1_r', '1_er', 'AA', 'SS', 'In', 'Total']
-#
-# df_output[percentage_column] = (df_output[percentage_column]*100).round(2)
-#
-# manager_to_name_dict = {
-#     'IEu': '1. Int\'l Equity (Unhedged)',
-#     'IECurrencyOverlay_IE': '2. FX Overlay',
-#     'IEh': '3. Int\'l Equity (Hedged)'
-# }
-#
-# df_output['Manager'] = [manager_to_name_dict[df_output['Manager'][i]] for i in range(0, len(df_output))]
-#
-#
-# def pivot_table(df, var):
-#     columns_list = ['Strategy', 'Manager', var]
-#     df = df[columns_list]
-#     df = df.pivot(index='Manager', columns='Strategy', values=var)
-#     df = df[asset_allocations]
-#     df = df.reset_index(drop=False)
-#     #df['asset_class_sort'] = df.Manager.map(asset_class_sort)
-#     #df = df.sort_values(['asset_class_sort'])
-#     #df = df.drop('asset_class_sort', axis=1)
-#     df = df.reset_index(drop=True)
-#     #df['Manager'] = [modelcode_to_name_dict[df['Manager'][i]] for i in range(0, len(df))]
-#     df.columns = latex_column_names
-#     return df
-#
-#
-# df_ac = pivot_table(df_output, '1_er')
-# df_aa = pivot_table(df_output, 'AA')
-# df_ss = pivot_table(df_output, 'SS')
-# df_in = pivot_table(df_output, 'In')
-# df_to = pivot_table(df_output, 'Total')
-#
-# with open(output_directory + 'fx_ac.tex', 'w') as tf:
-#     tf.write(df_ac.to_latex(index=False).replace('NaN', ''))
-#
-# with open(output_directory + 'fx_aa.tex', 'w') as tf:
-#     tf.write(df_aa.to_latex(index=False).replace('NaN', ''))
-#
-# with open(output_directory + 'fx_ss.tex', 'w') as tf:
-#     tf.write(df_ss.to_latex(index=False).replace('NaN', ''))
-#
-# with open(output_directory + 'fx_in.tex', 'w') as tf:
-#     tf.write(df_in.to_latex(index=False).replace('NaN', ''))
-#
-# with open(output_directory + 'fx_to.tex', 'w') as tf:
-#     tf.write(df_to.to_latex(index=False).replace('NaN', ''))
