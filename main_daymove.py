@@ -5,7 +5,7 @@ import daymove.calculation
 import daymove.format
 
 password = "lgsinvestops@LGS"
-filepath = 'U:/CIO/#Daymove/files/2019/08/'
+filepath = 'U:/CIO/#Daymove/files/2019/09/'
 # filepath = 'U:/CIO/#Daymove/files/2019/test/'
 filenames = sorted(os.listdir(filepath))
 output_directory = 'U:/CIO/#Daymove/tables/'
@@ -88,4 +88,4 @@ with open(output_directory + 'REPORT_DATE.tex', 'w') as tf:
 
 df_output = df_main.sort_values(['Sector', 'FUND', 'Date'])
 
-df_output.to_csv('D:/automation/final/daymove/daymove_201908.csv', index=False)
+#df_output.to_csv('D:/automation/final/daymove/daymove_data.csv', index=False)
