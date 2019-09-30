@@ -14,9 +14,12 @@ input_directory = 'U:/CIO/#Investment_Report/Data/input/'
 output_directory = 'U:/CIO/#Attribution/tables/base/'
 
 table_filename = 'link_2019-06-30.csv'
-returns_filename = 'returns_2019-06-30.csv'
-market_values_filename = 'market_values_2019-06-30.csv'
-asset_allocations_filename = 'asset_allocations_2019-06-30.csv'
+# returns_filename = 'returns_2019-06-30.csv'
+returns_filename = 'returns_2019-08-31.csv'
+# market_values_filename = 'market_values_2019-06-30.csv'
+market_values_filename = 'market_values_2019-08-31.csv'
+# asset_allocations_filename = 'asset_allocations_2019-06-30.csv'
+asset_allocations_filename = 'asset_allocations_2019-08-31.csv'
 
 latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
@@ -107,11 +110,49 @@ df_asset_allocations['Date'] = df_asset_allocations['Date'] + pd.offsets.MonthEn
 df_sector_bmk_r = df_main[df_main['Sector'].isin(['TO'])][['Manager', 'Date', 'bmk_1_r']].reset_index(drop=True)
 
 # Filters IEu and BO from market value
-df_main = df_main[~df_main['Manager'].isin(['IEu', 'BO'])].reset_index(drop=True)
+df_main = df_main[~df_main['Manager'].isin(['IEu', 'BO', 'Bonds_BO'])].reset_index(drop=True)
 df_main = df_main[~df_main['Market Value'].isin([np.nan])]
+
+# Filters managers with NaN returns
+# df_main = df_main[~df_main['1_r'].isin([np.nan])]
+df_main['1_r'].fillna(0, inplace=True)
+
+# Imports transition file
+df_transition = pd.read_csv(
+    'U:/CIO/#Attribution/data/input/transition_201909.csv',
+    parse_dates=['Date'],
+    infer_datetime_format=True,
+    float_precision='round_trip'
+)
+
+df_transition_remove = df_transition[['Manager Remove', 'Date']]
+df_transition_add = df_transition.drop(['Manager Remove'], axis=1)
+
+# Remove transitioning accounts
+df_main = pd.merge(
+    left=df_main,
+    right=df_transition_remove,
+    left_on=['Manager', 'Date'],
+    right_on=['Manager Remove', 'Date'],
+    how='outer',
+    indicator=True
+)
+df_main = df_main[~df_main['_merge'].isin(['both'])]
+df_main = df_main.drop(['Manager Remove', '_merge'], axis=1)
+
+# Adds the transition account to the main dataframe
+df_main = pd.concat([df_main, df_transition_add], sort=False)
 
 # Finds sector market values
 df_sector_sum_mv = df_main.groupby(['Date', 'Sector']).sum()['Market Value'].reset_index(drop=False)
+
+
+# START TEST
+df_sector_mv = df_market_values[df_market_values['Manager'].isin(['AE', 'IE', 'DP', 'ILP', 'BO', 'AR', 'AC', 'CO', 'SAS'])]
+df_test1 = pd.merge(left=df_sector_sum_mv, right=df_sector_mv, left_on=['Sector', 'Date'], right_on=['Manager', 'Date'])
+df_test1['deviation'] = (df_test1['Market Value_x'] - df_test1['Market Value_y'])/1000000
+# END TEST
+
 
 # Joins the dataframes together
 df_main = pd.merge(left=df_main, right=df_sector_sum_mv, left_on=['Sector', 'Date'], right_on=['Sector', 'Date'])
@@ -133,6 +174,50 @@ df_style['total_1_ac'] = df_style['manager_1_r'] - df_style['passive_1_r']
 
 df_sector_style = df_style.groupby(['Date', 'Sector']).sum().reset_index(drop=False)
 
+# Adds FX Overlay to IE returns
+#df_fx = df_returns[df_returns['Manager'].isin(['IECurrencyOverlay_IE'])]
+
+df_fx = df_returns_benchmarks[df_returns_benchmarks['Manager'].isin(['IECurrencyOverlay_IE'])]
+
+df_fx = df_fx.rename(columns={'1_r': '1_r_fx', 'bmk_1_r': 'bmk_1_r_fx'})
+df_fx = df_fx.drop(['Manager', 'Benchmark Name', 'ModelCode', 'Sector', 'Style'], axis=1)
+df_fx.insert(0, 'Sector', 'IE')
+
+df_sector_style = pd.merge(
+    left=df_sector_style,
+    right=df_fx,
+    left_on=['Sector', 'Date'],
+    right_on=['Sector', 'Date'],
+    how='outer'
+)
+df_sector_style['1_r_fx'].fillna(0, inplace=True)
+df_sector_style['manager_1_r'] = df_sector_style['manager_1_r'] + df_sector_style['1_r_fx']
+df_sector_style['pure_1_ac'] = df_sector_style['pure_1_ac'] + df_sector_style['1_r_fx'] - df_sector_style['bmk_1_r_fx']
+df_sector_style['total_1_ac'] = df_sector_style['total_1_ac'] + df_sector_style['1_r_fx'] - df_sector_style['bmk_1_r_fx']
+
+# START TEST df_sector_style
+df_sector = df_returns[df_returns['Manager'].isin(['AE', 'IE', 'DP', 'ILP', 'BO', 'AR', 'AC', 'CO', 'SAS'])]
+
+df_test2 = pd.merge(
+    left=df_sector_style,
+    right=df_sector,
+    left_on=['Date', 'Sector'],
+    right_on=['Date', 'Manager'],
+    how='outer'
+)
+
+df_test2['Deviation'] = df_test2['manager_1_r'] - df_test2['1_r']
+
+df_test3 = pd.merge(
+    left=df_test2,
+    right=df_sector_mv,
+    left_on=['Sector', 'Date'],
+    right_on=['Manager', 'Date'],
+    how='outer'
+)
+
+df_test3['deviation_mv'] = (df_test3['Market Value_x'] - df_test3['Market Value_y'])/1000000
+#END TEST
 
 def link(data):
     d = dict()
