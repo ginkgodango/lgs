@@ -47,7 +47,11 @@ r_style = str(periods) + '_r_style'
 r_passive = str(periods) + '_r_passive'
 r_pure_active = str(periods) + '_r_pure_active'
 r_style_active = str(periods) + '_r_style_active'
-r_total_active = str(periods) + '_r_total_effect'
+r_effect_active = str(periods) + '_r_effect_active'
+r_actual_portfolio = str(periods) + '_r_actual_portfolio'
+r_actual_benchmark = str(periods) + '_r_actual_benchmark'
+r_residual = str(periods) + '_r_residual'
+r_total_active = str(periods) + '_r_total_active'
 
 # Loads table
 df_table = attribution.extraction.load_table(input_directory + 'link/' + table_filename)
@@ -174,6 +178,9 @@ df_style['total_1_ac'] = df_style['manager_1_r'] - df_style['passive_1_r']
 
 df_sector_style = df_style.groupby(['Date', 'Sector']).sum().reset_index(drop=False)
 
+# Removes unnecessary bond sectors
+df_sector_style = df_sector_style[~df_sector_style['Sector'].isin(['IFI'])]
+
 # Adds FX Overlay to IE returns
 #df_fx = df_returns[df_returns['Manager'].isin(['IECurrencyOverlay_IE'])]
 
@@ -196,7 +203,8 @@ df_sector_style['pure_1_ac'] = df_sector_style['pure_1_ac'] + df_sector_style['1
 df_sector_style['total_1_ac'] = df_sector_style['total_1_ac'] + df_sector_style['1_r_fx'] - df_sector_style['bmk_1_r_fx']
 
 # START TEST df_sector_style
-df_sector = df_returns[df_returns['Manager'].isin(['AE', 'IE', 'DP', 'ILP', 'BO', 'AR', 'AC', 'CO', 'SAS'])]
+df_sector = df_returns_benchmarks[df_returns_benchmarks['Manager'].isin(['AE', 'IE', 'DP', 'ILP', 'BO', 'AR', 'AC', 'CO', 'SAS'])]
+df_sector = df_sector.drop(['ModelCode', 'Sector', 'Style'], axis=1)
 
 df_test2 = pd.merge(
     left=df_sector_style,
@@ -226,9 +234,73 @@ def link(data):
     d[r_passive] = (np.prod(1 + data['passive_1_r']) - 1)
     d[r_pure_active] = (np.prod(1 + data['manager_1_r']) - 1) - (np.prod(1 + data['style_1_r']) - 1)
     d[r_style_active] = (np.prod(1 + data['style_1_r']) - 1) - (np.prod(1 + data['passive_1_r']) - 1)
-    d[r_total_active] = (np.prod(1 + data['manager_1_r']) - 1) - (np.prod(1 + data['passive_1_r']) - 1)
+    d[r_effect_active] = (np.prod(1 + data['manager_1_r']) - 1) - (np.prod(1 + data['passive_1_r']) - 1)
+    d[r_actual_portfolio] = (np.prod(1 + data['1_r']) - 1)
+    d[r_actual_benchmark] = (np.prod(1 + data['bmk_1_r']) - 1)
+    d[r_residual] = (
+            ((np.prod(1 + data['manager_1_r']) - 1) - (np.prod(1 + data['passive_1_r']) - 1)) -
+            ((np.prod(1 + data['1_r']) - 1) - (np.prod(1 + data['bmk_1_r']) - 1))
+    )
     return pd.Series(d)
 
 
-df_sector_style_linked = df_sector_style.groupby(['Sector']).apply(link).reset_index(drop=False)
+# df_sector_style_linked = df_sector_style.groupby(['Sector']).apply(link).reset_index(drop=False)
+df_sector_style_linked = df_test3.groupby(['Sector']).apply(link).reset_index(drop=False)
+df_sector_style_linked[r_total_active] = df_sector_style_linked[r_effect_active] - df_sector_style_linked[r_residual]
 
+# Merge test3 with asset allocations
+# Multiply returns with asset allocations
+assetclass_to_modelcode_dict = {
+    'Australian Equity': 'AE',
+    'International Equity': 'IE',
+    'Australian Listed Property': 'ALP',
+    'Property': 'DP',
+    'Global Property': 'ILP',
+    'Bonds': 'BO',
+    'Absolute Return': 'AR',
+    'Commodities': 'CO',
+    'Cash': 'AC',
+    'Legacy Private Equity': 'LPE',
+    'Private Equity': 'PE',
+    'Opportunistic Alternatives': 'OA',
+    'Defensive Alternatives': 'DA',
+    'Option Overlay': 'OO',
+    'Forwards': 'FW',
+    'Total': 'TO'
+}
+
+df_asset_allocations['Sector'] = [
+    assetclass_to_modelcode_dict[df_asset_allocations['Asset Class'][i]]
+    for i in range(0,len(df_asset_allocations))
+]
+df_asset_allocations = df_asset_allocations.drop(['Market Value', 'Unnamed: 4'], axis=1)
+
+df_test4 = pd.merge(
+    left=df_test3,
+    right=df_asset_allocations,
+    left_on=['Sector', 'Date'],
+    right_on=['Sector', 'Date'],
+    how='inner'
+)
+
+
+def final(data):
+    d = dict()
+    d[r_portfolio] = (np.prod(1 + data['manager_1_r']) - 1)
+    d[r_style] = (np.prod(1 + data['style_1_r']) - 1)
+    d[r_passive] = (np.prod(1 + data['passive_1_r']) - 1)
+    d[w_portfolio] = np.average(data['Portfolio'])
+    d[w_benchmark] = np.average(data['Benchmark'])
+    d[r_actual_portfolio] = (np.prod(1 + data['1_r']) - 1)
+    d[r_actual_benchmark] = (np.prod(1 + data['bmk_1_r']) - 1)
+    return pd.Series(d)
+
+
+df_final = df_test4.groupby(['Strategy', 'Sector']).apply(final).reset_index(drop=False)
+df_final[r_pure_active] = df_final[w_portfolio] * (df_final[r_portfolio] - df_final[r_style])
+df_final[r_style_active] = df_final[w_portfolio] * (df_final[r_style] - df_final[r_passive])
+df_final[r_effect_active] = df_final[r_pure_active] + df_final[r_style_active]
+
+df_final[r_active_contribution] = df_final[w_portfolio] * (df_final[r_actual_portfolio] - df_final[r_actual_benchmark])
+df_final[r_residual] = df_final[r_active_contribution] - df_final[r_effect_active]
+df_final[r_total_active] = df_final[r_residual] + df_final[r_effect_active]
