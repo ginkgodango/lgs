@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2018, 7, 31)
-end_date = datetime.datetime(2019, 6, 30)
+start_date = datetime.datetime(2018, 9, 30)
+end_date = datetime.datetime(2019, 8, 31)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
-output_directory = 'U:/CIO/#Attribution/tables/base/'
+output_directory = 'U:/CIO/#Attribution/tables/style/'
 
 table_filename = 'link_2019-06-30.csv'
 # returns_filename = 'returns_2019-06-30.csv'
@@ -248,9 +248,21 @@ def link(data):
 df_sector_style_linked = df_test3.groupby(['Sector']).apply(link).reset_index(drop=False)
 df_sector_style_linked[r_total_active] = df_sector_style_linked[r_effect_active] - df_sector_style_linked[r_residual]
 
+# Handles alternatives
+df_alternative_returns = df_returns_benchmarks[df_returns_benchmarks['Manager'].isin(['LPE', 'PE', 'OA', 'DA', 'OO'])]
+df_alternative_returns['manager_1_r'] = df_alternative_returns['1_r']
+df_alternative_returns['style_1_r'] = df_alternative_returns['bmk_1_r']
+df_alternative_returns['passive_1_r'] = df_alternative_returns['bmk_1_r']
+df_alternative_returns['Sector'] = df_alternative_returns['Manager']
+df_alternative_returns['Manager_x'] = df_alternative_returns['Manager']
+df_alternative_returns['Manager_y'] = df_alternative_returns['Manager']
+df_alternative_returns = df_alternative_returns.drop(['ModelCode', 'Style'], axis=1)
+
+df_test3 = pd.concat([df_test3, df_alternative_returns], sort=False)
+
 # Merge test3 with asset allocations
 # Multiply returns with asset allocations
-assetclass_to_modelcode_dict = {
+assetclass_to_sector_dict = {
     'Australian Equity': 'AE',
     'International Equity': 'IE',
     'Australian Listed Property': 'ALP',
@@ -269,10 +281,30 @@ assetclass_to_modelcode_dict = {
     'Total': 'TO'
 }
 
+sector_to_name_dict = {
+    'AE': 'Australian Equity',
+    'IE': 'International Equity',
+    'ALP': 'ALP',
+    'DP': 'Australian Property',
+    'ILP': 'International Property',
+    'BO': 'Bonds',
+    'AR': 'Absolute Return',
+    'CO': 'Commodities',
+    'AC': 'Managed Cash',
+    'LPE': 'Legacy PE',
+    'PE': 'Private Equity',
+    'OA': 'Opportunistic Alts',
+    'DA': 'Defensive Alts',
+    'OO': 'Options Overlay',
+    'FW': 'FW',
+    'TO': 'Total'
+}
+
 df_asset_allocations['Sector'] = [
-    assetclass_to_modelcode_dict[df_asset_allocations['Asset Class'][i]]
-    for i in range(0,len(df_asset_allocations))
+    assetclass_to_sector_dict[df_asset_allocations['Asset Class'][i]]
+    for i in range(0, len(df_asset_allocations))
 ]
+
 df_asset_allocations = df_asset_allocations.drop(['Market Value', 'Unnamed: 4'], axis=1)
 
 df_test4 = pd.merge(
@@ -304,3 +336,98 @@ df_final[r_effect_active] = df_final[r_pure_active] + df_final[r_style_active]
 df_final[r_active_contribution] = df_final[w_portfolio] * (df_final[r_actual_portfolio] - df_final[r_actual_benchmark])
 df_final[r_residual] = df_final[r_active_contribution] - df_final[r_effect_active]
 df_final[r_total_active] = df_final[r_residual] + df_final[r_effect_active]
+
+# Reordering
+df_final['Manager'] = [
+    sector_to_name_dict[df_final['Sector'][i]]
+    for i in range(0, len(df_final))
+]
+
+strategy_to_order_dict = {
+    'High Growth': 0,
+    'Balanced Growth': 1,
+    'Balanced': 2,
+    'Conservative': 3,
+    'Growth': 4,
+    'Employer Reserve': 5
+}
+
+df_final['strategy_sort'] = df_final.Strategy.map(strategy_to_order_dict)
+
+sector_to_order_dict = {
+    'AE': 0,
+    'IE': 1,
+    'ALP': 2,
+    'DP': 3,
+    'ILP': 4,
+    'BO': 5,
+    'AR': 6,
+    'CO': 7,
+    'AC': 8,
+    'PE': 9,
+    'OA': 10,
+    'DA': 11,
+    'LPE': 12,
+    'OO': 13
+}
+df_final['sector_sort'] = df_final.Sector.map(sector_to_order_dict)
+
+df_final = df_final.sort_values(['strategy_sort', 'sector_sort'])
+
+manager_to_order_dict = {
+    'Australian Equity': 0,
+    'International Equity': 1,
+    'Australian Listed Property': 2,
+    'Australian Property': 3,
+    'International Property': 4,
+    'Bonds': 5,
+    'Absolute Return': 6,
+    'Commodities': 7,
+    'Managed Cash': 8,
+    'Private Equity': 9,
+    'Opportunistic Alts': 10,
+    'Defensive Alts': 11,
+    'Legacy PE': 12,
+    'Options Overlay': 13
+}
+
+# Formatting
+df_final_format = df_final.copy()
+for column in df_final_format.columns:
+    try:
+        df_final_format[column] / 1
+        df_final_format[column] = (df_final_format[column] * 100).round(2)
+    except TypeError:
+        pass
+
+
+def pivot_table(df, var):
+    columns_list = ['Strategy', 'Manager', var]
+    df = df[columns_list]
+    df = df.pivot(index='Manager', columns='Strategy', values=var)
+    df = df[asset_allocations]
+    df = df.reset_index(drop=False)
+    df['sector_sort'] = df.Manager.map(manager_to_order_dict)
+    df = df.sort_values(['sector_sort'])
+    df = df.drop('sector_sort', axis=1)
+    df = df.reset_index(drop=True)
+    df.columns = latex_column_names
+    return df
+
+
+df_pa = pivot_table(df_final_format, r_pure_active)
+df_sa = pivot_table(df_final_format, r_style_active)
+df_ra = pivot_table(df_final_format, r_residual)
+df_ta = pivot_table(df_final_format, r_total_active)
+
+with open(output_directory + 'pa.tex', 'w') as tf:
+    tf.write(df_pa.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'sa.tex', 'w') as tf:
+    tf.write(df_sa.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'ra.tex', 'w') as tf:
+    tf.write(df_ra.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'ta.tex', 'w') as tf:
+    tf.write(df_ta.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))

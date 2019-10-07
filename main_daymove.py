@@ -5,7 +5,7 @@ import daymove.calculation
 import daymove.format
 
 password = "lgsinvestops@LGS"
-filepath = 'U:/CIO/#Daymove/files/2019/09/'
+filepath = 'U:/CIO/#Daymove/files/2019/10/'
 # filepath = 'U:/CIO/#Daymove/files/2019/test/'
 filenames = sorted(os.listdir(filepath))
 output_directory = 'U:/CIO/#Daymove/tables/'
@@ -53,7 +53,6 @@ sectors = [
     'GLOBAL PROPERTY',
     'INTERNATIONAL EQUITY',
     'ABSOLUTE RETURN',
-    'GREEN SECTOR',
     'ACTIVE COMMODITIES SECTOR',
     'LGSS AE OPTION OVERLAY SECTOR',
     'LGSS LEGACY PE SECTOR',
