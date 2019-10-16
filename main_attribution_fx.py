@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2018, 7, 31)
-end_date = datetime.datetime(2019, 6, 30)
+start_date = datetime.datetime(2018, 10, 31)
+end_date = datetime.datetime(2019, 9, 30)
 periods = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month) + 1
 
 # If hedge ratio changes
@@ -24,10 +24,10 @@ fx_allocation_dict = {'IEu': 1, 'IECurrencyOverlay_IE': hedge_ratio_new}
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
 output_directory = 'U:/CIO/#Attribution/tables/fx/'
 
-table_filename = 'link_2019-05-31.csv'
-returns_filename = 'returns_2019-06-30.csv'
-market_values_filename = 'market_values_2019-06-30.csv'
-asset_allocations_filename = 'asset_allocations_2019-06-30.csv'
+table_filename = 'link_2019-06-30.csv'
+returns_filename = 'returns_2019-09-30.csv'
+market_values_filename = 'market_values_2019-09-30.csv'
+asset_allocations_filename = 'asset_allocations_2019-09-30.csv'
 
 latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
@@ -446,22 +446,22 @@ df_te = pivot_table(df_output, total_effect)
 df_to = pivot_table(df_output, total)
 
 with open(output_directory + 'fx_ac.tex', 'w') as tf:
-    tf.write(df_ac.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_ac.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
 with open(output_directory + 'fx_aa.tex', 'w') as tf:
-    tf.write(df_aa.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_aa.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
 with open(output_directory + 'fx_ss.tex', 'w') as tf:
-    tf.write(df_ss.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_ss.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
 with open(output_directory + 'fx_in.tex', 'w') as tf:
-    tf.write(df_in.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_in.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
 with open(output_directory + 'fx_re.tex', 'w') as tf:
-    tf.write(df_re.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_re.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
 with open(output_directory + 'fx_te.tex', 'w') as tf:
-    tf.write(df_te.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_te.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
 with open(output_directory + 'fx_to.tex', 'w') as tf:
-    tf.write(df_to.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_to.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))

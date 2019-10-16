@@ -2,60 +2,112 @@ import pandas as pd
 import numpy as np
 import datetime
 
-df_cpi = pd.read_csv(
-    'U:/CIO/#Investment_Report/Data/input/product/g1-data_201906.csv',
-    header=10,
-    usecols=['Series ID', 'GCPIAGQP'],
-    parse_dates=['Series ID'],
-    index_col=['Series ID']
-)
+df_link = pd.read_csv('U:/CIO/#Investment_Report/Data/input/link/assetclass_dictionary.csv')
+df_link_ie = df_link[df_link['Asset Class'] == 'IE'].reset_index(drop=True)
+df_link_ie = df_link_ie[['LGS Code', 'LGS Benchmark']]
 
-df_cpi = df_cpi.rename(columns={'GCPIAGQP': 'Inflation'})
-
-df_cpi['Inflation'] = df_cpi['Inflation']/100
-
-# df_cpi = df_cpi.reset_index(drop=True)
-
-years = [1, 2, 3, 4, 5, 6, 7]
-
-for year in years:
-
-    column_name = str(year) + '_Year'
-
-    quarters = year*4
-
-    df_cpi[column_name] = df_cpi['Inflation'].rolling(quarters).apply(lambda r: (np.prod(1+r)**(1/year))-1)
-
-df_benchmark = pd.DataFrame()
-
-df_benchmark['High Growth'] = (df_cpi['7_Year'] + 0.035) * (1 - 0.08)
-
-df_benchmark['Growth'] = (df_cpi['5_Year'] + 0.03) * (1 - 0.08)
-
-df_benchmark['Balanced Growth'] = (df_cpi['5_Year'] + 0.03) * (1 - 0.085)
-
-df_benchmark['Balanced'] = (df_cpi['3_Year'] + 0.02) * (1 - 0.1)
-
-df_benchmark['Conservative'] = (df_cpi['2_Year'] + 0.015) * (1 - 0.115)
-
-df_benchmark['Employer Reserve'] = (0.0575) * (1 - 0.08)
-
-df_benchmark = df_benchmark.resample('M').pad()
-
-df_r = pd.read_csv(
-        'U:/CIO/#Investment_Report/Data/input/returns/returns_2019-06-30.csv',
+df_lgs = pd.read_csv(
+        'U:/CIO/#Investment_Report/Data/input/returns/returns_2019-08-31_hybrid.csv',
         index_col='Date',
         parse_dates=['Date'],
         infer_datetime_format=True,
-        float_precision='round_trip',
-        usecols=['Date', 'AUBI_Index']
+        float_precision='round_trip'
         )
+df_lgs = df_lgs.transpose()
+df_lgs = df_lgs.reset_index(drop=False)
+df_lgs = df_lgs.rename(columns={'index': 'Manager'})
+df_lgs = pd.melt(df_lgs, id_vars=['Manager'], value_name='1_month_return')
+df_lgs = df_lgs.sort_values(['Manager', 'Date'])
+df_lgs = df_lgs.reset_index(drop=True)
 
-df_r['2_Year'] = df_r['AUBI_Index'].rolling(24).apply(lambda r: (np.prod(1+r)**(1/2))-1)
+ie_manager_list = list(df_link_ie['LGS Code'].drop_duplicates().values.tolist())
+df_lgs_ie_managers = df_lgs[df_lgs['Manager'].isin(ie_manager_list)].reset_index(drop=True)
 
-df_benchmark['Cash'] = (df_r['2_Year'] + 0.0025) * (1 - 0.15)
+ie_benchmark_list = list(df_link_ie['LGS Benchmark'].drop_duplicates().values.tolist())
+df_lgs_ie_benchmarks = df_lgs[df_lgs['Manager'].isin(ie_benchmark_list)].reset_index(drop=True)
 
-df_benchmark.to_csv('U:/CIO/#Investment_Report/Data/input/product/strategy_benchmarks_201905.csv')
+df_lgs_ie_managers = pd.merge(
+    left=df_lgs_ie_managers,
+    right=df_link_ie,
+    left_on=['Manager'],
+    right_on=['LGS Code'],
+    how='inner'
+)
+
+df_final = pd.merge(
+    left=df_lgs_ie_managers,
+    right=df_lgs_ie_benchmarks,
+    left_on=['LGS Benchmark', 'Date'],
+    right_on=['Manager', 'Date'],
+    how='inner'
+)
+
+df_final.rename(columns={
+    '1_month_return_x': '1_month_return_manager',
+    '1_month_return_y': '1_month_return_benchmark'
+})
+
+df_final = df_final[['LGS Code', 'Date', '1_month_return_x', 'LGS Benchmark', '1_month_return_y']]
+
+df_final = df_final.sort_values(['LGS Code', 'Date'])
+
+df_final.to_csv('U:/CIO/#Investment_Report/Data/output/jana/ie_panel.csv', index=False)
+
+# Strategy Benchmarks
+# df_cpi = pd.read_csv(
+#     'U:/CIO/#Investment_Report/Data/input/product/g1-data_201906.csv',
+#     header=10,
+#     usecols=['Series ID', 'GCPIAGQP'],
+#     parse_dates=['Series ID'],
+#     index_col=['Series ID']
+# )
+#
+# df_cpi = df_cpi.rename(columns={'GCPIAGQP': 'Inflation'})
+#
+# df_cpi['Inflation'] = df_cpi['Inflation']/100
+#
+# # df_cpi = df_cpi.reset_index(drop=True)
+#
+# years = [1, 2, 3, 4, 5, 6, 7]
+#
+# for year in years:
+#
+#     column_name = str(year) + '_Year'
+#
+#     quarters = year*4
+#
+#     df_cpi[column_name] = df_cpi['Inflation'].rolling(quarters).apply(lambda r: (np.prod(1+r)**(1/year))-1)
+#
+# df_benchmark = pd.DataFrame()
+#
+# df_benchmark['High Growth'] = (df_cpi['7_Year'] + 0.035) * (1 - 0.08)
+#
+# df_benchmark['Growth'] = (df_cpi['5_Year'] + 0.03) * (1 - 0.08)
+#
+# df_benchmark['Balanced Growth'] = (df_cpi['5_Year'] + 0.03) * (1 - 0.085)
+#
+# df_benchmark['Balanced'] = (df_cpi['3_Year'] + 0.02) * (1 - 0.1)
+#
+# df_benchmark['Conservative'] = (df_cpi['2_Year'] + 0.015) * (1 - 0.115)
+#
+# df_benchmark['Employer Reserve'] = (0.0575) * (1 - 0.08)
+#
+# df_benchmark = df_benchmark.resample('M').pad()
+#
+# df_r = pd.read_csv(
+#         'U:/CIO/#Investment_Report/Data/input/returns/returns_2019-06-30.csv',
+#         index_col='Date',
+#         parse_dates=['Date'],
+#         infer_datetime_format=True,
+#         float_precision='round_trip',
+#         usecols=['Date', 'AUBI_Index']
+#         )
+#
+# df_r['2_Year'] = df_r['AUBI_Index'].rolling(24).apply(lambda r: (np.prod(1+r)**(1/2))-1)
+#
+# df_benchmark['Cash'] = (df_r['2_Year'] + 0.0025) * (1 - 0.15)
+#
+# df_benchmark.to_csv('U:/CIO/#Investment_Report/Data/input/product/strategy_benchmarks_201905.csv')
 
 
 # ASSET CLASS REVIEW

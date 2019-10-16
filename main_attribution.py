@@ -10,16 +10,16 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2018, 7, 31)
-end_date = datetime.datetime(2019, 6, 30)
+start_date = datetime.datetime(2018, 10, 31)
+end_date = datetime.datetime(2019, 9, 30)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
 output_directory = 'U:/CIO/#Attribution/tables/base/'
 
-table_filename = 'link_2019-05-31.csv'
-returns_filename = 'returns_2019-06-30.csv'
-market_values_filename = 'market_values_2019-06-30.csv'
-asset_allocations_filename = 'asset_allocations_2019-06-30.csv'
+table_filename = 'link_2019-06-30.csv'
+returns_filename = 'returns_2019-09-30.csv'
+market_values_filename = 'market_values_2019-09-30.csv'
+asset_allocations_filename = 'asset_allocations_2019-09-30.csv'
 
 latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
@@ -516,22 +516,22 @@ df_re = pivot_table(df_linked, residual)
 df_to = pivot_table(df_linked, total)
 
 with open(output_directory + 'ac.tex', 'w') as tf:
-    tf.write(df_ac.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_ac.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
 with open(output_directory + 'mv.tex', 'w') as tf:
-    tf.write(df_mv.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_mv.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
 with open(output_directory + 'aa.tex', 'w') as tf:
-    tf.write(df_aa.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_aa.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
 with open(output_directory + 'ss.tex', 'w') as tf:
-    tf.write(df_ss.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_ss.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
 with open(output_directory + 'in.tex', 'w') as tf:
-    tf.write(df_in.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_in.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
 with open(output_directory + 're.tex', 'w') as tf:
-    tf.write(df_re.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_re.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
 with open(output_directory + 'to.tex', 'w') as tf:
-    tf.write(df_to.to_latex(index=False).replace('NaN', ''))
+    tf.write(df_to.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))

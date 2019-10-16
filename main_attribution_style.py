@@ -7,19 +7,19 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2018, 9, 30)
-end_date = datetime.datetime(2019, 8, 31)
+start_date = datetime.datetime(2018, 10, 31)
+end_date = datetime.datetime(2019, 9, 30)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
 output_directory = 'U:/CIO/#Attribution/tables/style/'
 
 table_filename = 'link_2019-06-30.csv'
 # returns_filename = 'returns_2019-06-30.csv'
-returns_filename = 'returns_2019-08-31.csv'
+returns_filename = 'returns_2019-09-30.csv'
 # market_values_filename = 'market_values_2019-06-30.csv'
-market_values_filename = 'market_values_2019-08-31.csv'
+market_values_filename = 'market_values_2019-09-30.csv'
 # asset_allocations_filename = 'asset_allocations_2019-06-30.csv'
-asset_allocations_filename = 'asset_allocations_2019-08-31.csv'
+asset_allocations_filename = 'asset_allocations_2019-09-30.csv'
 
 latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
@@ -406,6 +406,7 @@ def pivot_table(df, var):
     df = df[columns_list]
     df = df.pivot(index='Manager', columns='Strategy', values=var)
     df = df[asset_allocations]
+    df.loc['Total'] = df.sum()
     df = df.reset_index(drop=False)
     df['sector_sort'] = df.Manager.map(manager_to_order_dict)
     df = df.sort_values(['sector_sort'])
@@ -431,3 +432,31 @@ with open(output_directory + 'ra.tex', 'w') as tf:
 
 with open(output_directory + 'ta.tex', 'w') as tf:
     tf.write(df_ta.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+
+# FX Extension
+df_fx1 = df_returns_benchmarks[df_returns_benchmarks['Manager'].isin(['IEu', 'IECurrencyOverlay_IE', 'IE'])]
+df_fx1 = df_fx1.drop('Sector', axis=1)
+df_fx1['Asset Class'] = 'International Equity'
+df_fx1['1_er'] = df_fx1['1_r'] - df_fx1['bmk_1_r']
+
+df_fx2 = pd.merge(
+    left=df_fx1,
+    right=df_asset_allocations,
+    left_on=['Asset Class', 'Date'],
+    right_on=['Asset Class', 'Date'],
+    how='inner'
+)
+df_fx2['1_ac'] = df_fx2['1_er'] * df_fx2['Portfolio']
+
+
+def fx_link(data):
+    d = dict()
+    d[r_portfolio] = (np.prod(1 + data['1_r']) - 1)
+    d[r_benchmark] = (np.prod(1 + data['bmk_1_r']) - 1)
+    d[r_excess] = (np.prod(1 + data['1_er']) - 1)
+    d[r_active_contribution] = (np.prod(1 + data['1_ac']) - 1)
+    return pd.Series(d)
+
+
+df_fx3 = df_fx2.groupby(['Strategy', 'Manager']).apply(fx_link)

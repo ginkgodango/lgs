@@ -36,10 +36,10 @@ import numpy as np
 # df_jpm = df_jpm.replace('-', np.nan)
 
 input_directory = 'D:/output/LGS/alternatives/'
-filename = 'alternatives_2019-08-31.csv'
+filename = 'alternatives_2019-09-30.csv'
 output_directory = 'U:/CIO/#Investment_Report/Data/input/alternatives/'
-ac_filename = 'alts_ac_2019_08_31.csv'
-sustainable_filename = 'sustainable_alts_2019_08_31.xlsx'
+ac_filename = 'alts_ac_2019_09_39.csv'
+sustainable_filename = 'sustainable_alts_2019_09_30.xlsx'
 
 df_jpm = pd.read_csv(input_directory + filename, parse_dates=['Date'])
 
