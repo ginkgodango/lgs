@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2018, 10, 31)
+start_date = datetime.datetime(2019, 7, 31)
 end_date = datetime.datetime(2019, 9, 30)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
@@ -454,9 +454,28 @@ def fx_link(data):
     d = dict()
     d[r_portfolio] = (np.prod(1 + data['1_r']) - 1)
     d[r_benchmark] = (np.prod(1 + data['bmk_1_r']) - 1)
-    d[r_excess] = (np.prod(1 + data['1_er']) - 1)
-    d[r_active_contribution] = (np.prod(1 + data['1_ac']) - 1)
+    d[w_portfolio] = np.average(data['Portfolio'])
     return pd.Series(d)
 
 
 df_fx3 = df_fx2.groupby(['Strategy', 'Manager']).apply(fx_link)
+df_fx3['Check'] = df_fx3[r_portfolio] - df_fx3[r_benchmark]
+df_fx3[r_active_contribution] = df_fx3[w_portfolio] * (df_fx3[r_portfolio] - df_fx3[r_benchmark])
+df_fx3 = df_fx3.reset_index(drop=False)
+
+df_fx_format = df_fx3
+df_fx_format[r_active_contribution] = df_fx_format[r_active_contribution]*100
+df_fx_format = df_fx_format[~df_fx_format['Manager'].isin(['IECurrencyOverlay_IE'])].reset_index(drop=True)
+fx_name_dict = {'IE': 'Intl Equity (Hedged)', 'IEu': 'Intl Equity (Unhedged)', 'IECurrencyOverlay_IE': 'FX Overlay'}
+df_fx_format['Manager'] = [fx_name_dict[df_fx_format['Manager'][i]] for i in range(0, len(df_fx_format))]
+
+df_fx_ac = pivot_table(df_fx_format, r_active_contribution)
+df_fx_ac = df_fx_ac[~df_fx_ac['Asset Class'].isin(['Total'])]
+df_fx_ac = df_fx_ac.set_index('Asset Class')
+df_fx_ac.loc['FX Overlay'] = df_fx_ac.loc['Intl Equity (Hedged)'] - df_fx_ac.loc['Intl Equity (Unhedged)']
+df_fx_ac = df_fx_ac.reindex(['Intl Equity (Unhedged)', 'FX Overlay', 'Intl Equity (Hedged)'])
+df_fx_ac = df_fx_ac.round(2)
+df_fx_ac = df_fx_ac.reset_index(drop=False)
+
+with open(output_directory + 'fa.tex', 'w') as tf:
+    tf.write(df_fx_ac.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))

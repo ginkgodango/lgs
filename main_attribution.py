@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2018, 10, 31)
+start_date = datetime.datetime(2019, 7, 31)
 end_date = datetime.datetime(2019, 9, 30)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'

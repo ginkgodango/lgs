@@ -3,6 +3,7 @@ import numpy as np
 import datetime as dt
 
 current_month = dt.datetime(2019, 9, 30)
+FYTD = 3
 nof_filepath = 'U:/CIO/#Investment_Report/Data/input/returns/20190930 Historical Time Series.xlsx'
 gof_filepath = 'U:/CIO/#Investment_Report/Data/input/returns/20190930 Historical Time Series GOF.xlsx'
 
@@ -44,11 +45,12 @@ def ts_to_panel(df, return_type):
     df = df.sort_values(['Account Id', 'Date'])
     df = df.reset_index(drop=True)
     df = df.replace('-', np.nan)
+    df[return_type] = df[return_type]/100
     return df
 
 
-df_nof = ts_to_panel(df_nof, 'GOF')
-df_gof = ts_to_panel(df_gof, 'NOF')
+df_nof = ts_to_panel(df_nof, '1month_NOF')
+df_gof = ts_to_panel(df_gof, '1month_GOF')
 
 df_cost = pd.merge(
     left=df_gof,
@@ -58,8 +60,6 @@ df_cost = pd.merge(
     how='inner'
 )
 
-df_cost['Fee'] = df_cost['NOF'] - df_cost['GOF']
-
 df_cost = pd.merge(
     left=df_link,
     right=df_cost,
@@ -68,11 +68,50 @@ df_cost = pd.merge(
     how='inner'
 )
 
+column_to_period_dict = {
+    '1_month': 1,
+    '3_month': 3,
+    'FYTD_month': FYTD,
+    '12_month': 12,
+    '36_month': 36,
+    '60_month': 60,
+    '84_month': 84
+}
+
+
+def calculate_geometric_returns(df, column_name, groupby_list, return_series):
+    if period <= 12:
+        df[column_name] = (
+            df
+            .groupby(groupby_list)[return_series]
+            .rolling(period)
+            .apply(lambda r: np.prod(1 + r) - 1, raw=False)
+            .reset_index(drop=False)[return_series]
+        )
+
+    elif period > 12:
+        df[column_name] = (
+            df
+            .groupby(groupby_list)[return_series]
+            .rolling(period)
+            .apply(lambda r: (np.prod(1 + r) ** (12 / period)) - 1, raw=False)
+            .reset_index(drop=False)[return_series]
+        )
+    return df
+
+
+# Calculates the holding period returns and annualises for periods greater than 12 months.
+for column, period in column_to_period_dict.items():
+    for return_series in ['1month_GOF', '1month_NOF']:
+        column_name = column + '_' + return_series[-3:]
+        calculate_geometric_returns(df_cost, column_name, 'Account Id', return_series)
+    df_cost[column + '_Fee'] = df_cost[column + '_GOF'] - df_cost[column + '_NOF']
+
+df_cost = df_cost.drop(['1month_GOF', '1month_NOF'], axis=1)
+
 df_cost.to_csv('U:/CIO/#Investment_Report/Data/output/fees/fees_' + str(current_month.date()) + '.csv', index=False)
 
 df_cost_current_month = df_cost[df_cost['Date'] == current_month].reset_index(drop=True)
-
-df_cost_current_month = df_cost_current_month.dropna().reset_index(drop=True)
+df_cost_current_month = df_cost_current_month[np.isfinite(df_cost_current_month['1_month_GOF'])]
 
 df_cost_current_month.to_csv('U:/CIO/#Investment_Report/Data/output/fees/fees_current_' + str(current_month.date()) + '.csv', index=False)
-
