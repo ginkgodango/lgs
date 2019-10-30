@@ -1,9 +1,10 @@
+import os
 import pandas as pd
 import numpy as np
 import datetime as dt
 
 jpm_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/Time Series Data- alternatives including benchmarks.xlsx'
-jpm_iap_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/jpm_iap/20190731_jpm_iap.xlsx'
+jpm_iap_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/jpm_iap/'
 FYTD = 1
 report_date = dt.datetime(2019, 7, 31)
 
@@ -72,6 +73,7 @@ horizon_to_period_dict = {
     '3_': 3,
     'FYTD_': FYTD,
     '12_': 12,
+    '24_': 24,
     '36_': 36,
     '60_': 60,
     '84_': 84
@@ -129,28 +131,59 @@ df_jpm['36_Information_Ratio'] = df_jpm['36_Excess'] / df_jpm['36_Tracking_Error
 
 #df_jpm.to_csv('U:/CIO/#Investment_Report/Data/output/verification/jpm_calculate.csv', index=False)
 
-# Import JPM_IAP, id: all, Mode: Portfolio Only
-jpm_iap_xlsx = pd.ExcelFile(jpm_iap_filepath)
-df_jpm_iap = pd.read_excel(
+# Import JPM_IAP, Accounts; By ID; Include Closed Accounts; Select All; Mode: Portfolio Only
+jpm_iap_filenames = sorted(os.listdir(jpm_iap_filepath))
+df_jpm_iap = pd.DataFrame()
+for filename in jpm_iap_filenames:
+    jpm_iap_xlsx = pd.ExcelFile(jpm_iap_filepath + filename)
+    df_jpm_iap_temp = pd.read_excel(
         jpm_iap_xlsx,
         sheet_name='Sheet1',
         skiprows=[0, 1],
         header=0
-        )
-df_jpm_iap['Date'] = report_date
-df_jpm_iap = df_jpm_iap.rename(columns={'Unnamed: 0': 'Manager'})
+    )
+    df_jpm_iap_temp['Date'] = dt.datetime(int(filename[:4]), int(filename[4:6]), int(filename[6:8]))
+    df_jpm_iap = pd.concat([df_jpm_iap, df_jpm_iap_temp])
+
+df_jpm_iap = df_jpm_iap.rename(columns={'Unnamed: 0': 'Manager'}).reset_index(drop=True)
 df_jpm_iap = df_jpm_iap[['Manager', 'Date', 'Market Value']]
 
-df_jpm_main = pd.merge(
-    left=df_jpm_iap,
-    right=df_jpm,
-    left_on=['Manager', 'Date'],
-    right_on=['Manager', 'Date'],
-    how='right'
-).sort_values(['Manager', 'Date'])
+# Merges the market values from JPM IAP with JPM HTS
+df_jpm_main = pd\
+    .merge(
+        left=df_jpm_iap,
+        right=df_jpm,
+        left_on=['Manager', 'Date'],
+        right_on=['Manager', 'Date'],
+        how='right'
+    )\
+    .sort_values(['Manager', 'Date'])\
+    .reset_index(drop=True)
 
 
-# FORMATS LATEX TABLES
+# ACTIVE CONTRIBUTION
+remove_double_count = ['']
+df_jpm_main['12_Average_Market_Value'] = (
+    df_jpm_main[~df_jpm_main['Manager'].isin([remove_double_count])]
+    .groupby(['Manager'])['Market Value']
+    .rolling(12)
+    .mean()
+    .reset_index(drop=True)
+)
+
+df_jpm_main['Total Market_Value'] = (
+    df_jpm_main[~df_jpm_main['Manager'].isin([remove_double_count])]
+    .groupby(['Date'])['Market Value']
+    .transform('sum')
+    .reset_index(drop=True)
+)
+
+df_jpm_main['12_Active_Contribution'] = (
+        (df_jpm_main['12_Average_Market_Value'] / df_jpm_main['Total Market_Value']) * (df_jpm_main['12_Excess'])
+)
+
+
+# CREATES LATEX TABLES
 # Selects rows as at report date
 df_jpm_table = df_jpm_main[df_jpm_main['Date'] == report_date]
 
@@ -176,7 +209,7 @@ df_jpm_table[columns_round] = df_jpm_table[columns_round].round(2)
 # Creates column hierarchy for performance table
 columns_performance_lead_multilevel = pd.MultiIndex.from_product([[''], ['Manager', 'Market Value']], names=['horizon', 'type'])
 columns_performance_performance_multilevel = pd.MultiIndex.from_product(
-    [['1 Month', '3 Month', 'FYTD', '1 Year', '3 Year', '5 Year', '7Year'], ['LGS', 'Active']],
+    [['1 Month', '3 Month', 'FYTD', '1 Year', '2 Year', '3 Year', '5 Year', '7Year'], ['LGS', 'Active']],
     names=['horizon', 'type']
 )
 
@@ -193,4 +226,12 @@ del df_jpm_table_performance_performance
 df_jpm_table_risk = df_jpm_table[columns_lead + columns_risk]
 
 # CREATES CHARTS
+df_jpm_chart_12_excess = df_jpm_main[['Manager', 'Date', '12_Excess']]
+df_jpm_chart_12_excess = df_jpm_chart_12_excess.pivot(index='Date', columns='Manager', values='12_Excess')[-60:]
+
+df_jpm_chart_60_excess = df_jpm_main[['Manager', 'Date', '60_Excess']]
+df_jpm_chart_60_excess = df_jpm_chart_60_excess.pivot(index='Date', columns='Manager', values='60_Excess')[-60:]
+
+df_jpm_chart_market_value = df_jpm_main[['Manager', 'Date', 'Market Value']]
+df_jpm_chart_market_value = df_jpm_chart_market_value.pivot(index='Date', columns='Manager', values='Market Value')[-60:]
 
