@@ -183,7 +183,7 @@ df_jpm_main['12_Active_Contribution'] = (
 )
 
 
-# CREATES LATEX TABLES
+# CREATES LATEX TABLES AND CHARTS
 # Selects rows as at report date
 df_jpm_table = df_jpm_main[df_jpm_main['Date'] == report_date]
 
@@ -194,12 +194,13 @@ for horizon, period in horizon_to_period_dict.items():
     for column in ['Return', 'Excess']:
         columns_performance.append(horizon + column)
 columns_risk = ['36_Tracking_Error', '36_Volatility', '36_Information_Ratio', '36_Sharpe_Ratio']
+columns_active_contribution = ['12_Active_Contribution']
 columns_millions = ['Market Value']
-columns_decimal = columns_performance + columns_risk[:2]
-columns_round = columns_millions + columns_decimal + columns_risk
+columns_decimal = columns_performance + columns_risk[:2] + columns_active_contribution
+columns_round = columns_millions + columns_decimal + columns_risk + columns_active_contribution
 
 # Selects columns for Latex Tables
-df_jpm_table = df_jpm_table[columns_lead + columns_performance + columns_risk]
+df_jpm_table = df_jpm_table[columns_lead + columns_performance + columns_risk + columns_active_contribution]
 
 # Converts market value into millions and decimal into percentage
 df_jpm_table[columns_millions] = df_jpm_table[columns_millions] / 1000000
@@ -225,7 +226,11 @@ del df_jpm_table_performance_performance
 # Creates risk table
 df_jpm_table_risk = df_jpm_table[columns_lead + columns_risk]
 
-# CREATES CHARTS
+# Creates active contribution table
+df_jpm_table_active_contribution = df_jpm[columns_lead[:1] + columns_active_contribution]
+df_jpm_table_active_contribution = df_jpm_table_active_contribution.sort_values(['12_Active_Contribution'])
+
+# Creates charts
 df_jpm_chart_12_excess = df_jpm_main[['Manager', 'Date', '12_Excess']]
 df_jpm_chart_12_excess = df_jpm_chart_12_excess.pivot(index='Date', columns='Manager', values='12_Excess')[-60:]
 

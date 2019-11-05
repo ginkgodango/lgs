@@ -237,6 +237,7 @@ def rename_benchmarks(df):
         'MSCI ACWI ex Australia(Net) 40% Hedged': 'MSCI ACWI ex Aus 40% Hedged',
         'Bloomberg AusBond Bank Bill Index + 2.0%p.a.': 'AusBond Bank Bill + 2.0%',
         'Bloomberg AusBond Bank Bill Index + 1.5%p.a.':  'AusBond Bank Bill + 1.5%',
+        'Bloomberg AusBond Bank Bill Index + 0.2%p.a.': 'AusBond Bank Bill + 0.2%',
         'Zero': '',
         'ZERO': 'MSCI ACWI ex Aus',
         np.nan: ''
