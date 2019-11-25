@@ -10,16 +10,16 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2019, 7, 31)
-end_date = datetime.datetime(2019, 9, 30)
+start_date = datetime.datetime(2019, 8, 31)
+end_date = datetime.datetime(2019, 10, 31)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
 output_directory = 'U:/CIO/#Attribution/tables/base/'
 
 table_filename = 'link_2019-06-30.csv'
-returns_filename = 'returns_2019-09-30.csv'
-market_values_filename = 'market_values_2019-09-30.csv'
-asset_allocations_filename = 'asset_allocations_2019-09-30.csv'
+returns_filename = 'returns_2019-10-31.csv'
+market_values_filename = 'market_values_2019-10-31.csv'
+asset_allocations_filename = 'asset_allocations_2019-10-31.csv'
 
 latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
@@ -491,6 +491,7 @@ with open(output_directory + 'summary1.tex', 'w') as tf:
 with open(output_directory + 'summary2.tex', 'w') as tf:
     tf.write(df_linked_summary2.to_latex(index=False))
 
+
 # Makes the pivot tables
 def pivot_table(df, var):
     columns_list = ['Strategy', 'Manager', var]
@@ -535,3 +536,64 @@ with open(output_directory + 're.tex', 'w') as tf:
 
 with open(output_directory + 'to.tex', 'w') as tf:
     tf.write(df_to.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+
+# CHARTS
+treegreen = (75/256, 120/256, 56/256)
+middlegreen = (141/256, 177/256, 66/256)
+lightgreen = (175/256, 215/256, 145/256)
+
+name_tuple_dict = {
+    's1': (df_linked_summary1, treegreen, 'Return (%)', 's1_chart'),
+    's2': (df_linked_summary2, middlegreen, 'Active Return (%)', 's2_chart'),
+    'ac': (df_ac, treegreen, 'Active Contribution (bps)', 'ac_chart'),
+    'mv': (df_mv, middlegreen, 'Average Market Value ($Mill)', 'mv_chart'),
+    'aa': (df_aa, treegreen, 'TAA Active Return (bps)', 'aa_chart'),
+    'ss': (df_ss, middlegreen, 'Manager Selection Active Return (bps)', 'ss_chart'),
+    'in': (df_in, middlegreen, 'Active Return (bps)', 'in_chart'),
+    're': (df_re, lightgreen, 'Active Return (bps)', 're_chart'),
+    'to': (df_to, treegreen, 'Active Return (bps)', 'to_chart'),
+}
+
+for name, tuple in name_tuple_dict.items():
+    fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True, figsize=(12.80, 7.20))
+    strategy_to_axes_dict = {
+        'High Growth': axes[0, 0],
+        "Bal' Growth": axes[0, 1],
+        'Balanced': axes[0, 2],
+        'Conservative': axes[1, 0],
+        'Growth': axes[1, 1],
+        "Emp' Reserve": axes[1, 2]
+    }
+
+    for strategy, axes in strategy_to_axes_dict.items():
+        try:
+            df = tuple[0][['Asset Class', strategy]].reset_index(drop=True)
+            df = df[~df['Asset Class'].isin(['Total'])].reset_index(drop=True)
+            df = df.set_index('Asset Class')
+            if name != 'mv':
+                df = df * 100
+        except KeyError:
+            df = tuple[0]
+            if 'Returns' in df.columns:
+                df = tuple[0][['Returns', strategy]].reset_index(drop=True)
+                df = df[~df['Returns'].isin(['Active'])].reset_index(drop=True)
+                df = df.set_index('Returns')
+            if 'Attribution' in df.columns:
+                df = tuple[0][['Attribution', strategy]].reset_index(drop=True)
+                df = df[~df['Attribution'].isin(['Total'])].reset_index(drop=True)
+                df = df.set_index('Attribution')
+
+        df['positive'] = df[strategy] > 0
+        df[strategy].plot.bar(ax=axes, color=df.positive.map({True: tuple[1], False: 'r'}))
+
+        #df.plot.bar(ax=axes, color=[tuple[1]])
+        axes.set_title(strategy)
+        axes.set_xlabel('')
+        axes.set_ylabel(tuple[2])
+        axes.axhline(y=0, linestyle=':', linewidth=1, color='k', )
+        fig.tight_layout()
+        plt.show()
+
+    fig.savefig('U:/CIO/#Attribution/charts/' + tuple[3] + '.png')
+

@@ -7,19 +7,16 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2019, 7, 31)
-end_date = datetime.datetime(2019, 9, 30)
+start_date = datetime.datetime(2019, 8, 31)
+end_date = datetime.datetime(2019, 10, 31)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
 output_directory = 'U:/CIO/#Attribution/tables/style/'
 
 table_filename = 'link_2019-06-30.csv'
-# returns_filename = 'returns_2019-06-30.csv'
-returns_filename = 'returns_2019-09-30.csv'
-# market_values_filename = 'market_values_2019-06-30.csv'
-market_values_filename = 'market_values_2019-09-30.csv'
-# asset_allocations_filename = 'asset_allocations_2019-06-30.csv'
-asset_allocations_filename = 'asset_allocations_2019-09-30.csv'
+returns_filename = 'returns_2019-10-31.csv'
+market_values_filename = 'market_values_2019-10-31.csv'
+asset_allocations_filename = 'asset_allocations_2019-10-31.csv'
 
 latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
@@ -479,3 +476,43 @@ df_fx_ac = df_fx_ac.reset_index(drop=False)
 
 with open(output_directory + 'fa.tex', 'w') as tf:
     tf.write(df_fx_ac.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+
+# CREATE CHARTS
+treegreen = (75/256, 120/256, 56/256)
+middlegreen = (141/256, 177/256, 66/256)
+lightgreen = (175/256, 215/256, 145/256)
+
+name_tuple_dict = {
+    'pa': (df_pa, treegreen, 'Manager Active Contribution (bps)', 'pa_chart'),
+    'sa': (df_sa, middlegreen, 'Style Active Contribution (bps)', 'sa_chart')
+}
+
+for name, tuple in name_tuple_dict.items():
+    fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True, figsize=(12.80, 7.20))
+    strategy_to_axes_dict = {
+        'High Growth': axes[0, 0],
+        "Bal' Growth": axes[0, 1],
+        'Balanced': axes[0, 2],
+        'Conservative': axes[1, 0],
+        'Growth': axes[1, 1],
+        "Emp' Reserve": axes[1, 2]
+    }
+
+    for strategy, axes in strategy_to_axes_dict.items():
+        df = tuple[0][['Asset Class', strategy]].reset_index(drop=True)
+        df = df[~df['Asset Class'].isin(['Total'])].reset_index(drop=True)
+        df = df.set_index('Asset Class')
+        df = df*100
+        df['positive'] = df[strategy] > 0
+        df[strategy].plot.bar(ax=axes, color=df.positive.map({True: tuple[1], False: 'r'}))
+        # df.plot.bar(ax=axes, color=[tuple[1]])
+        axes.set_title(strategy)
+        axes.set_xlabel('')
+        axes.set_ylabel(tuple[2])
+        axes.axhline(y=0, linestyle=':', linewidth=1, color='k', )
+        fig.tight_layout()
+        plt.show()
+
+    fig.savefig('U:/CIO/#Attribution/charts/' + tuple[3] + '.png')
+

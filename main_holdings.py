@@ -583,3 +583,4 @@ account_to_df_dict = dict(list(df_yahoo.groupby(['Account Name'])))
 for account, df in account_to_df_dict.items():
     df = df[columns_yahoo]
     df.to_csv('U:/CIO/#Holdings/Data/output/yahoo/' + account + '.csv', index=False)
+
