@@ -482,10 +482,15 @@ with open(output_directory + 'fa.tex', 'w') as tf:
 treegreen = (75/256, 120/256, 56/256)
 middlegreen = (141/256, 177/256, 66/256)
 lightgreen = (175/256, 215/256, 145/256)
+darkred = (256/256, 0, 0)
+middlered = (255/256, 102/256, 102/256)
+lightred = (255/256, 204/256, 204/256)
+
+green_to_red_dict = {treegreen: darkred, middlegreen: middlered, lightgreen: lightred}
 
 name_tuple_dict = {
-    'pa': (df_pa, treegreen, 'Manager Active Contribution (bps)', 'pa_chart'),
-    'sa': (df_sa, middlegreen, 'Style Active Contribution (bps)', 'sa_chart')
+    'pa': (df_pa, treegreen, 'Manager Active Contribution (%)', 'pa_chart'),
+    'sa': (df_sa, middlegreen, 'Style Active Contribution (%)', 'sa_chart')
 }
 
 for name, tuple in name_tuple_dict.items():
@@ -503,10 +508,8 @@ for name, tuple in name_tuple_dict.items():
         df = tuple[0][['Asset Class', strategy]].reset_index(drop=True)
         df = df[~df['Asset Class'].isin(['Total'])].reset_index(drop=True)
         df = df.set_index('Asset Class')
-        df = df*100
         df['positive'] = df[strategy] > 0
-        df[strategy].plot.bar(ax=axes, color=df.positive.map({True: tuple[1], False: 'r'}))
-        # df.plot.bar(ax=axes, color=[tuple[1]])
+        df[strategy].plot.bar(ax=axes, color=df.positive.map({True: tuple[1], False: green_to_red_dict[tuple[1]]}))
         axes.set_title(strategy)
         axes.set_xlabel('')
         axes.set_ylabel(tuple[2])

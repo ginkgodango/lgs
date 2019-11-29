@@ -542,17 +542,23 @@ with open(output_directory + 'to.tex', 'w') as tf:
 treegreen = (75/256, 120/256, 56/256)
 middlegreen = (141/256, 177/256, 66/256)
 lightgreen = (175/256, 215/256, 145/256)
+darkred = (256/256, 0, 0)
+middlered = (255/256, 102/256, 102/256)
+lightred = (255/256, 204/256, 204/256)
+
+green_to_red_dict = {treegreen: darkred, middlegreen: middlered, lightgreen: lightred}
+
 
 name_tuple_dict = {
     's1': (df_linked_summary1, treegreen, 'Return (%)', 's1_chart'),
     's2': (df_linked_summary2, middlegreen, 'Active Return (%)', 's2_chart'),
-    'ac': (df_ac, treegreen, 'Active Contribution (bps)', 'ac_chart'),
+    'ac': (df_ac, treegreen, 'Active Contribution (%)', 'ac_chart'),
     'mv': (df_mv, middlegreen, 'Average Market Value ($Mill)', 'mv_chart'),
-    'aa': (df_aa, treegreen, 'TAA Active Return (bps)', 'aa_chart'),
-    'ss': (df_ss, middlegreen, 'Manager Selection Active Return (bps)', 'ss_chart'),
-    'in': (df_in, middlegreen, 'Active Return (bps)', 'in_chart'),
-    're': (df_re, lightgreen, 'Active Return (bps)', 're_chart'),
-    'to': (df_to, treegreen, 'Active Return (bps)', 'to_chart'),
+    'aa': (df_aa, treegreen, 'TAA Active Return (%)', 'aa_chart'),
+    'ss': (df_ss, middlegreen, 'Manager Selection Active Return (%)', 'ss_chart'),
+    'in': (df_in, middlegreen, 'Active Return (%)', 'in_chart'),
+    're': (df_re, lightgreen, 'Active Return (%)', 're_chart'),
+    'to': (df_to, treegreen, 'Active Return (%)', 'to_chart'),
 }
 
 for name, tuple in name_tuple_dict.items():
@@ -571,8 +577,7 @@ for name, tuple in name_tuple_dict.items():
             df = tuple[0][['Asset Class', strategy]].reset_index(drop=True)
             df = df[~df['Asset Class'].isin(['Total'])].reset_index(drop=True)
             df = df.set_index('Asset Class')
-            if name != 'mv':
-                df = df * 100
+
         except KeyError:
             df = tuple[0]
             if 'Returns' in df.columns:
@@ -585,9 +590,10 @@ for name, tuple in name_tuple_dict.items():
                 df = df.set_index('Attribution')
 
         df['positive'] = df[strategy] > 0
-        df[strategy].plot.bar(ax=axes, color=df.positive.map({True: tuple[1], False: 'r'}))
-
-        #df.plot.bar(ax=axes, color=[tuple[1]])
+        if name == 's1':
+            df[strategy].plot.bar(ax=axes, color=df.positive.map({True: tuple[1], False: green_to_red_dict[tuple[1]]}), width=0.3)
+        else:
+            df[strategy].plot.bar(ax=axes, color=df.positive.map({True: tuple[1], False: green_to_red_dict[tuple[1]]}))
         axes.set_title(strategy)
         axes.set_xlabel('')
         axes.set_ylabel(tuple[2])
