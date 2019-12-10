@@ -70,7 +70,8 @@ def filter_misc_funds(df):
         'LGRC: SOUTHPEAK REAL 48V A MF447EU',
         'LGRC: SPK RDF 4 8 A 301117 MF448EU',
         'LGRC: SPK REAL DIV 4 8 CLA MF476EU',
-        'LGRC: SOUTHPEAK REAL DIVER MF520EU'
+        'LGRC: SOUTHPEAK REAL DIVER MF520EU',
+        'LGRC: Attunga Power and Enviro Fund Class E Nov 19 1.1 AA N MFH23EU'
     ]
 
     df = df[~df['Fund'].isin(misc_filter)].reset_index(drop=True)
@@ -157,7 +158,8 @@ def rename_funds(df):
         'LGDD - DA REBAL': 'Defensive Alts',
         'TOTAL - LGS Defensive Alternatives Sector': 'Defensive Alternatives',
         'TOTAL LGS (LGSMAN)': 'TOTAL LGS',
-        'LGRC:  ARDEA REAL OUTCOME MFF50EU': 'Ardea Real'
+        'LGRC:  ARDEA REAL OUTCOME MFF50EU': 'Ardea Real',
+        'LGRC: Attunga Power and Enviro Fund Class E Nov 19 1.1 AA N MFH23EU': 'Attunga'
     }
 
     df['Fund'] = [

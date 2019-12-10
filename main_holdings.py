@@ -25,14 +25,14 @@ import numpy as np
 # df_bonds = df_bonds[['Total Market Value (Base)']]
 # df_bonds.to_csv(jpm_directory + 'bonds.csv', index=True)
 
-report_date = dt.datetime(2019, 10, 31)
+report_date = dt.datetime(2019, 11, 30)
 
 wscf_market_value = 179134641.00
 aqr_market_value = 219121402.50
 delaware_market_value = 176377527.70
 wellington_market_value = 178987710.30
 
-jpm_filepath = 'U:/CIO/#Holdings/Data/input/holdings/jpm/2019/10/Priced Positions - All.csv'
+jpm_filepath = 'U:/CIO/#Holdings/Data/input/holdings/jpm/2019/11/Priced Positions - All.csv'
 wscf_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/10/wscf_holdings.xls'
 aqr_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/10/aqr_holdings.xls'
 delaware_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/10/delaware_holdings.xlsx'
@@ -330,7 +330,9 @@ sedol_to_common_name_dict = {
         '2270726': 'Walt Disney',
         'BD6K457': 'Compass',
         '2210959': 'Canadian Rail',
-        '7123870': 'Nestle'
+        '7123870': 'Nestle',
+        '2588173': 'Microsoft',
+        'B4MGBG6': 'HCA'
 }
 
 df_main_aeq_top10 = df_main_aeq.head(10)[['SEDOL', 'Market Value AUD', '(%) of Portfolio']]
