@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 import datetime as dt
-FYTD = 5
-report_date = dt.datetime(2019, 11, 30)
+FYTD = 4
+report_date = dt.datetime(2019, 10, 31)
 
 # UNIT PRICES
 # Imports unit price panel
@@ -124,6 +124,8 @@ for horizon, period in horizon_to_period_dict.items():
         column_name = str(period) + '_' + return_type
         return_name = str(period) + '_Return'
         inflation_name = str(period) + '_Inflation'
+        objective_name = str(period) + '_Objective'
+        tax_name = str(period) + '_Tax'
         benchmark_name = str(period) + '_Benchmark'
         excess_name = str(period) + '_Excess'
 
@@ -136,13 +138,6 @@ for horizon, period in horizon_to_period_dict.items():
                 .reset_index(drop=False)[return_type]
             )
 
-            # Simple returns for benchmarks fix later
-            # df_up_monthly[benchmark_name] = [
-            #     (df_up_monthly[inflation_name][i] + product_to_objective_dict[df_up_monthly['OptionType'][i]]*(period/12)) \
-            #     * (1 - product_to_tax_dict[df_up_monthly['OptionType'][i]]*(period/12))
-            #     for i in range(0, len(df_up_monthly))
-            # ]
-
         elif period > 12:
             df_up_monthly[column_name] = (
                 df_up_monthly
@@ -152,17 +147,12 @@ for horizon, period in horizon_to_period_dict.items():
                 .reset_index(drop=False)[return_type]
             )
 
-            # df_up_monthly[benchmark_name] = [
-            #     (df_up_monthly[inflation_name][i] + product_to_objective_dict[df_up_monthly['OptionType'][i]]) \
-            #     * (1 - product_to_tax_dict[df_up_monthly['OptionType'][i]])
-            #     for i in range(0, len(df_up_monthly))
-            # ]
-
-        # df_up_monthly[excess_name] = df_up_monthly[return_name] - df_up_monthly[benchmark_name]
+    df_up_monthly[benchmark_name] = (df_up_monthly[inflation_name] + df_up_monthly[objective_name]) * (1 - df_up_monthly[tax_name])
+    df_up_monthly[excess_name] = df_up_monthly[return_name] - df_up_monthly[benchmark_name]
 
 df_up_risk_of_loss_years = df_up_monthly[(df_up_monthly['Month'] == 6) | (df_up_monthly['Date'] == max(df_up_monthly['Date']))]
 
-
+df_up_bar_chart = df_up_monthly[df_up_monthly['Date']==report_date]
 
 
 
@@ -252,7 +242,7 @@ df_age_final = df_age_final.sort_values(['Lifecycle', 'Age', 'Date'])
 df_age_final.to_csv('U:/CIO/#Research/MySuper Lifecycles.csv', index=False)
 
 df_age_final['Month'] = [df_age_final['Date'][i].month for i in range(0, len(df_age_final))]
-
+"""
 
 
 
@@ -301,4 +291,3 @@ df_age_final['Month'] = [df_age_final['Date'][i].month for i in range(0, len(df_
 # df_benchmark['Cash'] = (df_r['2_Year'] + 0.0025) * (1 - 0.15)
 
 # df_benchmark.to_csv('U:/CIO/#Investment_Report/Data/input/product/strategy_benchmarks_201905.csv')
-"""
