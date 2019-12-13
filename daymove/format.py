@@ -159,7 +159,8 @@ def rename_funds(df):
         'TOTAL - LGS Defensive Alternatives Sector': 'Defensive Alternatives',
         'TOTAL LGS (LGSMAN)': 'TOTAL LGS',
         'LGRC:  ARDEA REAL OUTCOME MFF50EU': 'Ardea Real',
-        'LGRC: Attunga Power and Enviro Fund Class E Nov 19 1.1 AA N MFH23EU': 'Attunga'
+        'LGRC: Attunga Power and Enviro Fund Class E Nov 19 1.1 AA N MFH23EU': 'Attunga',
+        'LGAU - LGS AR TCW': 'TCW'
     }
 
     df['Fund'] = [
