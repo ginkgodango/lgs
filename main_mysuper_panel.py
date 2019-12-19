@@ -269,7 +269,7 @@ df_lc = df_lc.rename(columns={'level_2': 'Age', 0: 'Weight'})
 df_lc['Weight'] = df_lc['Weight'] / 100
 
 # Make data smaller
-df_lc = df_lc[df_lc['Lifecycle'] == 'Lifecycle 1'].reset_index(drop=True)
+# df_lc = df_lc[df_lc['Lifecycle'] == 'Lifecycle 1'].reset_index(drop=True)
 
 # Merges age cohorts with lifecycle portfolios
 df_age = pd.merge(
@@ -417,18 +417,50 @@ df_simulate_chart_cross_section = df_simulate[df_simulate['Date'] == report_date
 df_simulate_chart_cross_section = df_simulate_chart_cross_section.drop(columns=['Date', 'Lag', '60_Lifecycle_Return', '60_Lifecycle_Objective'], axis=1)
 df_simulate_chart_cross_section = df_simulate_chart_cross_section[df_simulate_chart_cross_section['Age'].isin([50, 55, 60, 65])]
 
+lifecycle_to_cross_section_dict = dict(list(df_simulate_chart_cross_section.groupby(['Lifecycle'])))
+for lifecycle, df_cross_section in lifecycle_to_cross_section_dict.items():
+    df_cross_section = df_cross_section.drop(columns=['Lifecycle'], axis=1)
+    age_to_cross_section2_dict = dict(list(df_cross_section.groupby(['Age'])))
 
-a = df_simulate_chart_cross_section.copy()
-a = a[a['Age'] == 50]
-a = a.drop(columns=['Lifecycle', 'Date', 'Age', 'Lag', '60_Lifecycle_Return', '60_Lifecycle_Objective'])
-a = a.set_index('Age Lag')
-a = a.rename(columns={'12_Weighted_Return': 'Return', '12_Weighted_Objective': 'Objective'})
-a = (a*100).round(2)
-fig_a = a.plot(kind='bar', color=[darkgreen, lightgreen])
-fig_a.set_title('1 Year Return at Each Age for a 50 Year Old')
-fig_a.set_ylabel('Return (%)')
-fig_a.set_xlabel('Age (Year)')
-plt.tight_layout()
+    fig, axes = plt.subplots(nrows=2, ncols=2, sharex=False, sharey=True, figsize=(12.8, 7.2))
+    i = 0
+    j = 0
+    for age, df_cross_section2 in age_to_cross_section2_dict.items():
+        df_cross_section2 = df_cross_section2.drop(columns=['Age'], axis=1)
+        df_cross_section2 = df_cross_section2.set_index('Age Lag')
+        df_cross_section2 = df_cross_section2.rename(columns={'12_Weighted_Return': 'Return', '12_Weighted_Objective': 'Objective'})
+        df_cross_section2 = (df_cross_section2 * 100).round(2)
+        df_cross_section2.plot(ax=axes[i, j], kind='bar', color=[darkgreen, lightgreen])
+        axes[i, j].set_title('1 Year Return at Each Age for a ' + str(age) + ' Year Old')
+        axes[i, j].set_ylabel('Return (%)')
+        axes[i, j].set_xlabel('Age (Years)')
+        axes[i, j].legend(loc='upper left', title='')
+        if i == 0 and j == 0:
+            j += 1
+        elif i == 0 and j == 1:
+            i += 1
+            j -= 1
+        elif i == 1 and j == 0:
+            j += 1
+
+        # fig_a = df_cross_section2.plot(kind='bar', color=[darkgreen, lightgreen])
+        # fig_a.set_title('1 Year Return at Each Age for a ' + str(age) + ' Year Old')
+    fig.suptitle(lifecycle)
+    fig.tight_layout()
+    fig.subplots_adjust(top=0.9)
+    fig.savefig('U:/CIO/#Investment_Report/Data/output/testing/charts/' + str(lifecycle) + '.png', dpi=300)
+
+# a = df_simulate_chart_cross_section.copy()
+# a = a[a['Age'] == 50]
+# a = a.drop(columns=['Lifecycle', 'Date', 'Age', 'Lag', '60_Lifecycle_Return', '60_Lifecycle_Objective'])
+# a = a.set_index('Age Lag')
+# a = a.rename(columns={'12_Weighted_Return': 'Return', '12_Weighted_Objective': 'Objective'})
+# a = (a*100).round(2)
+# fig_a = a.plot(kind='bar', color=[darkgreen, lightgreen])
+# fig_a.set_title('1 Year Return at Each Age for a 50 Year Old')
+# fig_a.set_ylabel('Return (%)')
+# fig_a.set_xlabel('Age (Year)')
+# plt.tight_layout()
 
 
 # CASH BENCHMARK
