@@ -443,24 +443,11 @@ for lifecycle, df_cross_section in lifecycle_to_cross_section_dict.items():
         elif i == 1 and j == 0:
             j += 1
 
-        # fig_a = df_cross_section2.plot(kind='bar', color=[darkgreen, lightgreen])
-        # fig_a.set_title('1 Year Return at Each Age for a ' + str(age) + ' Year Old')
     fig.suptitle(lifecycle)
     fig.tight_layout()
     fig.subplots_adjust(top=0.9)
     fig.savefig('U:/CIO/#Investment_Report/Data/output/testing/charts/' + str(lifecycle) + '.png', dpi=300)
 
-# a = df_simulate_chart_cross_section.copy()
-# a = a[a['Age'] == 50]
-# a = a.drop(columns=['Lifecycle', 'Date', 'Age', 'Lag', '60_Lifecycle_Return', '60_Lifecycle_Objective'])
-# a = a.set_index('Age Lag')
-# a = a.rename(columns={'12_Weighted_Return': 'Return', '12_Weighted_Objective': 'Objective'})
-# a = (a*100).round(2)
-# fig_a = a.plot(kind='bar', color=[darkgreen, lightgreen])
-# fig_a.set_title('1 Year Return at Each Age for a 50 Year Old')
-# fig_a.set_ylabel('Return (%)')
-# fig_a.set_xlabel('Age (Year)')
-# plt.tight_layout()
 
 
 # CASH BENCHMARK
