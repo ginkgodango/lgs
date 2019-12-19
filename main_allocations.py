@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 input_directory = 'U:/CIO/#Investment_Report/Data/input/allocations/'
 output_directory = 'U:/CIO/#Investment_Report/Data/output/allocations/'
 
-allocations_filename = 'asset_allocations_2019-10-31.csv'
-dictionary_filename = 'allocations_dictionary.csv'
+allocations_filename = 'asset_allocations_2019-11-31.csv'
+dictionary_filename = 'allocations_dictionary_2019-11-30.csv'
 
 df_allocations = pd.read_csv(
     input_directory + allocations_filename,

@@ -3,17 +3,17 @@ import numpy as np
 import datetime as dt
 import matplotlib
 import matplotlib.pyplot as plt
-FYTD = 4
-report_date = dt.datetime(2019, 10, 31)
+FYTD = 5
+report_date = dt.datetime(2019, 11, 30)
 darkgreen = (75/256, 120/256, 56/256)
 middlegreen = (141/256, 177/256, 66/256)
 lightgreen = (175/256, 215/256, 145/256)
 
 # UNIT PRICES
 # Imports unit price panel
-df_up = pd.read_csv('U:/CIO/#Investment_Report/Data/input/testing/20191031 Unit Prices.csv', parse_dates=['Date'])
+df_up = pd.read_csv('U:/CIO/#Data/input/lgs/unitprices/20191031 Unit Prices.csv', parse_dates=['Date'])
 df_up_unique = df_up[df_up['Date'] == report_date]
-df_up_unique.to_csv('U:/CIO/#Research/product_unique.csv', index=False)
+# df_up_unique.to_csv('U:/CIO/#Research/product_unique.csv', index=False)
 
 df_up = df_up.rename(
     columns={
@@ -67,7 +67,7 @@ df_up_monthly['Return'] = (df_up_monthly['Unit Price'] - df_up_monthly['Unit Pri
 
 # STRATEGY BENCHMARKS
 df_cpi = pd.read_csv(
-    'U:/CIO/#Investment_Report/Data/input/product/g1-data_201909.csv',
+    'U:/CIO/#Data/input/rba/inflation/20190930 g1-data.csv',
     header=10,
     usecols=['Series ID', 'GCPIAGQP'],
     parse_dates=['Series ID'],
@@ -201,37 +201,37 @@ df_risk_of_loss_years = df_risk_of_loss_years[
 
 
 # Creates Product Performance table
-df_product = df_up_monthly[df_up_monthly['Date'] == report_date]
-df_product = df_product.set_index('OptionType')
-
-product_to_horizon_dict = {
-    'High Growth': 84,
-    'Growth': 60,
-    'Balanced Growth': 60,
-    'Balanced': 36,
-    'Conservative': 24,
-    'Managed Cash': 24,
-    'Defined Benefit Strategy': 60
-}
-
-product_name = list()
-product_performance = list()
-product_objective = list()
-product_excess = list()
-for product, horizon in product_to_horizon_dict.items():
-    product_name.append(product)
-    product_performance.append(df_product[str(horizon) + '_Return'][product])
-    product_objective.append(df_product[str(horizon) + '_Objective'][product])
-    product_excess.append(df_product[str(horizon) + '_Excess'][product])
-
-product_zipped = list(zip(product_performance, product_objective, product_excess))
-df_product = pd.DataFrame(product_zipped, index=product_name, columns=['Performance', 'Objective', 'Active']).round(4).T*100
-df_product_chart = df_product[:-1].T
-fig = df_product_chart.plot(kind='bar', color=[darkgreen, lightgreen])
-fig.set_title('LGS Annualised Product Performance')
-fig.set_ylabel('Performance %')
-fig.set_xlabel('')
-plt.tight_layout()
+# df_product = df_up_monthly[df_up_monthly['Date'] == report_date]
+# df_product = df_product.set_index('OptionType')
+#
+# product_to_horizon_dict = {
+#     'High Growth': 84,
+#     'Growth': 60,
+#     'Balanced Growth': 60,
+#     'Balanced': 36,
+#     'Conservative': 24,
+#     'Managed Cash': 24,
+#     'Defined Benefit Strategy': 60
+# }
+#
+# product_name = list()
+# product_performance = list()
+# product_objective = list()
+# product_excess = list()
+# for product, horizon in product_to_horizon_dict.items():
+#     product_name.append(product)
+#     product_performance.append(df_product[str(horizon) + '_Return'][product])
+#     product_objective.append(df_product[str(horizon) + '_Objective'][product])
+#     product_excess.append(df_product[str(horizon) + '_Excess'][product])
+#
+# product_zipped = list(zip(product_performance, product_objective, product_excess))
+# df_product = pd.DataFrame(product_zipped, index=product_name, columns=['Performance', 'Objective', 'Active']).round(4).T*100
+# df_product_chart = df_product[:-1].T
+# fig = df_product_chart.plot(kind='bar', color=[darkgreen, lightgreen])
+# fig.set_title('LGS Annualised Product Performance')
+# fig.set_ylabel('Performance %')
+# fig.set_xlabel('')
+# plt.tight_layout()
 
 
 # Charting
@@ -262,20 +262,16 @@ plt.tight_layout()
 
 
 # LIFECYCLES
-df_lc = pd.read_excel(pd.ExcelFile('U:/CIO/#Investment_Report/Data/input/testing/20191031 Lifecycles.xlsx'), sheet_name='Sheet2')
+df_lc = pd.read_excel(pd.ExcelFile('U:/CIO/#Data/input/jana/lifecycles/20191031 Lifecycles.xlsx'), sheet_name='Sheet2')
 df_lc = df_lc.fillna(0)
 df_lc = df_lc.set_index(['Lifecycle', 'OptionType']).T.unstack().reset_index(drop=False)
 df_lc = df_lc.rename(columns={'level_2': 'Age', 0: 'Weight'})
 df_lc['Weight'] = df_lc['Weight'] / 100
 
+# Make data smaller
+df_lc = df_lc[df_lc['Lifecycle'] == 'Lifecycle 1'].reset_index(drop=True)
 
-# df_age = pd.merge(
-#     left=df_up_risk_of_loss_years,
-#     right=df_lc,
-#     left_on=['OptionType'],
-#     right_on=['OptionType']
-# )
-
+# Merges age cohorts with lifecycle portfolios
 df_age = pd.merge(
     left=df_up_monthly,
     right=df_lc,
@@ -329,7 +325,110 @@ df_age_final = df_age_final.sort_values(['Lifecycle', 'Age', 'Date'])
 
 df_age_final.to_csv('U:/CIO/#Research/MySuper Lifecycles.csv', index=False)
 
+df_age_final['Year'] = [df_age_final['Date'][i].year for i in range(0, len(df_age_final))]
 df_age_final['Month'] = [df_age_final['Date'][i].month for i in range(0, len(df_age_final))]
+
+
+simulate_columns = [
+    'Lifecycle',
+    'Date',
+    'Year',
+    'Month',
+    'Age',
+    '12_Weighted_Return',
+    '12_Weighted_Objective'
+]
+
+df_simulate = df_age_final[simulate_columns]
+df_simulate = df_simulate.sort_values(['Lifecycle', 'Month', 'Year', 'Age']).reset_index(drop=True)
+# df_simulate = df_simulate[df_simulate['Lifecycle'] == 'Lifecycle 1'].reset_index(drop=True)
+
+lifespan = 5
+weighted_return_lag_columns = list()
+weighted_objective_lag_columns = list()
+for year in range(0, lifespan):
+    date_forward_column = 'Date Forward ' + str(year)
+    weighted_return_lag_column = '12_Weighted_Return Lag ' + str(year)
+    weighted_objective_lag_column = '12_Weighted_Objective Lag ' + str(year)
+    weighted_return_lag_columns.append(weighted_return_lag_column)
+    weighted_objective_lag_columns.append(weighted_objective_lag_column)
+
+    df_simulate_temp = df_simulate[['Lifecycle', 'Age', 'Date', '12_Weighted_Return', '12_Weighted_Objective']]
+    if year == 0:
+        df_simulate_temp[date_forward_column] = df_simulate_temp['Date']
+    else:
+        df_simulate_temp[date_forward_column] = df_simulate_temp['Date'].apply(lambda date: date + pd.DateOffset(years=year))
+
+    df_simulate_temp = df_simulate_temp.drop(columns=['Date'], axis=1)
+    df_simulate_temp = df_simulate_temp.rename(
+        columns={
+            '12_Weighted_Return': weighted_return_lag_column,
+            '12_Weighted_Objective': weighted_objective_lag_column
+        }
+    )
+
+    df_simulate = pd.merge(
+        left=df_simulate,
+        right=df_simulate_temp,
+        left_on=['Lifecycle', 'Age', 'Date'],
+        right_on=['Lifecycle', 'Age', date_forward_column],
+        how='left'
+    )
+
+    df_simulate[weighted_return_lag_column] = df_simulate.groupby(['Lifecycle', 'Date'])[weighted_return_lag_column].shift(year)
+    df_simulate[weighted_objective_lag_column] = df_simulate.groupby(['Lifecycle', 'Date'])[weighted_objective_lag_column].shift(year)
+
+    df_simulate = df_simulate.drop(columns=[date_forward_column], axis=1)
+
+ # Converts df_simulate into panel
+df_simulate = df_simulate.sort_values(['Lifecycle', 'Date', 'Age'])
+df_simulate = df_simulate.drop(columns=['Year', 'Month', '12_Weighted_Return', '12_Weighted_Objective'], axis=1)
+df_simulate = pd.wide_to_long(df_simulate, stubnames=['12_Weighted_Return Lag ', '12_Weighted_Objective Lag '], i=['Lifecycle', 'Date', 'Age'], j='Lag')
+df_simulate = df_simulate.reset_index(drop=False)
+df_simulate = df_simulate.sort_values(['Lifecycle', 'Date', 'Age', 'Lag'], ascending=[True, True, True, False]).reset_index(drop=True)
+df_simulate = df_simulate.rename(columns={'12_Weighted_Return Lag ': '12_Weighted_Return', '12_Weighted_Objective Lag ': '12_Weighted_Objective'})
+
+for return_type in ['12_Weighted_Return', '12_Weighted_Objective']:
+    column_name = str(lifespan*12) + '_Lifecycle_' + return_type[12:]
+    df_simulate[column_name] = (
+        df_simulate
+            .groupby(['Lifecycle', 'Date', 'Age'])[return_type]
+            .rolling(lifespan)
+            .apply(lambda r: (np.prod(1 + r) ** (1 /lifespan)) - 1, raw=False)
+            .reset_index(drop=False)[return_type]
+    )
+
+df_simulate['Age Lag'] = df_simulate['Age'] - df_simulate['Lag']
+
+df_simulate.to_csv('U:/CIO/#Research/lifecycle_simulation_5years_panel.csv', index=False)
+
+df_simulate_chart_bar_summary = df_simulate[(df_simulate['Date'] == report_date) & (df_simulate['Lag'] == 0)]
+df_simulate_chart_bar_summary = df_simulate_chart_bar_summary[df_simulate_chart_bar_summary['Age'].isin([50, 55, 60, 65])]
+df_simulate_chart_bar_summary = ((df_simulate_chart_bar_summary[['Age', '60_Lifecycle_Return', '60_Lifecycle_Objective']].set_index('Age'))*100).round(2)
+df_simulate_chart_bar_summary = df_simulate_chart_bar_summary.rename(columns={'60_Lifecycle_Return': 'Return', '60_Lifecycle_Objective': 'Objective'})
+fig_simulate_chart_bar_summary = df_simulate_chart_bar_summary.plot(kind='bar', color=[darkgreen, lightgreen])
+fig_simulate_chart_bar_summary.set_title('5 Year Return for Each Age Cohort')
+fig_simulate_chart_bar_summary.set_ylabel('Return (%)')
+fig_simulate_chart_bar_summary.set_xlabel('Age Cohort (Year)')
+plt.tight_layout()
+
+
+df_simulate_chart_cross_section = df_simulate[df_simulate['Date'] == report_date]
+df_simulate_chart_cross_section = df_simulate_chart_cross_section.drop(columns=['Date', 'Lag', '60_Lifecycle_Return', '60_Lifecycle_Objective'], axis=1)
+df_simulate_chart_cross_section = df_simulate_chart_cross_section[df_simulate_chart_cross_section['Age'].isin([50, 55, 60, 65])]
+
+
+a = df_simulate_chart_cross_section.copy()
+a = a[a['Age'] == 50]
+a = a.drop(columns=['Lifecycle', 'Date', 'Age', 'Lag', '60_Lifecycle_Return', '60_Lifecycle_Objective'])
+a = a.set_index('Age Lag')
+a = a.rename(columns={'12_Weighted_Return': 'Return', '12_Weighted_Objective': 'Objective'})
+a = (a*100).round(2)
+fig_a = a.plot(kind='bar', color=[darkgreen, lightgreen])
+fig_a.set_title('1 Year Return at Each Age for a 50 Year Old')
+fig_a.set_ylabel('Return (%)')
+fig_a.set_xlabel('Age (Year)')
+plt.tight_layout()
 
 
 # CASH BENCHMARK

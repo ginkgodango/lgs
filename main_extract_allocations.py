@@ -6,7 +6,6 @@ import datetime
 import calendar
 import attribution.extraction
 
-
 directory = 'D:/automation/final/attribution/extraction/'
 filenames = sorted(os.listdir(directory))
 
@@ -36,5 +35,5 @@ for filename in filenames:
         df_asset_allocations = pd.concat([df_asset_allocations, df], sort=True).reset_index(drop=True)
 
 excel.Quit()
-df_asset_allocations.to_csv(directory + 'asset_allocations_2019-10-31.csv', index=False)
+df_asset_allocations.to_csv(directory + 'asset_allocations_2019-11-30.csv', index=False)
 

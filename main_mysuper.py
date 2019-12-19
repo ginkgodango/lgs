@@ -4,8 +4,8 @@ import pandas as pd
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/mysuper/'
 output_directory = 'U:/CIO/#Investment_Report/Data/output/mysuper/'
-filename = 'MySuper FUM 20191031.xlsx'
-report_date = datetime(2019, 10, 31)
+filename = 'MySuper FUM 20191130.xlsx'
+report_date = datetime(2019, 11, 30)
 
 df_mysuper = pd.read_excel(input_directory + filename, sheet_name='Sheet1')
 

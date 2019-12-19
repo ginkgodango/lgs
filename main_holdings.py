@@ -27,16 +27,16 @@ import numpy as np
 
 report_date = dt.datetime(2019, 11, 30)
 
-wscf_market_value = 179134641.00
-aqr_market_value = 219121402.50
-delaware_market_value = 176377527.70
-wellington_market_value = 178987710.30
+wscf_market_value = 184243745.00
+aqr_market_value = 229125024.90
+delaware_market_value = 183724750.80
+wellington_market_value = 182905734.00
 
 jpm_filepath = 'U:/CIO/#Holdings/Data/input/holdings/jpm/2019/11/Priced Positions - All.csv'
-wscf_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/10/wscf_holdings.xls'
-aqr_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/10/aqr_holdings.xls'
-delaware_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/10/delaware_holdings.xlsx'
-wellington_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/10/wellington_holdings.xls'
+wscf_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/11/wscf_holdings.xls'
+aqr_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/11/aqr_holdings.xls'
+delaware_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/11/delaware_holdings.xlsx'
+wellington_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/11/wellington_holdings.xls'
 tickers_filepath = 'U:/CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
 
 aeq_filepath = 'U:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_AEQ_Manager Version.xlsx'
@@ -166,7 +166,7 @@ df_aqr['Date'] = report_date
 # Imports Delaware holdings data
 df_delaware = pd.read_excel(
         pd.ExcelFile(delaware_filepath),
-        sheet_name='EM UCITS holdings 9-30-19',
+        sheet_name='EM UCITS holdings 10-31-19',
         header=0,
         usecols=[
                 'Security SEDOL',
