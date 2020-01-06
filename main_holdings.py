@@ -25,14 +25,14 @@ import numpy as np
 # df_bonds = df_bonds[['Total Market Value (Base)']]
 # df_bonds.to_csv(jpm_directory + 'bonds.csv', index=True)
 
-report_date = dt.datetime(2019, 11, 30)
+report_date = dt.datetime(2019, 12, 31)
 
 wscf_market_value = 184243745.00
 aqr_market_value = 229125024.90
 delaware_market_value = 183724750.80
 wellington_market_value = 182905734.00
 
-jpm_filepath = 'U:/CIO/#Holdings/Data/input/holdings/jpm/2019/11/Priced Positions - All.csv'
+jpm_filepath = 'U:/CIO/#Holdings/Data/input/holdings/jpm/2019/12/Priced Positions - All.csv'
 wscf_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/11/wscf_holdings.xls'
 aqr_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/11/aqr_holdings.xls'
 delaware_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/11/delaware_holdings.xlsx'

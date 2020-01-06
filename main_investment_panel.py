@@ -206,7 +206,7 @@ for idx, sub_df in df.groupby("Manager"):
 
 # write results back to original df
 df_jpm['36_Beta'] = pd.Series(kwargs["result"])
-
+# End calculation of rolling beta
 
 # Imports the JPM time-series of market values.
 df_jpm_mv = pd.read_excel(
