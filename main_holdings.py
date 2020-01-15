@@ -27,17 +27,18 @@ import numpy as np
 
 report_date = dt.datetime(2019, 12, 31)
 
-wscf_market_value = 184243745.00
-aqr_market_value = 229125024.90
-delaware_market_value = 183724750.80
-wellington_market_value = 182905734.00
+wscf_market_value = 188197744.70
+aqr_market_value = 223033840.40
+delaware_market_value = 183241040.60
+wellington_market_value = 183357208.68
 
 jpm_filepath = 'U:/CIO/#Holdings/Data/input/holdings/jpm/2019/12/Priced Positions - All.csv'
-wscf_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/11/wscf_holdings.xls'
-aqr_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/11/aqr_holdings.xls'
-delaware_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/11/delaware_holdings.xlsx'
-wellington_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/11/wellington_holdings.xls'
+wscf_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/12/wscf_holdings.xls'
+aqr_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/12/aqr_holdings.xls'
+delaware_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/12/delaware_holdings.xlsx'
+wellington_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/12/wellington_holdings.xlsx'
 tickers_filepath = 'U:/CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
+asx_filepath = 'D:/data/ASX List/ASX300/20191201-asx300.csv'
 
 aeq_filepath = 'U:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_AEQ_Manager Version.xlsx'
 ieq_filepath = 'U:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_IEQ_Manager Version.xlsx'
@@ -166,7 +167,7 @@ df_aqr['Date'] = report_date
 # Imports Delaware holdings data
 df_delaware = pd.read_excel(
         pd.ExcelFile(delaware_filepath),
-        sheet_name='EM UCITS holdings 10-31-19',
+        sheet_name='EM UCITS holdings 11-30-19',
         header=0,
         usecols=[
                 'Security SEDOL',
@@ -282,6 +283,8 @@ df_main_ieq = df_main[df_main['Account Name'].isin(international_equity_managers
 
 df_main_aeq['(%) of Portfolio'] = (df_main_aeq['Market Value AUD'] / df_main_aeq['Market Value AUD'].sum()) * 100
 df_main_ieq['(%) of Portfolio'] = (df_main_ieq['Market Value AUD'] / df_main_ieq['Market Value AUD'].sum()) * 100
+
+a = df_main_aeq['Market Value AUD'].sum()
 
 df_main_aeq = df_main_aeq.groupby(['SEDOL']).sum().sort_values(['Market Value AUD'], ascending=[False])[['Market Value AUD', '(%) of Portfolio']]
 df_main_ieq = df_main_ieq.groupby(['SEDOL']).sum().sort_values(['Market Value AUD'], ascending=[False])[['Market Value AUD', '(%) of Portfolio']]
@@ -431,6 +434,19 @@ df_tickers = pd.read_excel(
 df_tickers['SEDOL'] = [str(df_tickers['SEDOL'][i]).replace(" ", "").upper() for i in range(0, len(df_tickers))]
 df_tickers['ISIN'] = [str(df_tickers['ISIN'][i]).replace(" ", "").upper() for i in range(0, len(df_tickers))]
 df_tickers['TICKER'] = [str(df_tickers['TICKER'][i]).replace(" ", "").upper() for i in range(0, len(df_tickers))]
+
+new_ticker_codes = []
+df_tickers['TICKER'] = df_tickers['TICKER'].astype(str)
+for i in range(0, len(df_tickers)):
+    current_ticker = df_tickers['TICKER'][i]
+    if df_tickers['Currency'][i] == 'HKD':
+        add_zeros = '0' * (4 - len(current_ticker))
+        new_ticker_code = add_zeros + current_ticker
+        new_ticker_codes.append(new_ticker_code.replace('/', ''))
+
+    else:
+        new_ticker_codes.append(current_ticker.replace('/', ''))
+df_tickers['TICKER'] = new_ticker_codes
 
 # Selects equity managers only
 equity_managers_list = [
@@ -586,3 +602,38 @@ for account, df in account_to_df_dict.items():
     df = df[columns_yahoo]
     df.to_csv('U:/CIO/#Holdings/Data/output/yahoo/' + account + '.csv', index=False)
 
+
+# Renames columns
+df_main_eq_ticker = df_main_eq_ticker.rename(columns={'Security Name_x': 'Security Name'})
+
+# Calculates Relative
+df_main_relative = df_main_eq_ticker[['Account Name', 'TICKER', 'Security Name', 'Market Value AUD']]
+df_main_relative_aeq = df_main_relative[df_main_relative['Account Name'].isin(australian_equity_managers_list)]
+df_main_relative_aeq.drop(columns=['Account Name'], axis=1)
+df_main_relative_aeq = df_main_relative_aeq.groupby(['TICKER']).sum().reset_index(drop=False)
+df_main_relative_aeq['Portfolio Weight'] = ((df_main_relative_aeq['Market Value AUD'] / a)*100).round(2)
+df_main_relative_aeq = df_main_relative_aeq.sort_values(['Portfolio Weight'], ascending=[False])
+
+df_asx = pd.read_csv(
+        asx_filepath,
+        skiprows=[0],
+        header=0,
+        usecols=[
+                'Code',
+                'Company',
+                'Weight(%)'
+        ],
+)
+
+df_asx = df_asx.rename(columns={'Weight(%)': 'Benchmark Weight'})
+
+df_main_relative_aeq = pd.merge(
+        left=df_main_relative_aeq,
+        right=df_asx,
+        left_on=['TICKER'],
+        right_on=['Code'],
+        how='outer'
+)
+
+df_main_relative_aeq['Relative Weight'] = df_main_relative_aeq['Portfolio Weight'] - df_main_relative_aeq['Benchmark Weight']
+df_main_relative_aeq.to_csv('U:/CIO/#Holdings/Data/output/relative_holdings_aeq.csv', index=False)

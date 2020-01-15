@@ -3,15 +3,15 @@ import numpy as np
 import datetime as dt
 import matplotlib
 import matplotlib.pyplot as plt
-FYTD = 5
-report_date = dt.datetime(2019, 11, 30)
+FYTD = 6
+report_date = dt.datetime(2019, 12, 31)
 darkgreen = (75/256, 120/256, 56/256)
 middlegreen = (141/256, 177/256, 66/256)
 lightgreen = (175/256, 215/256, 145/256)
 
 # UNIT PRICES
 # Imports unit price panel
-df_up = pd.read_csv('U:/CIO/#Data/input/lgs/unitprices/20191031 Unit Prices.csv', parse_dates=['Date'])
+df_up = pd.read_csv('U:/CIO/#Data/input/lgs/unitprices/20191231 Unit Prices.csv', parse_dates=['Date'])
 df_up_unique = df_up[df_up['Date'] == report_date]
 # df_up_unique.to_csv('U:/CIO/#Research/product_unique.csv', index=False)
 
@@ -201,37 +201,37 @@ df_risk_of_loss_years = df_risk_of_loss_years[
 
 
 # Creates Product Performance table
-# df_product = df_up_monthly[df_up_monthly['Date'] == report_date]
-# df_product = df_product.set_index('OptionType')
-#
-# product_to_horizon_dict = {
-#     'High Growth': 84,
-#     'Growth': 60,
-#     'Balanced Growth': 60,
-#     'Balanced': 36,
-#     'Conservative': 24,
-#     'Managed Cash': 24,
-#     'Defined Benefit Strategy': 60
-# }
-#
-# product_name = list()
-# product_performance = list()
-# product_objective = list()
-# product_excess = list()
-# for product, horizon in product_to_horizon_dict.items():
-#     product_name.append(product)
-#     product_performance.append(df_product[str(horizon) + '_Return'][product])
-#     product_objective.append(df_product[str(horizon) + '_Objective'][product])
-#     product_excess.append(df_product[str(horizon) + '_Excess'][product])
-#
-# product_zipped = list(zip(product_performance, product_objective, product_excess))
-# df_product = pd.DataFrame(product_zipped, index=product_name, columns=['Performance', 'Objective', 'Active']).round(4).T*100
-# df_product_chart = df_product[:-1].T
-# fig = df_product_chart.plot(kind='bar', color=[darkgreen, lightgreen])
-# fig.set_title('LGS Annualised Product Performance')
-# fig.set_ylabel('Performance %')
-# fig.set_xlabel('')
-# plt.tight_layout()
+df_product = df_up_monthly[df_up_monthly['Date'] == report_date]
+df_product = df_product.set_index('OptionType')
+
+product_to_horizon_dict = {
+    'High Growth': 84,
+    'Growth': 60,
+    'Balanced Growth': 60,
+    'Balanced': 36,
+    'Conservative': 24,
+    'Managed Cash': 24,
+    'Defined Benefit Strategy': 60
+}
+
+product_name = list()
+product_performance = list()
+product_objective = list()
+product_excess = list()
+for product, horizon in product_to_horizon_dict.items():
+    product_name.append(product)
+    product_performance.append(df_product[str(horizon) + '_Return'][product])
+    product_objective.append(df_product[str(horizon) + '_Objective'][product])
+    product_excess.append(df_product[str(horizon) + '_Excess'][product])
+
+product_zipped = list(zip(product_performance, product_objective, product_excess))
+df_product = pd.DataFrame(product_zipped, index=product_name, columns=['Performance', 'Objective', 'Active']).round(4).T*100
+df_product_chart = df_product[:-1].T
+fig = df_product_chart.plot(kind='bar', color=[darkgreen, lightgreen])
+fig.set_title('LGS Annualised Product Performance')
+fig.set_ylabel('Performance %')
+fig.set_xlabel('')
+plt.tight_layout()
 
 
 # Charting
@@ -341,7 +341,7 @@ simulate_columns = [
 
 df_simulate = df_age_final[simulate_columns]
 df_simulate = df_simulate.sort_values(['Lifecycle', 'Month', 'Year', 'Age']).reset_index(drop=True)
-# df_simulate = df_simulate[df_simulate['Lifecycle'] == 'Lifecycle 1'].reset_index(drop=True)
+df_simulate = df_simulate[df_simulate['Lifecycle'].isin(['Lifecycle 1'])].reset_index(drop=True)
 
 lifespan = 5
 weighted_return_lag_columns = list()
@@ -407,11 +407,12 @@ df_simulate_chart_bar_summary = df_simulate_chart_bar_summary[df_simulate_chart_
 df_simulate_chart_bar_summary = ((df_simulate_chart_bar_summary[['Age', '60_Lifecycle_Return', '60_Lifecycle_Objective']].set_index('Age'))*100).round(2)
 df_simulate_chart_bar_summary = df_simulate_chart_bar_summary.rename(columns={'60_Lifecycle_Return': 'Return', '60_Lifecycle_Objective': 'Objective'})
 fig_simulate_chart_bar_summary = df_simulate_chart_bar_summary.plot(kind='bar', color=[darkgreen, lightgreen])
-fig_simulate_chart_bar_summary.set_title('5 Year Return for Each Age Cohort')
+# fig_simulate_chart_bar_summary.set_title('5 Year Return for Each Age Cohort')
 fig_simulate_chart_bar_summary.set_ylabel('Return (%)')
 fig_simulate_chart_bar_summary.set_xlabel('Age Cohort (Year)')
 plt.tight_layout()
-
+fig_bar = fig_simulate_chart_bar_summary.get_figure()
+fig_bar.savefig('U:/CIO/#Investment_Report/Data/output/testing/charts/monitor.PNG', dpi=300)
 
 df_simulate_chart_cross_section = df_simulate[df_simulate['Date'] == report_date]
 df_simulate_chart_cross_section = df_simulate_chart_cross_section.drop(columns=['Date', 'Lag', '60_Lifecycle_Return', '60_Lifecycle_Objective'], axis=1)

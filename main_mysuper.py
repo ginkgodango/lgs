@@ -4,8 +4,8 @@ import pandas as pd
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/mysuper/'
 output_directory = 'U:/CIO/#Investment_Report/Data/output/mysuper/'
-filename = 'MySuper FUM 20191130.xlsx'
-report_date = datetime(2019, 11, 30)
+filename = 'MySuper FUM - 31122019.xlsx'
+report_date = datetime(2019, 12, 31)
 
 df_mysuper = pd.read_excel(input_directory + filename, sheet_name='Sheet1')
 
@@ -22,12 +22,12 @@ option_to_name_dict = {
 
 df_mysuper['MySuper'] = [
         option_to_name_dict[df_mysuper['MySuper'][i]]
-        for i in range(0,len(df_mysuper))
+        for i in range(0, len(df_mysuper))
         ]
 
 df_mysuper['Market Value'] = [
-        round(df_mysuper['Market Value'][i]/1000000,2)
-        for i in range(0,len(df_mysuper))
+        round(df_mysuper['Market Value'][i]/1000000, 2)
+        for i in range(0, len(df_mysuper))
         ]
 
 df_mysuper.set_index('MySuper', inplace=True)
@@ -46,3 +46,4 @@ df_mysuper.to_csv(output_directory + 'output.csv', index=False)
 
 with open(output_directory + 'MySuper.tex', 'w') as tf:
     tf.write(df_mysuper.to_latex(index=False))
+

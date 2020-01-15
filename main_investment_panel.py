@@ -4,18 +4,15 @@ import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
-from statsmodels.regression.rolling import RollingOLS
-from pyfinance import ols
 
+# START USER INPUT DATA
 jpm_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/20191031 JPM Historical Time Series.xlsx'
 jpm_iap_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/jpm_iap/'
 jpm_mv_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/20191031 JPM Historical Time Series MV.xlsx'
 lgs_dictionary_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/20191031 New Dictionary.xlsx'
-FYTD = 12
+FYTD = 4
 report_date = dt.datetime(2019, 10, 31)
-
-#+0.2% start
-new_cash_benchmark_date = dt.datetime(2019, 11, 30)
+# END USER INPUT DATA
 
 # Imports the JPM time-series.
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 15]
@@ -36,35 +33,37 @@ df_jpm = df_jpm.set_index('Date')
 df_jpm = df_jpm.transpose()
 df_jpm = df_jpm.reset_index(drop=False)
 df_jpm = df_jpm.rename(columns={'index': 'Manager'})
-df_jpm = pd.melt(df_jpm, id_vars=['Manager'], value_name='Return_JPM')
+df_jpm = pd.melt(df_jpm, id_vars=['Manager'], value_name='JPM_Return')
 df_jpm = df_jpm.sort_values(['Manager', 'Date'])
 df_jpm = df_jpm.reset_index(drop=True)
 
 # Cleans the data and converts the returns to percentage.
 df_jpm = df_jpm.replace('-', np.NaN)
-df_jpm['Return_JPM'] = df_jpm['Return_JPM']/100
+df_jpm['JPM_Return'] = df_jpm['JPM_Return']/100
 
 # Splits df_jpm into a returns and benchmarks
 df_jpm_returns = df_jpm[~df_jpm.Manager.str.endswith('.1')].reset_index(drop=True)
 df_jpm_benchmarks = df_jpm[df_jpm.Manager.str.endswith('.1')].reset_index(drop=True)
 df_jpm_benchmarks['Manager'] = [df_jpm_benchmarks['Manager'][i][:-2] for i in range(0, len(df_jpm_benchmarks))]
-df_jpm_benchmarks = df_jpm_benchmarks.rename(columns={'Return_JPM': 'Benchmark_JPM'})
+df_jpm_benchmarks = df_jpm_benchmarks.rename(columns={'JPM_Return': 'JPM_Benchmark'})
 
 # Creates Rf from Cash Aggregate Benchmark
 df_jpm_rf = df_jpm_benchmarks[df_jpm_benchmarks['Manager'].isin(['CLFACASH', 'Cash Aggregate'])].reset_index(drop=True)
-df_jpm_rf = df_jpm_rf.rename(columns={'Benchmark_JPM': 'Rf_JPM'})
+df_jpm_rf = df_jpm_rf.rename(columns={'JPM_Benchmark': 'JPM_Rf'})
+
 rf_values = []
+new_cash_benchmark_date = dt.datetime(2019, 11, 30)
 for i in range(0, len(df_jpm_rf)):
     if df_jpm_rf['Date'][i] >= new_cash_benchmark_date:
-        rf_values.append(df_jpm_rf['Rf_JPM'][i] - (((1+0.002)**(1/12))-1))
+        rf_values.append(df_jpm_rf['JPM_Rf'][i] - (((1+0.002)**(1/12))-1))
     else:
-        rf_values.append(df_jpm_rf['Rf_JPM'][i])
-df_jpm_rf['Rf_JPM'] = rf_values
+        rf_values.append(df_jpm_rf['JPM_Rf'][i])
+df_jpm_rf['JPM_Rf'] = rf_values
 df_jpm_rf = df_jpm_rf.drop(columns=['Manager'], axis=1)
 
 # Create ASX300 for regression
 df_jpm_asx300 = df_jpm_benchmarks[df_jpm_benchmarks['Manager'].isin(['CEIAETOT', 'Australian Equities Aggregate'])].reset_index(drop=True)
-df_jpm_asx300 = df_jpm_asx300.rename(columns={'Benchmark_JPM': 'ASX300_JPM'})
+df_jpm_asx300 = df_jpm_asx300.rename(columns={'JPM_Benchmark': 'JPM_ASX300'})
 df_jpm_asx300 = df_jpm_asx300.drop(columns=['Manager'], axis=1)
 
 # Merges returns and benchmarks
@@ -99,16 +98,11 @@ df_jpm = pd.merge(
 
 # Reads LGS's dictionary
 df_lgs = pd.read_excel(
-        pd.ExcelFile(lgs_dictionary_filepath),
-        sheet_name='Sheet1',
-        header=0
-        )
-df_lgs = df_lgs.rename(
-        columns={
-                'JPM BookName': 'BookName',
-                'JPM Account Id': 'Manager'
-        }
+    pd.ExcelFile(lgs_dictionary_filepath),
+    sheet_name='Sheet1',
+    header=0
 )
+df_lgs = df_lgs.rename(columns={'JPM Account Id': 'Manager'})
 
 df_jpm = pd.merge(
         left=df_jpm,
@@ -141,7 +135,7 @@ for horizon, period in horizon_to_period_dict.items():
     for column in ['Return', 'Benchmark', 'Rf']:
 
         column_name = horizon + column
-        return_type = column + '_JPM'
+        return_type = 'JPM_' + column
 
         if period <= 12:
             df_jpm[column_name] = (
@@ -193,7 +187,7 @@ def rolling_ols(indices, result, ycol, xcols):
 
 # Creates container and writes results of regression beta to result: idx: beta
 kwargs = {
-    "xcols": ['ASX300_JPM'],
+    "xcols": ['JPM_ASX300'],
     "ycol": '1_Return',
     "result": {}
 }
@@ -240,7 +234,7 @@ df_jpm_main = pd\
     .reset_index(drop=True)
 
 # ACTIVE CONTRIBUTION
-remove_double_count = ['']
+remove_double_count = []
 df_jpm_main['12_Average_Market_Value'] = (
     df_jpm_main[~df_jpm_main['Manager'].isin([remove_double_count])]
     .groupby(['Manager'])['Market Value']
@@ -259,6 +253,9 @@ df_jpm_main['Total Market_Value'] = (
 df_jpm_main['12_Active_Contribution'] = (
         (df_jpm_main['12_Average_Market_Value'] / df_jpm_main['Total Market_Value']) * (df_jpm_main['12_Excess'])
 )
+
+# SUSTAINABILITY
+df_jpm_main['Sustainability Value'] = df_jpm_main['LGS Sustainability Weight'] * df_jpm_main['Market Value']
 
 
 # SWITCHES MANAGER WITH LGS NAME, ALSO RENAMES RISK METRICS
@@ -280,13 +277,14 @@ df_jpm_main = df_jpm_main.sort_values(['LGS Asset Class Order', 'LGS Manager Ord
 df_jpm_main_duplicated = df_jpm_main[df_jpm_main.duplicated(['Manager', 'Date'])]
 df_jpm_main = df_jpm_main[~df_jpm_main.duplicated(['Manager', 'Date'])].reset_index(drop=True)
 
+
 # CREATES LATEX TABLES AND CHARTS
 # Selects rows as at report date
 df_jpm_table = df_jpm_main[df_jpm_main['Date'] == report_date].reset_index(drop=True)
 
 # Sets list of columns for each table
 columns_lead = ['Manager', 'Market Value']
-columns_indicators = ['LGS Asset Class', 'LGS Sector Aggregate']
+columns_indicators = ['LGS Asset Class', 'LGS Sector Aggregate', 'JPM ReportName']
 columns_performance = []
 for horizon, period in horizon_to_period_dict.items():
     for column in ['Return', 'Excess']:
@@ -386,7 +384,7 @@ df_jpm_table_active_contribution_combined.to_csv('U:/CIO/#Investment_Report/Data
 with open('U:/CIO/#Investment_Report/Data/output/testing/contributors/contributors.tex', 'w') as tf:
     tf.write(df_jpm_table_active_contribution_combined.to_latex(index=False, na_rep=''))
 
-"""
+
 # Creates charts
 df_jpm_chart_12_excess = df_jpm_main[['Manager', 'Date', '12_Excess', 'LGS Sector Aggregate', 'LGS Asset Class']]
 df_jpm_chart_12_excess = df_jpm_chart_12_excess[df_jpm_chart_12_excess['LGS Sector Aggregate'] == 0].reset_index(drop=True)
@@ -450,8 +448,41 @@ for asset_class in asset_classes:
 
     fig.tight_layout()
     fig.subplots_adjust(top=0.9)
-    # fig.savefig('U:/CIO/#Investment_Report/Data/output/testing/charts/' + str(asset_class) + '.png', dpi=300)
-"""
+    fig.savefig('U:/CIO/#Investment_Report/Data/output/testing/charts/' + str(asset_class) + '.png', dpi=300)
+
+# Creates sustainability table
+df_jpm_main_esg = df_jpm_main[
+    [
+        'Manager',
+        'Market Value',
+        'LGS Sustainability Weight',
+        'Sustainability Value',
+        '1_Return',
+        '1_Excess',
+        '3_Return',
+        '3_Excess',
+        '12_Return',
+        '12_Excess',
+        '36_Return',
+        '36_Excess'
+    ]
+]
+
+df_jpm_main_esg = df_jpm_main_esg[(df_jpm_main_esg['LGS Sustainability Weight'] != 0) & (df_jpm_main['Date'] == report_date)].reset_index(drop=True)
+
+df_jpm_table.to_csv('U:/CIO/#Investment_Report/Data/output/testing/checker/lgs_table.csv', index=False)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
