@@ -6,7 +6,6 @@ lgs_filepath = 'U:/CIO/#Investment_Report/Data/output/testing/checker/lgs_table.
 jpm_filepath = 'U:/CIO/#Investment_Report/Data/input/performance_report/LGSS Preliminary Performance 102019_AddKeys.xlsx'
 FYTD = 4
 report_date = dt.datetime(2019, 10, 31)
-days_in_month = report_date.day
 
 # Reads LGS Tables
 df_lgs = pd.read_csv(lgs_filepath)

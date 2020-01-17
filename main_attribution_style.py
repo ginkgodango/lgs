@@ -7,16 +7,16 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2019, 9, 30)
-end_date = datetime.datetime(2019, 11, 30)
+start_date = datetime.datetime(2019, 10, 31)
+end_date = datetime.datetime(2019, 12, 31)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
 output_directory = 'U:/CIO/#Attribution/tables/style/'
 
-table_filename = 'link_2019-11-30.csv'
-returns_filename = 'returns_2019-11-30.csv'
-market_values_filename = 'market_values_2019-11-30.csv'
-asset_allocations_filename = 'asset_allocations_2019-11-30.csv'
+table_filename = 'link_2019-12-31.csv'
+returns_filename = 'returns_2019-12-31.csv'
+market_values_filename = 'market_values_2019-12-31.csv'
+asset_allocations_filename = 'asset_allocations_2019-12-31.csv'
 
 latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
@@ -63,13 +63,25 @@ df_returns = pd.melt(df_returns, id_vars=['Manager'], value_name='1_r')
 # Selects returns for this month or within a date_range
 df_returns = df_returns[(df_returns['Date'] >= start_date) & (df_returns['Date'] <= end_date)].reset_index(drop=True)
 
-df_benchmarks = pd.merge(left=df_returns, right=df_table, left_on=['Manager'], right_on=['Associated Benchmark'],
-                         how='inner')
+df_benchmarks = pd.merge(
+    left=df_returns,
+    right=df_table,
+    left_on=['Manager'],
+    right_on=['Associated Benchmark'],
+    how='inner'
+)
 df_benchmarks = df_benchmarks[['Date', 'Associated Benchmark', '1_r', 'ModelCode', 'Sector', 'Style']]
 df_benchmarks.columns = ['Date', 'Benchmark Name', 'bmk_1_r', 'ModelCode', 'Sector', 'Style']
 
-df_returns_benchmarks = pd.merge(left=df_returns, right=df_benchmarks, left_on=['Date', 'Manager'],
-                                 right_on=['Date', 'ModelCode'], how='inner')
+df_returns_benchmarks = pd.merge(
+    left=df_returns,
+    right=df_benchmarks,
+    left_on=['Date', 'Manager'],
+    right_on=['Date', 'ModelCode'], how='inner'
+)
+
+df_benchmarks_ieu = df_returns[df_returns['Manager'].isin(['MSCI.ACWI.EX.AUS_Index'])]
+df_benchmarks_ieu = df_benchmarks_ieu.rename(columns={'Manager': 'IEu Name', '1_r': 'IEu 1_Benchmark'})
 
 # Loads market values
 df_market_values = attribution.extraction.load_market_values(input_directory + 'market_values/' + market_values_filename)
@@ -104,7 +116,6 @@ df_asset_allocations['Benchmark'] = df_asset_allocations['Benchmark']/100
 
 # Forwards the asset allocations by 1 month, which lags it 1 month relative to the returns and market values.
 # df_asset_allocations['Date'] = df_asset_allocations['Date'] + pd.offsets.MonthEnd(1)
-
 
 # STYLE ATTRIBUTION BELOW HERE
 # Finds benchmark returns
@@ -167,8 +178,34 @@ def style_calculate(data):
     d['Market Value'] = np.sum(data['Market Value_x'])
     return pd.Series(d)
 
+# Replaces the MSCI ACWI ex Aus Net TR 40% Hedged with the MSCI ACWI ex Aus Net TR unhedged to remove FX effects from Style
+df_main_ieu = pd.merge(
+    left=df_main,
+    right=df_benchmarks_ieu,
+    left_on=['Date'],
+    right_on=['Date'],
+    how='inner'
+)
 
-df_style = df_main.groupby(['Date', 'Sector', 'Style']).apply(style_calculate).reset_index(drop=False)
+# ieu_sector = []
+# for i in range(0, len(df_main_ieu)):
+#     if df_main_ieu['Sector'][i] == 'IE':
+#         ieu_sector.append(df_main_ieu['IEu Name'][i])
+#     else:
+#         ieu_sector.append(df_main_ieu['Sector'][i])
+# df_main_ieu['Sector'] = ieu_sector
+
+ieu_benchmark = []
+for i in range(0, len(df_main_ieu)):
+    if df_main_ieu['Sector'][i] == 'IE':
+        ieu_benchmark.append(df_main_ieu['IEu 1_Benchmark'][i])
+    else:
+        ieu_benchmark.append(df_main_ieu['bmk_1_r_y'][i])
+df_main_ieu['bmk_1_r_y'] = ieu_benchmark
+
+# Calculates Style
+# df_style = df_main.groupby(['Date', 'Sector', 'Style']).apply(style_calculate).reset_index(drop=False)
+df_style = df_main_ieu.groupby(['Date', 'Sector', 'Style']).apply(style_calculate).reset_index(drop=False)
 df_style['pure_1_ac'] = df_style['manager_1_r'] - df_style['style_1_r']
 df_style['style_1_ac'] = df_style['style_1_r'] - df_style['passive_1_r']
 df_style['total_1_ac'] = df_style['manager_1_r'] - df_style['passive_1_r']
@@ -178,6 +215,7 @@ df_sector_style = df_style.groupby(['Date', 'Sector']).sum().reset_index(drop=Fa
 # Removes unnecessary bond sectors
 df_sector_style = df_sector_style[~df_sector_style['Sector'].isin(['IFI'])]
 
+"""
 # Adds FX Overlay to IE returns
 #df_fx = df_returns[df_returns['Manager'].isin(['IECurrencyOverlay_IE'])]
 
@@ -198,6 +236,7 @@ df_sector_style['1_r_fx'].fillna(0, inplace=True)
 df_sector_style['manager_1_r'] = df_sector_style['manager_1_r'] + df_sector_style['1_r_fx']
 df_sector_style['pure_1_ac'] = df_sector_style['pure_1_ac'] + df_sector_style['1_r_fx'] - df_sector_style['bmk_1_r_fx']
 df_sector_style['total_1_ac'] = df_sector_style['total_1_ac'] + df_sector_style['1_r_fx'] - df_sector_style['bmk_1_r_fx']
+"""
 
 # START TEST df_sector_style
 df_sector = df_returns_benchmarks[df_returns_benchmarks['Manager'].isin(['AE', 'IE', 'DP', 'ILP', 'BO', 'AR', 'AC', 'CO', 'SAS'])]
@@ -490,7 +529,9 @@ green_to_red_dict = {treegreen: darkred, middlegreen: middlered, lightgreen: lig
 
 name_tuple_dict = {
     'pa': (df_pa, treegreen, 'Manager Active Contribution (%)', 'pa_chart'),
-    'sa': (df_sa, middlegreen, 'Style Active Contribution (%)', 'sa_chart')
+    'sa': (df_sa, middlegreen, 'Style Active Contribution (%)', 'sa_chart'),
+    'fa': (df_fx_ac, treegreen, 'Active Contribution (%)', 'fa_chart'),
+    'ra': (df_ra, treegreen, 'Residual Active Contribution (%)', 'ra_chart')
 }
 
 for name, tuple in name_tuple_dict.items():
@@ -506,10 +547,13 @@ for name, tuple in name_tuple_dict.items():
 
     for strategy, axes in strategy_to_axes_dict.items():
         df = tuple[0][['Asset Class', strategy]].reset_index(drop=True)
-        df = df[~df['Asset Class'].isin(['Total'])].reset_index(drop=True)
+        df = df[~df['Asset Class'].isin(['Total', 'Intl Equity (Hedged)'])].reset_index(drop=True)
         df = df.set_index('Asset Class')
         df['positive'] = df[strategy] > 0
-        df[strategy].plot.bar(ax=axes, color=df.positive.map({True: tuple[1], False: green_to_red_dict[tuple[1]]}))
+        if name == 'fa':
+            df[strategy].plot.bar(ax=axes, color=df.positive.map({True: tuple[1], False: green_to_red_dict[tuple[1]]}), width=0.3)
+        else:
+            df[strategy].plot.bar(ax=axes, color=df.positive.map({True: tuple[1], False: green_to_red_dict[tuple[1]]}))
         axes.set_title(strategy)
         axes.set_xlabel('')
         axes.set_ylabel(tuple[2])
