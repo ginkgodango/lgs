@@ -104,3 +104,34 @@ accuracy = round(((total_count - deviant_count)/total_count)*100, 2)
 print('\nThe deviants are:\n')
 print(df_check, '\n')
 print('Total Count: ', total_count, 'Deviant Count: ', deviant_count, 'Accuracy: ', accuracy, '%')
+
+
+
+# Import JPM_IAP, Accounts; By ID; Include Closed Accounts; Select All; Mode: Portfolio Only
+# jpm_iap_filenames = sorted(os.listdir(jpm_iap_filepath))
+# df_jpm_iap = pd.DataFrame()
+# for filename in jpm_iap_filenames:
+#     jpm_iap_xlsx = pd.ExcelFile(jpm_iap_filepath + filename)
+#     df_jpm_iap_temp = pd.read_excel(
+#         jpm_iap_xlsx,
+#         sheet_name='Sheet1',
+#         skiprows=[0, 1],
+#         header=0
+#     )
+#     df_jpm_iap_temp['Date'] = dt.datetime(int(filename[:4]), int(filename[4:6]), int(filename[6:8]))
+#     df_jpm_iap = pd.concat([df_jpm_iap, df_jpm_iap_temp], sort=False)
+#
+# df_jpm_iap = df_jpm_iap.rename(columns={'Account Id': 'Manager'}).reset_index(drop=True)
+# df_jpm_iap = df_jpm_iap[['Manager', 'Date', 'Market Value']]
+#
+# # Merges the market values from JPM IAP with JPM HTS
+# df_jpm_main = pd\
+#     .merge(
+#         left=df_jpm_iap,
+#         right=df_jpm,
+#         left_on=['Manager', 'Date'],
+#         right_on=['Manager', 'Date'],
+#         how='right'
+#     )\
+#     .sort_values(['Manager', 'Date'])\
+#     .reset_index(drop=True)

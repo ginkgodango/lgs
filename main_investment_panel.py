@@ -6,12 +6,14 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
 # START USER INPUT DATA
-jpm_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/20191031 JPM Historical Time Series.xlsx'
+jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
+jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
 jpm_iap_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/jpm_iap/'
-jpm_mv_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/20191031 JPM Historical Time Series MV.xlsx'
+jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Main Market Values.xlsx'
+jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
 lgs_dictionary_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/20191031 New Dictionary.xlsx'
-FYTD = 4
-report_date = dt.datetime(2019, 10, 31)
+FYTD = 6
+report_date = dt.datetime(2019, 12, 31)
 # END USER INPUT DATA
 
 # Imports the JPM time-series.
@@ -19,8 +21,8 @@ use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 15]
 use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15]
 footnote_rows = 28
 
-df_jpm = pd.read_excel(
-        pd.ExcelFile(jpm_filepath),
+df_jpm_main = pd.read_excel(
+        pd.ExcelFile(jpm_main_filepath),
         sheet_name='Sheet1',
         skiprows=use_accountid,
         skipfooter=footnote_rows,
@@ -28,18 +30,43 @@ df_jpm = pd.read_excel(
         )
 
 # Reshapes the time-series into a panel.
-df_jpm = df_jpm.rename(columns={'Unnamed: 0': 'Date'})
-df_jpm = df_jpm.set_index('Date')
-df_jpm = df_jpm.transpose()
-df_jpm = df_jpm.reset_index(drop=False)
-df_jpm = df_jpm.rename(columns={'index': 'Manager'})
-df_jpm = pd.melt(df_jpm, id_vars=['Manager'], value_name='JPM_Return')
-df_jpm = df_jpm.sort_values(['Manager', 'Date'])
-df_jpm = df_jpm.reset_index(drop=True)
+df_jpm_main = df_jpm_main.rename(columns={'Unnamed: 0': 'Date'})
+df_jpm_main = df_jpm_main.set_index('Date')
+df_jpm_main = df_jpm_main.transpose()
+df_jpm_main = df_jpm_main.reset_index(drop=False)
+df_jpm_main = df_jpm_main.rename(columns={'index': 'Manager'})
+df_jpm_main = pd.melt(df_jpm_main, id_vars=['Manager'], value_name='JPM_Return')
+df_jpm_main = df_jpm_main.sort_values(['Manager', 'Date'])
+df_jpm_main = df_jpm_main.reset_index(drop=True)
+df_jpm_main = df_jpm_main.replace('-', np.NaN)
 
-# Cleans the data and converts the returns to percentage.
-df_jpm = df_jpm.replace('-', np.NaN)
+df_jpm_alts = pd.read_excel(
+        pd.ExcelFile(jpm_alts_filepath),
+        sheet_name='Sheet1',
+        skiprows=use_accountid,
+        skipfooter=footnote_rows,
+        header=1
+        )
+
+df_jpm_alts = df_jpm_alts.rename(columns={'Unnamed: 0': 'Date'})
+df_jpm_alts = df_jpm_alts.set_index('Date')
+df_jpm_alts = df_jpm_alts.transpose()
+df_jpm_alts = df_jpm_alts.reset_index(drop=False)
+df_jpm_alts = df_jpm_alts.rename(columns={'index': 'Manager'})
+df_jpm_alts = pd.melt(df_jpm_alts, id_vars=['Manager'], value_name='JPM_Return')
+df_jpm_alts = df_jpm_alts.sort_values(['Manager', 'Date'])
+df_jpm_alts = df_jpm_alts.reset_index(drop=True)
+df_jpm_alts = df_jpm_alts.replace('-', np.NaN)
+
+# df_jpm = pd.concat([df_jpm_main, df_jpm_alts], axis=0).reset_index(drop=True)
+
+df_jpm = df_jpm_main
+# df_jpm = df_jpm_alts
+
+# Converts the returns to percentage.
 df_jpm['JPM_Return'] = df_jpm['JPM_Return']/100
+
+# df_jpm = df_jpm[~df_jpm.Manager.str.endswith('.2')].reset_index(drop=True)
 
 # Splits df_jpm into a returns and benchmarks
 df_jpm_returns = df_jpm[~df_jpm.Manager.str.endswith('.1')].reset_index(drop=True)
@@ -75,6 +102,7 @@ df_jpm = pd.merge(
         how='inner'
 )
 
+
 # Merges returns, benchmarks and Rf
 df_jpm = pd.merge(
         left=df_jpm,
@@ -83,6 +111,7 @@ df_jpm = pd.merge(
         right_on=['Date'],
         how='inner'
 )
+
 
 df_jpm = pd.merge(
         left=df_jpm,
@@ -95,6 +124,7 @@ df_jpm = pd.merge(
 # Deletes the redundant dataframes.
 # del df_jpm_returns
 # del df_jpm_benchmarks
+
 
 # Reads LGS's dictionary
 df_lgs = pd.read_excel(
@@ -115,6 +145,9 @@ df_jpm = pd.merge(
 # Keep only open accounts
 df_jpm = df_jpm[df_jpm['LGS Open'] == 1].reset_index(drop=True)
 df_jpm = df_jpm.drop(columns=['LGS Open'], axis=1)
+
+
+# df_jpm = df_jpm.sort_values(['LGS Asset Class Order', 'LGS Manager Order', 'Date'], ascending=[True, True, True]).reset_index(drop=True)
 
 # Sets the dictionary for the holding period returns.
 horizon_to_period_dict = {
@@ -156,7 +189,6 @@ for horizon, period in horizon_to_period_dict.items():
             )
 
     df_jpm[horizon + 'Excess'] = df_jpm[horizon + 'Return'] - df_jpm[horizon + 'Benchmark']
-
 
 # Calculates volatility, tracking error, sharpe ratio, information ratio
 df_jpm['36_Volatility'] = (
@@ -221,6 +253,28 @@ df_jpm_mv = pd.melt(df_jpm_mv, id_vars=['Manager'], value_name='Market Value')
 df_jpm_mv = df_jpm_mv.sort_values(['Manager', 'Date'])
 df_jpm_mv = df_jpm_mv.reset_index(drop=True)
 df_jpm_mv = df_jpm_mv.replace('-', np.NaN)
+
+# Imports the JPM time-series of market values.
+df_jpm_mv_alts = pd.read_excel(
+        pd.ExcelFile(jpm_mv_alts_filepath),
+        sheet_name='Sheet1',
+        skiprows=use_accountid,
+        skipfooter=footnote_rows,
+        header=1
+        )
+
+# Reshapes the time-series into a panel.
+df_jpm_mv_alts = df_jpm_mv_alts.rename(columns={'Unnamed: 0': 'Date'})
+df_jpm_mv_alts = df_jpm_mv_alts.set_index('Date')
+df_jpm_mv_alts = df_jpm_mv_alts.transpose()
+df_jpm_mv_alts = df_jpm_mv_alts.reset_index(drop=False)
+df_jpm_mv_alts = df_jpm_mv_alts.rename(columns={'index': 'Manager'})
+df_jpm_mv_alts = pd.melt(df_jpm_mv_alts, id_vars=['Manager'], value_name='Market Value')
+df_jpm_mv_alts = df_jpm_mv_alts.sort_values(['Manager', 'Date'])
+df_jpm_mv_alts = df_jpm_mv_alts.reset_index(drop=True)
+df_jpm_mv_alts = df_jpm_mv_alts.replace('-', np.NaN)
+
+df_jpm_mv = pd.concat([df_jpm_mv, df_jpm_mv_alts]).reset_index(drop=True)
 
 df_jpm_main = pd\
     .merge(
@@ -340,9 +394,9 @@ del df_jpm_table_performance_performance
 asset_class_to_performance_dict = dict(list(df_jpm_table_performance.groupby([('', 'LGS Asset Class')])))
 for asset_class, df_temp in asset_class_to_performance_dict.items():
     df_temp = df_temp.drop(('', 'LGS Asset Class'), axis=1)
-    df_temp.to_csv('U:/CIO/#Investment_Report/Data/output/testing/returns/' + str(asset_class) + '.csv', index=False)
+    df_temp.to_csv('U:/CIO/#Data/output/investment/returns/' + str(asset_class) + '.csv', index=False)
 
-    with open('U:/CIO/#Investment_Report/Data/output/testing/returns/' + str(asset_class) + '.tex', 'w') as tf:
+    with open('U:/CIO/#Data/output/investment/returns/' + str(asset_class) + '.tex', 'w') as tf:
         latex_string_temp = (
                 df_temp
                 .to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRRRRRRR')
@@ -357,9 +411,9 @@ df_jpm_table_risk = df_jpm_table[columns_lead + columns_risk + ['LGS Asset Class
 asset_class_to_risk_dict = dict(list(df_jpm_table_risk.groupby(['LGS Asset Class'])))
 for asset_class, df_temp in asset_class_to_risk_dict.items():
     df_temp = df_temp.drop('LGS Asset Class', axis=1)
-    df_temp.to_csv('U:/CIO/#Investment_Report/Data/output/testing/risk/' + str(asset_class) + '.csv', index=False)
+    df_temp.to_csv('U:/CIO/#Data/output/investment/risk/' + str(asset_class) + '.csv', index=False)
 
-    with open('U:/CIO/#Investment_Report/Data/output/testing/risk/' + str(asset_class) + '.tex', 'w') as tf:
+    with open('U:/CIO/#Data/output/investment/risk/' + str(asset_class) + '.tex', 'w') as tf:
         latex_string_temp = (
                 df_temp
                 .to_latex(index=False, na_rep='', multicolumn_format='c')
@@ -380,8 +434,8 @@ df_jpm_table_active_contribution_bottom = df_jpm_table_active_contribution[-10:]
 df_jpm_table_active_contribution_bottom = df_jpm_table_active_contribution_bottom.rename(columns={'12_Active_Contribution': 'Detraction'})
 
 df_jpm_table_active_contribution_combined = pd.concat([df_jpm_table_active_contribution_top, df_jpm_table_active_contribution_bottom], axis=1, sort=False)
-df_jpm_table_active_contribution_combined.to_csv('U:/CIO/#Investment_Report/Data/output/testing/contributors/contributors.csv', index=False)
-with open('U:/CIO/#Investment_Report/Data/output/testing/contributors/contributors.tex', 'w') as tf:
+df_jpm_table_active_contribution_combined.to_csv('U:/CIO/#Data/output/investment/contributors/contributors.csv', index=False)
+with open('U:/CIO/#Data/output/investment/contributors/contributors.tex', 'w') as tf:
     tf.write(df_jpm_table_active_contribution_combined.to_latex(index=False, na_rep=''))
 
 
@@ -406,7 +460,7 @@ asset_class_to_chart_mv_dict = dict(list(df_jpm_chart_mv.groupby(['LGS Asset Cla
 
 asset_classes1 = list(asset_class_to_chart_12_dict.keys())
 asset_classes2 = list(asset_class_to_chart_60_dict.keys())
-assert asset_classes1 == asset_classes2
+# assert asset_classes1 == asset_classes2
 asset_classes = asset_classes1
 for asset_class in asset_classes:
 
@@ -448,7 +502,7 @@ for asset_class in asset_classes:
 
     fig.tight_layout()
     fig.subplots_adjust(top=0.9)
-    fig.savefig('U:/CIO/#Investment_Report/Data/output/testing/charts/' + str(asset_class) + '.png', dpi=300)
+    fig.savefig('U:/CIO/#Data/output/investment/charts/' + str(asset_class) + '.png', dpi=300)
 
 # Creates sustainability table
 df_jpm_main_esg = df_jpm_main[
@@ -470,84 +524,4 @@ df_jpm_main_esg = df_jpm_main[
 
 df_jpm_main_esg = df_jpm_main_esg[(df_jpm_main_esg['LGS Sustainability Weight'] != 0) & (df_jpm_main['Date'] == report_date)].reset_index(drop=True)
 
-df_jpm_table.to_csv('U:/CIO/#Investment_Report/Data/output/testing/checker/lgs_table.csv', index=False)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# MSCI BELOW
-"""
-lgs_msci_dict = {
-    'AQR Delta': 'LG-HF01',
-    'Winton': 'LG-HF02',
-    'Attunga': 'LG-HF03',
-    'GMO': 'LG-HF04',
-    'Ardea': 'LG-HF05'
-}
-df_msci = df_jpm_main.copy()
-df_msci['Year'] = df_msci['Date'].dt.year
-df_msci['Month'] = df_msci['Date'].dt.month
-df_msci = df_msci[['Manager', 'Year', 'Month', 'Return_JPM']]
-df_msci = df_msci.pivot_table(index=['Manager', 'Year'], columns=['Month'], values=['Return_JPM'])
-df_msci.columns = df_msci.columns.droplevel(0)
-month_categories = [
-    'Jan(%)', 'Feb(%)', 'Mar(%)', 'Apr(%)',
-    'May(%)', 'Jun(%)', 'Jul(%)', 'Aug(%)',
-    'Sep(%)', 'Oct(%)', 'Nov(%)', 'Dec(%)'
-]
-df_msci.columns = month_categories
-df_msci[month_categories] = df_msci[month_categories]*100
-df_msci = df_msci.reset_index(drop=False)
-df_msci.insert(loc=2, column='ID Type', value='BARRAID')
-
-msci_id = []
-for i in range(0, len(df_msci)):
-    if df_msci['Manager'][i] in lgs_msci_dict:
-        msci_id.append(lgs_msci_dict[df_msci['Manager'][i]])
-    else:
-        msci_id.append(None)
-
-df_msci['Id'] = msci_id
-df_msci = df_msci[['Id', 'ID Type', 'Year'] + month_categories + ['Manager']]
-df_msci.to_csv('U:/CIO/#Research/returns_for_msci_201910.csv', index=False)
-"""
-
-# Import JPM_IAP, Accounts; By ID; Include Closed Accounts; Select All; Mode: Portfolio Only
-# jpm_iap_filenames = sorted(os.listdir(jpm_iap_filepath))
-# df_jpm_iap = pd.DataFrame()
-# for filename in jpm_iap_filenames:
-#     jpm_iap_xlsx = pd.ExcelFile(jpm_iap_filepath + filename)
-#     df_jpm_iap_temp = pd.read_excel(
-#         jpm_iap_xlsx,
-#         sheet_name='Sheet1',
-#         skiprows=[0, 1],
-#         header=0
-#     )
-#     df_jpm_iap_temp['Date'] = dt.datetime(int(filename[:4]), int(filename[4:6]), int(filename[6:8]))
-#     df_jpm_iap = pd.concat([df_jpm_iap, df_jpm_iap_temp], sort=False)
-#
-# df_jpm_iap = df_jpm_iap.rename(columns={'Account Id': 'Manager'}).reset_index(drop=True)
-# df_jpm_iap = df_jpm_iap[['Manager', 'Date', 'Market Value']]
-#
-# # Merges the market values from JPM IAP with JPM HTS
-# df_jpm_main = pd\
-#     .merge(
-#         left=df_jpm_iap,
-#         right=df_jpm,
-#         left_on=['Manager', 'Date'],
-#         right_on=['Manager', 'Date'],
-#         how='right'
-#     )\
-#     .sort_values(['Manager', 'Date'])\
-#     .reset_index(drop=True)
+df_jpm_table.to_csv('U:/CIO/#Data/output/investment/checker/lgs_table.csv', index=False)
