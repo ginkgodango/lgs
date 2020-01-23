@@ -8,10 +8,9 @@ import statsmodels.api as sm
 # START USER INPUT DATA
 jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
 jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
-jpm_iap_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/jpm_iap/'
 jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Main Market Values.xlsx'
 jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
-lgs_dictionary_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/20191031 New Dictionary.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2019/12/New Dictionary_v2.xlsx'
 FYTD = 6
 report_date = dt.datetime(2019, 12, 31)
 # END USER INPUT DATA
@@ -58,13 +57,17 @@ df_jpm_alts = df_jpm_alts.sort_values(['Manager', 'Date'])
 df_jpm_alts = df_jpm_alts.reset_index(drop=True)
 df_jpm_alts = df_jpm_alts.replace('-', np.NaN)
 
-# df_jpm = pd.concat([df_jpm_main, df_jpm_alts], axis=0).reset_index(drop=True)
+df_jpm = pd.concat([df_jpm_alts, df_jpm_main], axis=0).reset_index(drop=True)
 
-df_jpm = df_jpm_main
+# df_jpm = df_jpm[df_jpm['Date'] == report_date].reset_index(drop=True)
+
+# df_jpm = df_jpm_main
 # df_jpm = df_jpm_alts
 
 # Converts the returns to percentage.
 df_jpm['JPM_Return'] = df_jpm['JPM_Return']/100
+
+df_jpm = df_jpm[~df_jpm['JPM_Return'].isin([np.nan])].reset_index(drop=True)
 
 # df_jpm = df_jpm[~df_jpm.Manager.str.endswith('.2')].reset_index(drop=True)
 
@@ -146,8 +149,7 @@ df_jpm = pd.merge(
 df_jpm = df_jpm[df_jpm['LGS Open'] == 1].reset_index(drop=True)
 df_jpm = df_jpm.drop(columns=['LGS Open'], axis=1)
 
-
-# df_jpm = df_jpm.sort_values(['LGS Asset Class Order', 'LGS Manager Order', 'Date'], ascending=[True, True, True]).reset_index(drop=True)
+df_jpm = df_jpm.sort_values(['Manager', 'Date'], ascending=[True, True]).reset_index(drop=True)
 
 # Sets the dictionary for the holding period returns.
 horizon_to_period_dict = {
@@ -190,6 +192,12 @@ for horizon, period in horizon_to_period_dict.items():
 
     df_jpm[horizon + 'Excess'] = df_jpm[horizon + 'Return'] - df_jpm[horizon + 'Benchmark']
 
+indices_problem = []
+for i in range(0, len(df_jpm)):
+    if abs(df_jpm['JPM_Return'][i] - df_jpm['1_Return'][i]) > 0.01:
+        indices_problem.append(i)
+
+
 # Calculates volatility, tracking error, sharpe ratio, information ratio
 df_jpm['36_Volatility'] = (
     df_jpm
@@ -207,9 +215,9 @@ df_jpm['36_Tracking_Error'] = (
     .reset_index(drop=False)['1_Excess']
 )
 
-df_jpm['36_Sharpe_Ratio'] = (df_jpm['36_Return'] - df_jpm['36_Rf']) / df_jpm['36_Volatility']
+df_jpm['36_Sharpe'] = (df_jpm['36_Return'] - df_jpm['36_Rf']) / df_jpm['36_Volatility']
 
-df_jpm['36_Information_Ratio'] = df_jpm['36_Excess'] / df_jpm['36_Tracking_Error']
+df_jpm['36_Information'] = df_jpm['36_Excess'] / df_jpm['36_Tracking_Error']
 
 # Calculates rolling betas
 def rolling_ols(indices, result, ycol, xcols):
@@ -297,11 +305,18 @@ df_jpm_main['12_Average_Market_Value'] = (
     .reset_index(drop=True)
 )
 
+# df_jpm_main['Total Market_Value'] = (
+#     df_jpm_main[~df_jpm_main['LGS Sector Aggregate'].isin([1])]
+#     .groupby(['Date'])['Market Value']
+#     .transform('sum')
+#     .reset_index(drop=True)
+# )
+
 df_jpm_main['Total Market_Value'] = (
-    df_jpm_main[~df_jpm_main['LGS Sector Aggregate'].isin([1])]
+    df_jpm_main
     .groupby(['Date'])['Market Value']
     .transform('sum')
-    .reset_index(drop=True)
+    .reset_index(drop=True)/2
 )
 
 df_jpm_main['12_Active_Contribution'] = (
@@ -319,8 +334,8 @@ df_jpm_main = df_jpm_main.rename(
                 'LGS Name': 'Manager',
                 '36_Tracking_Error': 'Tracking Error',
                 '36_Volatility': 'Volatility',
-                '36_Information_Ratio': 'Information Ratio',
-                '36_Sharpe_Ratio': 'Sharpe Ratio',
+                '36_Information': 'Information',
+                '36_Sharpe': 'Sharpe',
                 '36_Beta': 'Beta'
         }
 )
@@ -343,7 +358,7 @@ columns_performance = []
 for horizon, period in horizon_to_period_dict.items():
     for column in ['Return', 'Excess']:
         columns_performance.append(horizon + column)
-columns_risk = ['Tracking Error', 'Volatility', 'Information Ratio', 'Sharpe Ratio', 'Beta']
+columns_risk = ['Tracking Error', 'Volatility', 'Information', 'Sharpe', 'Beta']
 columns_active_contribution = ['12_Active_Contribution']
 columns_millions = ['Market Value']
 columns_decimal = columns_performance + columns_risk[:2] + columns_active_contribution
@@ -494,7 +509,7 @@ for asset_class in asset_classes:
     axes[1].legend(loc='lower left', title='')
 
     df_chart_mv_temp = asset_class_to_chart_mv_dict[asset_class]
-    df_chart_mv_temp = df_chart_mv_temp.set_index('Manager')
+    df_chart_mv_temp = df_chart_mv_temp.set_index('Manager').sort_index()
     axes[2] = df_chart_mv_temp.plot(kind='pie', ax=axes[2], y='Market Value', autopct='%1.0f%%', legend=None, title='Holdings')
     my_circle = plt.Circle((0, 0), 0.75, color='white')
     axes[2].add_artist(my_circle)
@@ -525,3 +540,4 @@ df_jpm_main_esg = df_jpm_main[
 df_jpm_main_esg = df_jpm_main_esg[(df_jpm_main_esg['LGS Sustainability Weight'] != 0) & (df_jpm_main['Date'] == report_date)].reset_index(drop=True)
 
 df_jpm_table.to_csv('U:/CIO/#Data/output/investment/checker/lgs_table.csv', index=False)
+df_jpm_main.to_csv('U:/CIO/#Data/output/investment/checker/lgs_main.csv', index=False)

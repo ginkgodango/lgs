@@ -2,10 +2,10 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 
-lgs_filepath = 'U:/CIO/#Investment_Report/Data/output/testing/checker/lgs_table.csv'
-jpm_filepath = 'U:/CIO/#Investment_Report/Data/input/performance_report/LGSS Preliminary Performance 102019_AddKeys.xlsx'
-FYTD = 4
-report_date = dt.datetime(2019, 10, 31)
+lgs_filepath = 'U:/CIO/#Data/output/investment/checker/lgs_table.csv'
+jpm_filepath = 'U:/CIO/#Data/input/jpm/report/LGSS Preliminary Performance 122019_AddKeys.xlsx'
+FYTD = 6
+report_date = dt.datetime(2019, 12, 31)
 
 # Reads LGS Tables
 df_lgs = pd.read_csv(lgs_filepath)
@@ -108,6 +108,7 @@ print('Total Count: ', total_count, 'Deviant Count: ', deviant_count, 'Accuracy:
 
 
 # Import JPM_IAP, Accounts; By ID; Include Closed Accounts; Select All; Mode: Portfolio Only
+# jpm_iap_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/jpm_iap/'
 # jpm_iap_filenames = sorted(os.listdir(jpm_iap_filepath))
 # df_jpm_iap = pd.DataFrame()
 # for filename in jpm_iap_filenames:

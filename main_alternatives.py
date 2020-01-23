@@ -1,43 +1,9 @@
 from datetime import datetime
 import pandas as pd
 import numpy as np
-# input_directory = 'D:/data/LGS/JPM/monthly/'
-# output_directory = 'D:/output/LGS/alternatives/'
-# jpm_filename = '201905_LGSS Preliminary Performance May 2019_AddKeys.xlsx'
-# sustainable_filename = 'alts_sustainable_201905.xlsx'
-#
-# xlsx = pd.ExcelFile(input_directory + jpm_filename)
-#
-# df_jpm = pd.read_excel(
-#     xlsx,
-#     sheet_name='Page 8',
-#     usecols='E:O',
-#     skiprows=[0, 1, 2]
-# )
-# df_jpm = df_jpm.rename(
-#     columns={
-#         'Unnamed: 4': 'Manager',
-#         'Market Value': 'Market Value',
-#         '1 Month': '1 Month',
-#         '3 Months': '3 Month',
-#         'FYTD': 'FYTD',
-#         '1 Year': '1 Year',
-#         '3 Years': '3 Year',
-#         '5 Years': '5 Year',
-#         '7 Years': '7 Year'
-#
-#     }
-# )
-# df_jpm = df_jpm.drop(columns=['Unnamed: 6', '2 Years'], axis=1)
-#
-# # Removes NaN rows and last 2 rows which are footnotes
-# df_jpm = df_jpm[df_jpm['Manager'].notnull()][:-2].reset_index(drop=True)
-#
-# df_jpm = df_jpm.replace('-', np.nan)
-
-input_directory = 'D:/data/output/LGS/alternatives/'
+input_directory = 'U:/CIO/#Investment_Report/Data/input/alternatives/'
 filename = 'alternatives_2019-12-31.csv'
-output_directory = 'U:/CIO/#Investment_Report/Data/input/alternatives/'
+output_directory = 'U:/CIO/#Investment_Report/Data/output/alternatives/'
 ac_filename = 'alts_ac_2019_12_31.csv'
 sustainable_filename = 'sustainable_alts_2019_12_31.xlsx'
 

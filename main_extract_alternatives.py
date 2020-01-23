@@ -3,8 +3,8 @@ import datetime
 import calendar
 import pandas as pd
 import numpy as np
-input_directory = 'D:/data/LGS/JPM/monthly/'
-output_directory = 'D:/data/output/LGS/alternatives/'
+input_directory = 'U:/CIO/#Investment_Report/Data/input/performance_report_alts/'
+output_directory = 'U:/CIO/#Investment_Report/Data/input/alternatives/'
 input_filenames = sorted(os.listdir(input_directory))
 
 df_jpm = pd.DataFrame()
