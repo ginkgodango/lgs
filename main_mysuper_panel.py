@@ -15,6 +15,7 @@ df_up = pd.read_csv('U:/CIO/#Data/input/lgs/unitprices/20191231 Unit Prices.csv'
 df_up_unique = df_up[df_up['Date'] == report_date]
 # df_up_unique.to_csv('U:/CIO/#Research/product_unique.csv', index=False)
 
+# Renames columns
 df_up = df_up.rename(
     columns={
         'InvestmentOption.InvestmentComponent.Name': 'Component',
@@ -22,7 +23,7 @@ df_up = df_up.rename(
     }
 )
 
-# Renames columns
+# Selects unit prices of strategies that are Accumulation Scheme or Defined Benefit
 df_up = (
     df_up[
         (df_up['Component'].isin(['Accumulation Scheme', 'Defined Benefit Scheme'])) |
@@ -33,9 +34,7 @@ df_up = (
     .reset_index(drop=True)
 )
 
-
-
-# Removes SAS
+# Removes SAS which is a closed account
 df_up_SAS = df_up[df_up['OptionType'] == 'Sustainable Australian Shares']
 df_up = df_up[~df_up['OptionType'].isin(['Sustainable Australian Shares'])].reset_index(drop=True)
 
@@ -55,10 +54,14 @@ df_up_monthly['Year'] = [df_up_monthly['Date'][i].year for i in range(0, len(df_
 df_up_monthly['Month'] = [df_up_monthly['Date'][i].month for i in range(0, len(df_up_monthly))]
 df_up_monthly['Day'] = [df_up_monthly['Date'][i].day for i in range(0, len(df_up_monthly))]
 
-# Down-samples the data using actual dates
-# df_up_monthly = df_up_monthly.groupby(['OptionType', 'Year', 'Month']).tail(1).reset_index(drop=True)
-# Checks for months which ended before 28 days
-# df_up_monthly_not_full_month = df_up_monthly[df_up_monthly['Day'] < 28]
+# Down-samples the data using actual dates and checks for months which ended before 28 days
+df_up_monthly_check = df_up.copy()
+df_up_monthly_check['Year'] = [df_up_monthly_check['Date'][i].year for i in range(0, len(df_up_monthly_check))]
+df_up_monthly_check['Month'] = [df_up_monthly_check['Date'][i].month for i in range(0, len(df_up_monthly_check))]
+df_up_monthly_check['Day'] = [df_up_monthly_check['Date'][i].day for i in range(0, len(df_up_monthly_check))]
+df_up_monthly_check = df_up_monthly_check.groupby(['OptionType', 'Year', 'Month']).tail(1).reset_index(drop=True)
+df_up_monthly_check = df_up_monthly_check[df_up_monthly_check['Day'] < 28]
+df_up_monthly_check = df_up_monthly_check.to_csv('U:/CIO/#Investment_Report/Data/output/testing/mysuper/df_up_monthly_check.csv', index=False)
 
 # Calculates 1 month return
 df_up_monthly['Unit Price Lag 1'] = df_up_monthly.groupby('OptionType')['Unit Price'].shift(1)
@@ -174,6 +177,8 @@ for horizon, period in horizon_to_period_dict.items():
     df_up_monthly[objective_name] = (df_up_monthly[core_name] + df_up_monthly[hurdle_name]) * (1 - df_up_monthly[tax_name])
     df_up_monthly[excess_name] = df_up_monthly[return_name] - df_up_monthly[objective_name]
 
+df_up_monthly.to_csv('U:/CIO/#Investment_Report/Data/output/testing/mysuper/df_up_monthly.csv', index=False)
+
 # Creates Risk of Loss Years table
 df_risk_of_loss_years_F = df_up_monthly[df_up_monthly['Date'] == max(df_up_monthly['Date'])]
 df_risk_of_loss_years_F = df_risk_of_loss_years_F[['OptionType', 'Date', str(FYTD) + '_Return']].dropna()
@@ -268,7 +273,7 @@ df_lc = df_lc.set_index(['Lifecycle', 'OptionType']).T.unstack().reset_index(dro
 df_lc = df_lc.rename(columns={'level_2': 'Age', 0: 'Weight'})
 df_lc['Weight'] = df_lc['Weight'] / 100
 
-# Make data smaller
+# Select only certain lifecycles
 # df_lc = df_lc[df_lc['Lifecycle'] == 'Lifecycle 1'].reset_index(drop=True)
 
 # Merges age cohorts with lifecycle portfolios
@@ -279,18 +284,12 @@ df_age = pd.merge(
     right_on=['OptionType']
 )
 
-
-# df_age['12_Weighted_Return'] = df_age['12_Return'] * df_age['Weight']
-
 df_age['1_Weighted_Return'] = df_age['1_Return'] * df_age['Weight']
 df_age['1_Weighted_Objective'] = df_age['1_Objective'] * df_age['Weight']
 
-# df_age_final = df_age.groupby(['Age', 'Lifecycle', 'Date'])['12_Weighted_Return'].sum().reset_index(drop=False)
-
 df_age_final = df_age.groupby(['Age', 'Lifecycle', 'Date'])['1_Weighted_Return', '1_Weighted_Objective'].sum().reset_index(drop=False)
 
-# member_horizon_period_dict = {'2 Year': 2, '3 Year': 3, '5 Year': 5, '7 Year': 7}
-
+# Creates horizon dictionary to loop over for horizon calculation
 member_horizon_period_dict = {
     '1 Year': 12,
     '2 Year': 24,
@@ -323,7 +322,7 @@ for horizon, period in member_horizon_period_dict.items():
 
 df_age_final = df_age_final.sort_values(['Lifecycle', 'Age', 'Date'])
 
-df_age_final.to_csv('U:/CIO/#Research/MySuper Lifecycles.csv', index=False)
+df_age_final.to_csv('U:/CIO/#Investment_Report/Data/output/testing/mysuper/MySuper Lifecycles.csv', index=False)
 
 df_age_final['Year'] = [df_age_final['Date'][i].year for i in range(0, len(df_age_final))]
 df_age_final['Month'] = [df_age_final['Date'][i].month for i in range(0, len(df_age_final))]
@@ -380,7 +379,7 @@ for year in range(0, lifespan):
 
     df_simulate = df_simulate.drop(columns=[date_forward_column], axis=1)
 
- # Converts df_simulate into panel
+# Converts df_simulate into panel
 df_simulate = df_simulate.sort_values(['Lifecycle', 'Date', 'Age'])
 df_simulate = df_simulate.drop(columns=['Year', 'Month', '12_Weighted_Return', '12_Weighted_Objective'], axis=1)
 df_simulate = pd.wide_to_long(df_simulate, stubnames=['12_Weighted_Return Lag ', '12_Weighted_Objective Lag '], i=['Lifecycle', 'Date', 'Age'], j='Lag')
@@ -400,7 +399,7 @@ for return_type in ['12_Weighted_Return', '12_Weighted_Objective']:
 
 df_simulate['Age Lag'] = df_simulate['Age'] - df_simulate['Lag']
 
-df_simulate.to_csv('U:/CIO/#Research/lifecycle_simulation_5years_panel.csv', index=False)
+df_simulate.to_csv('U:/CIO/#Investment_Report/Data/output/testing/mysuper/lifecycle_simulation_5years_panel.csv', index=False)
 
 df_simulate_chart_bar_summary = df_simulate[(df_simulate['Date'] == report_date) & (df_simulate['Lag'] == 0)]
 df_simulate_chart_bar_summary = df_simulate_chart_bar_summary[df_simulate_chart_bar_summary['Age'].isin([50, 55, 60, 65])]
@@ -412,7 +411,7 @@ fig_simulate_chart_bar_summary.set_ylabel('Return (%)')
 fig_simulate_chart_bar_summary.set_xlabel('Age Cohort (Year)')
 plt.tight_layout()
 fig_bar = fig_simulate_chart_bar_summary.get_figure()
-fig_bar.savefig('U:/CIO/#Investment_Report/Data/output/testing/charts/monitor.PNG', dpi=300)
+fig_bar.savefig('U:/CIO/#Investment_Report/Data/output/testing/mysuper/monitor.PNG', dpi=300)
 
 df_simulate_chart_cross_section = df_simulate[df_simulate['Date'] == report_date]
 df_simulate_chart_cross_section = df_simulate_chart_cross_section.drop(columns=['Date', 'Lag', '60_Lifecycle_Return', '60_Lifecycle_Objective'], axis=1)

@@ -3,11 +3,16 @@ import datetime
 import calendar
 import pandas as pd
 import numpy as np
+
 input_directory = 'U:/CIO/#Investment_Report/Data/input/performance_report_alts/'
 output_directory = 'U:/CIO/#Investment_Report/Data/input/alternatives/'
 input_filenames = sorted(os.listdir(input_directory))
 
+# Creates an empty unified dataframe for the alternatives data
 df_jpm = pd.DataFrame()
+
+# Loops over the filenames in the directory and for each file opens the file as df, renames the columns, extracts the
+# alternatives data in Page 8 of each file and concatenates it to df_jpm. df_jpm is then output as alternatives_YYYY-MM-DD.csv.
 for filename in input_filenames:
     xlsx = pd.ExcelFile(input_directory + filename)
 
@@ -47,5 +52,5 @@ for filename in input_filenames:
     print(date)
     df_jpm = pd.concat([df_jpm, df], sort=False).reset_index(drop=True)
 
-
+# Outputs df_jpm into a csv
 df_jpm.to_csv(output_directory + 'alternatives_' + str(date) + '.csv', index=False)

@@ -7,6 +7,7 @@ import calendar
 import attribution.extraction
 
 directory = 'D:/automation/final/attribution/extraction/'
+directory = 'U:/CIO/#Investment_Report/Data/input/performance_report_allocations/'
 filenames = sorted(os.listdir(directory))
 
 asset_allocations = ['High Growth', 'Balanced Growth', 'Balanced', 'Conservative', 'Growth', 'Employer Reserve']
@@ -35,5 +36,5 @@ for filename in filenames:
         df_asset_allocations = pd.concat([df_asset_allocations, df], sort=True).reset_index(drop=True)
 
 excel.Quit()
-df_asset_allocations.to_csv(directory + 'asset_allocations_2019-12-31.csv', index=False)
+df_asset_allocations.to_csv('U:/CIO/#Investment_Report/Data/input/performance_report_allocations/asset_allocations_2019-12-31.csv', index=False)
 

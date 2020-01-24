@@ -438,7 +438,9 @@ for asset_class, df_temp in asset_class_to_risk_dict.items():
 
 
 # Creates active contribution table
-df_jpm_table_active_contribution = df_jpm_table[columns_lead[:1] + columns_active_contribution]
+df_jpm_table_active_contribution = df_jpm_table[columns_lead[:1] + columns_active_contribution + ['LGS Sector Aggregate']]
+df_jpm_table_active_contribution = df_jpm_table_active_contribution[~df_jpm_table_active_contribution['LGS Sector Aggregate'].isin([1])].reset_index(drop=True)
+df_jpm_table_active_contribution = df_jpm_table_active_contribution.drop(columns=['LGS Sector Aggregate'], axis=0)
 df_jpm_table_active_contribution = df_jpm_table_active_contribution.sort_values(['12_Active_Contribution'], ascending=False).reset_index(drop=True)
 df_jpm_table_active_contribution_missing = df_jpm_table_active_contribution[df_jpm_table_active_contribution['12_Active_Contribution'].isin([np.nan])]
 df_jpm_table_active_contribution = df_jpm_table_active_contribution[~df_jpm_table_active_contribution['12_Active_Contribution'].isin([np.nan])]
