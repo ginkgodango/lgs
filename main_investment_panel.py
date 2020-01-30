@@ -10,7 +10,7 @@ jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time 
 jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
 jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Main Market Values.xlsx'
 jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2019/12/New Dictionary_v2.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2019/12/New Dictionary_v3.xlsx'
 FYTD = 6
 report_date = dt.datetime(2019, 12, 31)
 # END USER INPUT DATA
@@ -60,7 +60,6 @@ df_jpm_alts = df_jpm_alts.replace('-', np.NaN)
 df_jpm = pd.concat([df_jpm_alts, df_jpm_main], axis=0).reset_index(drop=True)
 
 # df_jpm = df_jpm[df_jpm['Date'] == report_date].reset_index(drop=True)
-
 # df_jpm = df_jpm_main
 # df_jpm = df_jpm_alts
 
@@ -325,7 +324,7 @@ df_jpm_main['12_Active_Contribution'] = (
 
 # SUSTAINABILITY
 df_jpm_main['Sustainability Value'] = df_jpm_main['LGS Sustainability Weight'] * df_jpm_main['Market Value']
-
+df_jpm_main['Sustainability Total Weight'] = df_jpm_main['Sustainability Value']/df_jpm_main['Sustainability Value'].sum()
 
 # SWITCHES MANAGER WITH LGS NAME, ALSO RENAMES RISK METRICS
 df_jpm_main = df_jpm_main.drop(['Manager'], axis=1)
@@ -521,13 +520,14 @@ for asset_class in asset_classes:
     fig.subplots_adjust(top=0.9)
     fig.savefig('U:/CIO/#Data/output/investment/charts/' + str(asset_class) + '.png', dpi=300)
 
-# Creates sustainability table
+# Creates sustainability esg table
 df_jpm_main_esg = df_jpm_main[
     [
         'Manager',
         'Market Value',
         'LGS Sustainability Weight',
         'Sustainability Value',
+        'Sustainability Total Weight',
         '1_Return',
         '1_Excess',
         '3_Return',
@@ -540,6 +540,31 @@ df_jpm_main_esg = df_jpm_main[
 ]
 
 df_jpm_main_esg = df_jpm_main_esg[(df_jpm_main_esg['LGS Sustainability Weight'] != 0) & (df_jpm_main['Date'] == report_date)].reset_index(drop=True)
+
+# Formats sustainability table
+df_jpm_main_esg[['Market Value', 'Sustainability Value']] = df_jpm_main_esg[['Market Value', 'Sustainability Value']]/1000000
+columns_decimal_esg = [
+        'LGS Sustainability Weight',
+        'Sustainability Total Weight',
+        '1_Return',
+        '1_Excess',
+        '3_Return',
+        '3_Excess',
+        '12_Return',
+        '12_Excess',
+        '36_Return',
+        '36_Excess'
+    ]
+
+#
+
+df_jpm_main_esg[columns_decimal_esg] = df_jpm_main_esg[columns_decimal_esg]*100
+df_jpm_main_esg = df_jpm_main_esg.round(2)
+
+df_jpm_main_esg.to_csv('U:/CIO/#Data/output/investment/sustainability/sustainability.csv', index=False)
+
+with open('U:/CIO/#Data/output/investment/sustainability/sustainability.tex', 'w') as tf:
+    tf.write(df_jpm_main_esg.to_latex(index=False, na_rep=''))
 
 df_jpm_table.to_csv('U:/CIO/#Data/output/investment/checker/lgs_table.csv', index=False)
 df_jpm_main.to_csv('U:/CIO/#Data/output/investment/checker/lgs_main.csv', index=False)
