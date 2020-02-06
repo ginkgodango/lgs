@@ -148,6 +148,11 @@ df_jpm = pd.merge(
 df_jpm = df_jpm[df_jpm['LGS Open'] == 1].reset_index(drop=True)
 df_jpm = df_jpm.drop(columns=['LGS Open'], axis=1)
 
+# Keep only reported items
+df_jpm_not_reported = df_jpm[df_jpm['JPM ReportName'].isin([np.nan])]
+df_jpm = df_jpm[~df_jpm['JPM ReportName'].isin([np.nan])].reset_index(drop=True)
+
+# Sort values VERY IMPORTANT for groupby merging
 df_jpm = df_jpm.sort_values(['Manager', 'Date'], ascending=[True, True]).reset_index(drop=True)
 
 # Sets the dictionary for the holding period returns.
@@ -324,7 +329,8 @@ df_jpm_main['12_Active_Contribution'] = (
 
 # SUSTAINABILITY
 df_jpm_main['Sustainability Value'] = df_jpm_main['LGS Sustainability Weight'] * df_jpm_main['Market Value']
-df_jpm_main['Sustainability Total Weight'] = df_jpm_main['Sustainability Value']/df_jpm_main['Sustainability Value'].sum()
+df_jpm_main['Sustainability Total Value'] = df_jpm_main.groupby(['Date'])['Sustainability Value'].transform('sum').reset_index(drop=True)
+df_jpm_main['Sustainability Total Weight'] = df_jpm_main['Sustainability Value']/df_jpm_main['Sustainability Total Value']
 
 # SWITCHES MANAGER WITH LGS NAME, ALSO RENAMES RISK METRICS
 df_jpm_main = df_jpm_main.drop(['Manager'], axis=1)
@@ -523,6 +529,7 @@ for asset_class in asset_classes:
 # Creates sustainability esg table
 df_jpm_main_esg = df_jpm_main[
     [
+        'Date',
         'Manager',
         'Market Value',
         'LGS Sustainability Weight',
@@ -539,7 +546,7 @@ df_jpm_main_esg = df_jpm_main[
     ]
 ]
 
-df_jpm_main_esg = df_jpm_main_esg[(df_jpm_main_esg['LGS Sustainability Weight'] != 0) & (df_jpm_main['Date'] == report_date)].reset_index(drop=True)
+df_jpm_main_esg = df_jpm_main_esg[(df_jpm_main_esg['LGS Sustainability Weight'] != 0) & (df_jpm_main_esg['Date'] == report_date)].reset_index(drop=True)
 
 # Formats sustainability table
 df_jpm_main_esg[['Market Value', 'Sustainability Value']] = df_jpm_main_esg[['Market Value', 'Sustainability Value']]/1000000
@@ -556,7 +563,31 @@ columns_decimal_esg = [
         '36_Excess'
     ]
 
-#
+# Create Totals row in sustainability table
+def esg_total_row(data):
+    d = dict()
+    d['Date'] = np.max(data['Date'])
+    d['Manager'] = 'Total'
+    d['Market Value'] = np.sum(data['Market Value'])
+    d['LGS Sustainability Weight'] = np.nan
+    d['Sustainability Value'] = np.sum(data['Sustainability Value'])
+    d['Sustainability Total Weight'] = np.sum(data['Sustainability Total Weight'])
+    d['1_Return'] = np.sum(data['1_Return'] * data['Sustainability Total Weight'])
+    d['1_Excess'] = np.sum(data['1_Excess'] * data['Sustainability Total Weight'])
+    d['3_Return'] = np.sum(data['3_Return'] * data['Sustainability Total Weight'])
+    d['3_Excess'] = np.sum(data['3_Excess'] * data['Sustainability Total Weight'])
+    d['12_Return'] = np.sum(data['12_Return'] * data['Sustainability Total Weight'])
+    d['12_Excess'] = np.sum(data['12_Excess'] * data['Sustainability Total Weight'])
+    d['36_Return'] = np.sum(data['36_Return'] * data['Sustainability Total Weight'])
+    d['36_Excess'] = np.sum(data['36_Excess'] * data['Sustainability Total Weight'])
+    return pd.Series(d)
+
+
+df_jpm_main_esg_total = df_jpm_main_esg.groupby('Date').apply(esg_total_row).reset_index(drop=True)
+
+df_jpm_main_esg = df_jpm_main_esg.sort_values(['Manager'])
+df_jpm_main_esg = pd.concat([df_jpm_main_esg, df_jpm_main_esg_total])
+
 
 df_jpm_main_esg[columns_decimal_esg] = df_jpm_main_esg[columns_decimal_esg]*100
 df_jpm_main_esg = df_jpm_main_esg.round(2)
@@ -566,5 +597,6 @@ df_jpm_main_esg.to_csv('U:/CIO/#Data/output/investment/sustainability/sustainabi
 with open('U:/CIO/#Data/output/investment/sustainability/sustainability.tex', 'w') as tf:
     tf.write(df_jpm_main_esg.to_latex(index=False, na_rep=''))
 
+# Outputs the tables for checking
 df_jpm_table.to_csv('U:/CIO/#Data/output/investment/checker/lgs_table.csv', index=False)
 df_jpm_main.to_csv('U:/CIO/#Data/output/investment/checker/lgs_main.csv', index=False)

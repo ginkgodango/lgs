@@ -25,6 +25,7 @@ import numpy as np
 # df_bonds = df_bonds[['Total Market Value (Base)']]
 # df_bonds.to_csv(jpm_directory + 'bonds.csv', index=True)
 
+# Begin User Input Data
 report_date = dt.datetime(2019, 12, 31)
 
 wscf_market_value = 188197744.70
@@ -44,6 +45,7 @@ aeq_filepath = 'U:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_Decem
 ieq_filepath = 'U:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_IEQ_Manager Version.xlsx'
 aeq_exclusions_filepath = 'U:/CIO/#Holdings/Data/output/exclusions/aeq_exclusions_' + str(report_date.date()) + '.csv'
 ieq_exclusions_filepath = 'U:/CIO/#Holdings/Data/output/exclusions/ieq_exclusions_' + str(report_date.date()) + '.csv'
+# End User Input Data
 
 # Imports JPM Mandates holdings data
 df_jpm = pd.read_csv(
