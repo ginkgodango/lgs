@@ -161,7 +161,6 @@ horizon_to_period_dict = {
         '3_': 3,
         'FYTD_': FYTD,
         '12_': 12,
-        '24_': 24,
         '36_': 36,
         '60_': 60,
         '84_': 84
@@ -299,6 +298,10 @@ df_jpm_main = pd\
     .sort_values(['Manager', 'Date'])\
     .reset_index(drop=True)
 
+# Deletes duplicates (Due to Sector Aggregate Problem) REMOVE THIS AFTER JPM FIXES THE DATA
+df_jpm_main_duplicated = df_jpm_main[df_jpm_main.duplicated(['LGS Name', 'Date'])]
+df_jpm_main = df_jpm_main[~df_jpm_main.duplicated(['LGS Name', 'Date'])].reset_index(drop=True)
+
 # ACTIVE CONTRIBUTION
 remove_double_count = []
 df_jpm_main['12_Average_Market_Value'] = (
@@ -331,6 +334,7 @@ df_jpm_main['12_Active_Contribution'] = (
 df_jpm_main['Sustainability Value'] = df_jpm_main['LGS Sustainability Weight'] * df_jpm_main['Market Value']
 df_jpm_main['Sustainability Total Value'] = df_jpm_main.groupby(['Date'])['Sustainability Value'].transform('sum').reset_index(drop=True)
 df_jpm_main['Sustainability Total Weight'] = df_jpm_main['Sustainability Value']/df_jpm_main['Sustainability Total Value']
+df_jpm_main['Sustainability Total Total Weight'] = df_jpm_main.groupby(['Date'])['Sustainability Total Weight'].transform('sum').reset_index(drop=True)
 
 # SWITCHES MANAGER WITH LGS NAME, ALSO RENAMES RISK METRICS
 df_jpm_main = df_jpm_main.drop(['Manager'], axis=1)
@@ -348,8 +352,8 @@ df_jpm_main = df_jpm_main.rename(
 df_jpm_main = df_jpm_main.sort_values(['LGS Asset Class Order', 'LGS Manager Order']).reset_index(drop=True)
 
 # Deletes duplicates
-df_jpm_main_duplicated = df_jpm_main[df_jpm_main.duplicated(['Manager', 'Date'])]
-df_jpm_main = df_jpm_main[~df_jpm_main.duplicated(['Manager', 'Date'])].reset_index(drop=True)
+# df_jpm_main_duplicated = df_jpm_main[df_jpm_main.duplicated(['Manager', 'Date'])]
+# df_jpm_main = df_jpm_main[~df_jpm_main.duplicated(['Manager', 'Date'])].reset_index(drop=True)
 
 
 # CREATES LATEX TABLES AND CHARTS
@@ -384,36 +388,41 @@ df_jpm_table[columns_decimal] = df_jpm_table[columns_decimal] * 100
 df_jpm_table[columns_round] = df_jpm_table[columns_round].round(2)
 
 # Creates column hierarchy for performance table
-columns_performance_lead_multilevel1 = pd.MultiIndex.from_product([[''], ['Manager', 'LGS Asset Class']], names=['horizon', 'type'])
-columns_performance_lead_multilevel2 = pd.MultiIndex.from_product([['Market Value'], ['$Mills']], names=['horizon', 'type'])
-columns_performance_performance_multilevel = pd.MultiIndex.from_product(
-    [['1 Month', '3 Month', 'FYTD', '1 Year', '2 Year', '3 Year', '5 Year', '7 Year'], ['LGS', 'Active']],
-    names=['horizon', 'type']
-)
+columns_performance_multilevel1 = pd.MultiIndex.from_product([[''], ['Manager', 'LGS Sector Aggregate', 'LGS Asset Class']])
+columns_performance_multilevel2 = pd.MultiIndex.from_product([['Market Value'], ['$Mills']])
+columns_performance_multilevel3 = pd.MultiIndex.from_product([['1 Month', '3 Month', 'FYTD', '1 Year', '3 Year', '5 Year', '7 Year'], ['LGS', 'Active']])
 
 # Creates performance tables
-df_jpm_table_performance_lead1 = df_jpm_table[['Manager', 'LGS Asset Class']]
-df_jpm_table_performance_lead2 = df_jpm_table[['Market Value']]
-df_jpm_table_performance_lead1.columns = columns_performance_lead_multilevel1
-df_jpm_table_performance_lead2.columns = columns_performance_lead_multilevel2
-df_jpm_table_performance_performance = df_jpm_table[columns_performance]
-df_jpm_table_performance_performance.columns = columns_performance_performance_multilevel
+df_jpm_table_performance1 = df_jpm_table[['Manager', 'LGS Sector Aggregate', 'LGS Asset Class']]
+df_jpm_table_performance2 = df_jpm_table[['Market Value']]
+df_jpm_table_performance3 = df_jpm_table[columns_performance]
+df_jpm_table_performance1.columns = columns_performance_multilevel1
+df_jpm_table_performance2.columns = columns_performance_multilevel2
+df_jpm_table_performance3.columns = columns_performance_multilevel3
 df_jpm_table_performance = pd.concat(
     [
-        df_jpm_table_performance_lead1,
-        df_jpm_table_performance_lead2,
-        df_jpm_table_performance_performance
+        df_jpm_table_performance1,
+        df_jpm_table_performance2,
+        df_jpm_table_performance3
         ],
     axis=1
 )
 
-del df_jpm_table_performance_lead1
-del df_jpm_table_performance_lead2
-del df_jpm_table_performance_performance
+del df_jpm_table_performance1
+del df_jpm_table_performance2
+del df_jpm_table_performance3
+
+df_jpm_table_performance_sector = df_jpm_table_performance[df_jpm_table_performance[('', 'LGS Sector Aggregate')].isin([1])].reset_index(drop=True)
+df_jpm_table_performance_sector = df_jpm_table_performance_sector.drop(('', 'LGS Sector Aggregate'), axis=1)
+df_jpm_table_performance_sector = df_jpm_table_performance_sector.drop(('', 'LGS Asset Class'), axis=1)
+with open('U:/CIO/#Data/output/investment/returns/Sector.tex', 'w') as tf:
+    latex_string_temp = df_jpm_table_performance_sector.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRRRRRRR')
+    tf.write(latex_string_temp)
 
 asset_class_to_performance_dict = dict(list(df_jpm_table_performance.groupby([('', 'LGS Asset Class')])))
 for asset_class, df_temp in asset_class_to_performance_dict.items():
     df_temp = df_temp.drop(('', 'LGS Asset Class'), axis=1)
+    df_temp = df_temp.drop(('', 'LGS Sector Aggregate'), axis=1)
     df_temp.to_csv('U:/CIO/#Data/output/investment/returns/' + str(asset_class) + '.csv', index=False)
 
     with open('U:/CIO/#Data/output/investment/returns/' + str(asset_class) + '.tex', 'w') as tf:
@@ -426,17 +435,23 @@ for asset_class, df_temp in asset_class_to_performance_dict.items():
 
 
 # Creates risk table
-df_jpm_table_risk = df_jpm_table[columns_lead + columns_risk + ['LGS Asset Class']]
+df_jpm_table_risk = df_jpm_table[columns_lead + columns_risk + ['LGS Sector Aggregate', 'LGS Asset Class']]
+
+df_jpm_table_risk_sector = df_jpm_table_risk[df_jpm_table_risk['LGS Sector Aggregate'].isin([1])].reset_index(drop=True)
+df_jpm_table_risk_sector = df_jpm_table_risk_sector.drop(['LGS Sector Aggregate', 'LGS Asset Class'], axis=1)
+with open('U:/CIO/#Data/output/investment/risk/Sector.tex', 'w') as tf:
+    latex_string_temp = df_jpm_table_risk_sector.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRRRRRRR')
+    tf.write(latex_string_temp)
 
 asset_class_to_risk_dict = dict(list(df_jpm_table_risk.groupby(['LGS Asset Class'])))
 for asset_class, df_temp in asset_class_to_risk_dict.items():
-    df_temp = df_temp.drop('LGS Asset Class', axis=1)
+    df_temp = df_temp.drop(['LGS Sector Aggregate', 'LGS Asset Class'], axis=1)
     df_temp.to_csv('U:/CIO/#Data/output/investment/risk/' + str(asset_class) + '.csv', index=False)
 
     with open('U:/CIO/#Data/output/investment/risk/' + str(asset_class) + '.tex', 'w') as tf:
         latex_string_temp = (
                 df_temp
-                .to_latex(index=False, na_rep='', multicolumn_format='c')
+                .to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRR')
                 .replace('-0.00', '0.00')
         )
         tf.write(latex_string_temp)
@@ -458,7 +473,7 @@ df_jpm_table_active_contribution_bottom = df_jpm_table_active_contribution_botto
 df_jpm_table_active_contribution_combined = pd.concat([df_jpm_table_active_contribution_top, df_jpm_table_active_contribution_bottom], axis=1, sort=False)
 df_jpm_table_active_contribution_combined.to_csv('U:/CIO/#Data/output/investment/contributors/contributors.csv', index=False)
 with open('U:/CIO/#Data/output/investment/contributors/contributors.tex', 'w') as tf:
-    tf.write(df_jpm_table_active_contribution_combined.to_latex(index=False, na_rep=''))
+    tf.write(df_jpm_table_active_contribution_combined.to_latex(index=False, na_rep='', column_format='lRlR'))
 
 
 # Creates charts
@@ -548,21 +563,6 @@ df_jpm_main_esg = df_jpm_main[
 
 df_jpm_main_esg = df_jpm_main_esg[(df_jpm_main_esg['LGS Sustainability Weight'] != 0) & (df_jpm_main_esg['Date'] == report_date)].reset_index(drop=True)
 
-# Formats sustainability table
-df_jpm_main_esg[['Market Value', 'Sustainability Value']] = df_jpm_main_esg[['Market Value', 'Sustainability Value']]/1000000
-columns_decimal_esg = [
-        'LGS Sustainability Weight',
-        'Sustainability Total Weight',
-        '1_Return',
-        '1_Excess',
-        '3_Return',
-        '3_Excess',
-        '12_Return',
-        '12_Excess',
-        '36_Return',
-        '36_Excess'
-    ]
-
 # Create Totals row in sustainability table
 def esg_total_row(data):
     d = dict()
@@ -586,16 +586,70 @@ def esg_total_row(data):
 df_jpm_main_esg_total = df_jpm_main_esg.groupby('Date').apply(esg_total_row).reset_index(drop=True)
 
 df_jpm_main_esg = df_jpm_main_esg.sort_values(['Manager'])
+
+# Joins the total row to the esg table
 df_jpm_main_esg = pd.concat([df_jpm_main_esg, df_jpm_main_esg_total])
 
+# Drops date column
+df_jpm_main_esg = df_jpm_main_esg.drop(columns=['Date'])
 
+# Formats sustainability table
+df_jpm_main_esg[['Market Value', 'Sustainability Value']] = df_jpm_main_esg[['Market Value', 'Sustainability Value']]/1000000
+
+# Rounds to 2 decimal places
+columns_decimal_esg = [
+        'LGS Sustainability Weight',
+        'Sustainability Total Weight',
+        '1_Return',
+        '1_Excess',
+        '3_Return',
+        '3_Excess',
+        '12_Return',
+        '12_Excess',
+        '36_Return',
+        '36_Excess'
+    ]
 df_jpm_main_esg[columns_decimal_esg] = df_jpm_main_esg[columns_decimal_esg]*100
 df_jpm_main_esg = df_jpm_main_esg.round(2)
 
-df_jpm_main_esg.to_csv('U:/CIO/#Data/output/investment/sustainability/sustainability.csv', index=False)
+# Creates column hierarchy for performance table
+columns_esg_multilevel1 = pd.MultiIndex.from_product([[''], ['Manager']])
+columns_esg_multilevel2 = pd.MultiIndex.from_product([['Market Value'], ['($Mills)']])
+columns_esg_multilevel3 = pd.MultiIndex.from_product([['Sustainability'], ['Weight']])
+columns_esg_multilevel4 = pd.MultiIndex.from_product([['Sustainability'], ['Value ($Mills)']])
+columns_esg_multilevel5 = pd.MultiIndex.from_product([['Total'], ['Weight']])
+columns_esg_multilevel6 = pd.MultiIndex.from_product([['1 Month', '3 Month', '1 Year', '3 Year'], ['LGS', 'Active']])
+
+# Creates performance tables
+df_jpm_table_esg1 = df_jpm_main_esg[['Manager']]
+df_jpm_table_esg2 = df_jpm_main_esg[['Market Value']]
+df_jpm_table_esg3 = df_jpm_main_esg[['LGS Sustainability Weight']]
+df_jpm_table_esg4 = df_jpm_main_esg[['Sustainability Value']]
+df_jpm_table_esg5 = df_jpm_main_esg[['Sustainability Total Weight']]
+df_jpm_table_esg6 = df_jpm_main_esg[['1_Return', '1_Excess', '3_Return', '3_Excess', '12_Return', '12_Excess', '36_Return', '36_Excess']]
+df_jpm_table_esg1.columns = columns_esg_multilevel1
+df_jpm_table_esg2.columns = columns_esg_multilevel2
+df_jpm_table_esg3.columns = columns_esg_multilevel3
+df_jpm_table_esg4.columns = columns_esg_multilevel4
+df_jpm_table_esg5.columns = columns_esg_multilevel5
+df_jpm_table_esg6.columns = columns_esg_multilevel6
+df_jpm_table_esg = pd.concat(
+    [
+        df_jpm_table_esg1,
+        df_jpm_table_esg2,
+        df_jpm_table_esg3,
+        df_jpm_table_esg4,
+        df_jpm_table_esg5,
+        df_jpm_table_esg6,
+        ],
+    axis=1
+)
+
+# Outputs the esg table
+df_jpm_table_esg.to_csv('U:/CIO/#Data/output/investment/sustainability/sustainability.csv', index=False)
 
 with open('U:/CIO/#Data/output/investment/sustainability/sustainability.tex', 'w') as tf:
-    tf.write(df_jpm_main_esg.to_latex(index=False, na_rep=''))
+    tf.write(df_jpm_table_esg.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRR'))
 
 # Outputs the tables for checking
 df_jpm_table.to_csv('U:/CIO/#Data/output/investment/checker/lgs_table.csv', index=False)
