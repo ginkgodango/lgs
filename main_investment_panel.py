@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
 # START USER INPUT DATA
-jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
-jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
-jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Main Market Values.xlsx'
-jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
+jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Main Returns and Benchmarks_v2.xlsx'
+jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Alternatives Returns and Benchmarks_v2.xlsx'
+jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Main Market Values_v2.xlsx'
+jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Alternatives Market Values_v2.xlsx'
 lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2019/12/New Dictionary_v3.xlsx'
 FYTD = 6
 report_date = dt.datetime(2019, 12, 31)
@@ -423,6 +423,11 @@ asset_class_to_performance_dict = dict(list(df_jpm_table_performance.groupby([('
 for asset_class, df_temp in asset_class_to_performance_dict.items():
     df_temp = df_temp.drop(('', 'LGS Asset Class'), axis=1)
     df_temp = df_temp.drop(('', 'LGS Sector Aggregate'), axis=1)
+
+    # Removes managers from PE, OA, and DA tables
+    if asset_class in ['PE', 'OA', 'DA']:
+        df_temp = df_temp[df_temp[('', 'Manager')].isin(['Private Equity', 'Opportunistic Alternatives', 'Defensive Alternatives'])]
+
     df_temp.to_csv('U:/CIO/#Data/output/investment/returns/' + str(asset_class) + '.csv', index=False)
 
     with open('U:/CIO/#Data/output/investment/returns/' + str(asset_class) + '.tex', 'w') as tf:
@@ -447,6 +452,10 @@ asset_class_to_risk_dict = dict(list(df_jpm_table_risk.groupby(['LGS Asset Class
 for asset_class, df_temp in asset_class_to_risk_dict.items():
     df_temp = df_temp.drop(['LGS Sector Aggregate', 'LGS Asset Class'], axis=1)
     df_temp.to_csv('U:/CIO/#Data/output/investment/risk/' + str(asset_class) + '.csv', index=False)
+
+    # Removes SRI from risk tables
+    if asset_class in ['AE', 'IE']:
+        df_temp = df_temp[~df_temp['Manager'].isin(['Domestic SRI', 'International SRI'])]
 
     with open('U:/CIO/#Data/output/investment/risk/' + str(asset_class) + '.tex', 'w') as tf:
         latex_string_temp = (
@@ -484,7 +493,7 @@ df_jpm_chart_12_excess['12_Excess'] = df_jpm_chart_12_excess['12_Excess']*100
 asset_class_to_chart_12_dict = dict(list(df_jpm_chart_12_excess.groupby(['LGS Asset Class'])))
 
 df_jpm_chart_60_excess = df_jpm_main[['Manager', 'Date', '60_Excess', 'LGS Sector Aggregate', 'LGS Asset Class']]
-df_jpm_chart_60_excess = df_jpm_chart_60_excess[df_jpm_chart_60_excess['LGS Sector Aggregate'] == 1].reset_index(drop=True)
+df_jpm_chart_60_excess = df_jpm_chart_60_excess[(df_jpm_chart_60_excess['LGS Sector Aggregate'] == 1) | (df_jpm_chart_60_excess['Manager'] == 'FX Overlay')].reset_index(drop=True)
 df_jpm_chart_60_excess = df_jpm_chart_60_excess.drop(columns=['LGS Sector Aggregate'], axis=1)
 df_jpm_chart_60_excess['60_Excess'] = df_jpm_chart_60_excess['60_Excess']*100
 asset_class_to_chart_60_dict = dict(list(df_jpm_chart_60_excess.groupby(['LGS Asset Class'])))

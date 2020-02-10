@@ -17,7 +17,7 @@ sheet_to_columns_dict = {
     'Page 5 NOF': 'B:O',
     'Page 6 NOF': 'B:O',
     'Page 7 NOF': 'B:O',
-    # 'Page 8': 'D:O'
+    'Page 8': 'D:O'
 }
 for sheet, columns in sheet_to_columns_dict.items():
     print('Accessing:', sheet)
@@ -34,6 +34,14 @@ for sheet, columns in sheet_to_columns_dict.items():
             'Unnamed: 2': 'JPM ReportName',
         }
     )
+
+    if sheet == 'Page 8':
+        df_sheet = df_sheet.rename(
+            columns={
+                'Unnamed: 0': 'ModelCode',
+                'Unnamed: 4': 'JPM ReportName',
+            }
+        )
 
     df_jpm = pd.concat([df_jpm, df_sheet], sort=False)
 

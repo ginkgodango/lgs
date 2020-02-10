@@ -3,7 +3,7 @@ import numpy as np
 import datetime as dt
 
 # START USER INPUT DATA
-jpm_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks.xlsx'
+jpm_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Australian Equities After Tax GOF.xlsx'
 lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2019/12/New Dictionary_v3.xlsx'
 FYTD = 6
 report_date = dt.datetime(2019, 12, 31)
@@ -43,6 +43,8 @@ df_jpm_benchmarks = df_jpm[df_jpm.Manager.str.endswith('.2')].reset_index(drop=T
 
 df_jpm_returns['Manager'] = [df_jpm_benchmarks['Manager'][i][:-2] for i in range(0, len(df_jpm_benchmarks))]
 df_jpm_benchmarks['Manager'] = [df_jpm_benchmarks['Manager'][i][:-2] for i in range(0, len(df_jpm_benchmarks))]
+df_jpm_benchmarks = df_jpm_benchmarks[df_jpm_benchmarks['Manager'].isin(['CLFAEPTC'])]
+df_jpm_benchmarks = df_jpm_benchmarks.drop(['Manager'], axis=1)
 
 df_jpm_market_values = df_jpm_market_values.rename(columns={'Values': 'JPM_Market_Value'})
 df_jpm_returns = df_jpm_returns.rename(columns={'Values': 'JPM_Return'})
@@ -64,8 +66,8 @@ df_jpm = pd.merge(
 df_jpm = pd.merge(
         left=df_jpm,
         right=df_jpm_benchmarks,
-        left_on=['Manager', 'Date'],
-        right_on=['Manager', 'Date'],
+        left_on=['Date'],
+        right_on=['Date'],
         how='inner'
 )
 
@@ -133,22 +135,9 @@ for i in range(0, len(df_jpm)):
     if abs(df_jpm['JPM_Return'][i] - df_jpm['1_Return'][i]) > 0.01:
         indices_problem.append(i)
 
-
-# Calculates tracking error
-df_jpm['60_Tracking_Error'] = (
-    df_jpm
-    .groupby(['Manager'])['1_Excess']
-    .rolling(60)
-    .apply(lambda r: np.std(r, ddof=1)*np.sqrt(12), raw=False)
-    .reset_index(drop=False)['1_Excess']
-)
-
-# Selects only strategy aggregates
-df_jpm = df_jpm[df_jpm['LGS Strategy Aggregate'].isin([1])].reset_index(drop=True)
-
 # Selects only reporting date entries
 df_jpm_table = df_jpm[df_jpm['Date'] == report_date].reset_index(drop=True)
-df_jpm_table = df_jpm_table.sort_values(['LGS Strategy Order']).reset_index(drop=True)
+df_jpm_table = df_jpm_table.sort_values(['LGS Manager Order']).reset_index(drop=True)
 
 df_jpm_table = df_jpm_table[[
     'LGS Name',
@@ -167,7 +156,6 @@ df_jpm_table = df_jpm_table[[
     '60_Excess',
     '84_Return',
     '84_Excess',
-    '60_Tracking_Error'
 ]]
 
 df_jpm_table['JPM_Market_Value'] = (df_jpm_table['JPM_Market_Value']/1000000).round(2)
@@ -187,23 +175,20 @@ decimal_to_percentage_list = [
     '60_Excess',
     '84_Return',
     '84_Excess',
-    '60_Tracking_Error'
 ]
 df_jpm_table[decimal_to_percentage_list] = (df_jpm_table[decimal_to_percentage_list]*100).round(2)
 
 df_jpm_table = df_jpm_table.rename(columns={
-    'LGS Name': 'Strategy',
+    'LGS Name': 'Manager',
     'JPM_Market_Value': 'Market Value',
-    '60_Tracking_Error': 'Tracking Error'
 })
 
-columns_multilevel1 = pd.MultiIndex.from_product([[''], ['Strategy']])
+columns_multilevel1 = pd.MultiIndex.from_product([[''], ['Manager']])
 columns_multilevel2 = pd.MultiIndex.from_product([['Market Value'], ['($Mills)']])
 columns_multilevel3 = pd.MultiIndex.from_product([['1 Month', '3 Month', 'FYTD', '1 Year', '3 Year', '5 Year', '7 Year'], ['LGS', 'Active']],)
-columns_multilevel4 = pd.MultiIndex.from_product([['Tracking'], ['Error']])
 
 # Creates performance tables
-df_jpm_table1 = df_jpm_table[['Strategy']]
+df_jpm_table1 = df_jpm_table[['Manager']]
 df_jpm_table2 = df_jpm_table[['Market Value']]
 df_jpm_table3 = df_jpm_table[['1_Return',
     '1_Excess',
@@ -219,24 +204,21 @@ df_jpm_table3 = df_jpm_table[['1_Return',
     '60_Excess',
     '84_Return',
     '84_Excess']]
-df_jpm_table4 = df_jpm_table[['Tracking Error']]
 df_jpm_table1.columns = columns_multilevel1
 df_jpm_table2.columns = columns_multilevel2
 df_jpm_table3.columns = columns_multilevel3
-df_jpm_table4.columns = columns_multilevel4
 
 df_jpm_table = pd.concat(
     [
         df_jpm_table1,
         df_jpm_table2,
         df_jpm_table3,
-        df_jpm_table4,
         ],
     axis=1
 )
 
-with open('U:/CIO/#Data/output/investment/strategy/strategy.tex', 'w') as tf:
+with open('U:/CIO/#Data/output/investment/aftertax/aftertax.tex', 'w') as tf:
     latex_string_temp = df_jpm_table.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRRRRRRRR').replace('-0.00', '0.00')
     tf.write(latex_string_temp)
 
-df_jpm.to_csv('U:/CIO/#Data/output/investment/checker/lgs_strategy.csv', index=False)
+df_jpm.to_csv('U:/CIO/#Data/output/investment/checker/lgs_aftertax.csv', index=False)
