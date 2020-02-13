@@ -118,24 +118,45 @@ horizon_to_period_dict = {
         '84_': 84
 }
 
+# product_to_hurdle_dict = {
+#     'High Growth': 0.035,
+#     'Growth': 0.03,
+#     'Balanced Growth': 0.03,
+#     'Balanced': 0.02,
+#     'Conservative': 0.015,
+#     'Managed Cash': 0.0025,
+#     'Defined Benefit Strategy': 0
+# }
+
 product_to_hurdle_dict = {
-    'High Growth': 0.035,
+    'High Growth': 0.03,
     'Growth': 0.03,
     'Balanced Growth': 0.03,
-    'Balanced': 0.02,
-    'Conservative': 0.015,
-    'Managed Cash': 0.0025,
+    'Balanced': 0.03,
+    'Conservative': 0.03,
+    'Managed Cash': 0.03,
     'Defined Benefit Strategy': 0
 }
 
+
+# product_to_tax_dict = {
+#     'High Growth': 0.08,
+#     'Growth': 0.08,
+#     'Balanced Growth': 0.085,
+#     'Balanced': 0.10,
+#     'Conservative': 0.115,
+#     'Managed Cash': 0.15,
+#     'Defined Benefit Strategy': 0.08
+# }
+
 product_to_tax_dict = {
-    'High Growth': 0.08,
-    'Growth': 0.08,
-    'Balanced Growth': 0.085,
-    'Balanced': 0.10,
-    'Conservative': 0.115,
-    'Managed Cash': 0.15,
-    'Defined Benefit Strategy': 0.08
+    'High Growth': 0,
+    'Growth': 0,
+    'Balanced Growth': 0,
+    'Balanced': 0,
+    'Conservative': 0,
+    'Managed Cash': 0,
+    'Defined Benefit Strategy': 0
 }
 
 df_up_monthly['Hurdle'] = [product_to_hurdle_dict[df_up_monthly['OptionType'][i]] for i in range(0, len(df_up_monthly))]
@@ -267,14 +288,14 @@ plt.tight_layout()
 
 
 # LIFECYCLES
-df_lc = pd.read_excel(pd.ExcelFile('U:/CIO/#Data/input/jana/lifecycles/20191031 Lifecycles.xlsx'), sheet_name='Sheet2')
+df_lc = pd.read_excel(pd.ExcelFile('U:/CIO/#Data/input/jana/lifecycles/20200131 Lifecycles.xlsx'), sheet_name='Sheet2')
 df_lc = df_lc.fillna(0)
 df_lc = df_lc.set_index(['Lifecycle', 'OptionType']).T.unstack().reset_index(drop=False)
 df_lc = df_lc.rename(columns={'level_2': 'Age', 0: 'Weight'})
 df_lc['Weight'] = df_lc['Weight'] / 100
 
 # Select only certain lifecycles
-# df_lc = df_lc[df_lc['Lifecycle'] == 'Lifecycle 1'].reset_index(drop=True)
+df_lc = df_lc[df_lc['Lifecycle'].isin(['Lifecycle 1', 'Lifecycle 5'])].reset_index(drop=True)
 
 # Merges age cohorts with lifecycle portfolios
 df_age = pd.merge(
@@ -340,9 +361,9 @@ simulate_columns = [
 
 df_simulate = df_age_final[simulate_columns]
 df_simulate = df_simulate.sort_values(['Lifecycle', 'Month', 'Year', 'Age']).reset_index(drop=True)
-df_simulate = df_simulate[df_simulate['Lifecycle'].isin(['Lifecycle 1'])].reset_index(drop=True)
+# df_simulate = df_simulate[df_simulate['Lifecycle'].isin(['Lifecycle 1'])].reset_index(drop=True)
 
-lifespan = 5
+lifespan = 10
 weighted_return_lag_columns = list()
 weighted_objective_lag_columns = list()
 for year in range(0, lifespan):
@@ -403,8 +424,8 @@ df_simulate.to_csv('U:/CIO/#Investment_Report/Data/output/testing/mysuper/lifecy
 
 df_simulate_chart_bar_summary = df_simulate[(df_simulate['Date'] == report_date) & (df_simulate['Lag'] == 0)]
 df_simulate_chart_bar_summary = df_simulate_chart_bar_summary[df_simulate_chart_bar_summary['Age'].isin([50, 55, 60, 65])]
-df_simulate_chart_bar_summary = ((df_simulate_chart_bar_summary[['Age', '60_Lifecycle_Return', '60_Lifecycle_Objective']].set_index('Age'))*100).round(2)
-df_simulate_chart_bar_summary = df_simulate_chart_bar_summary.rename(columns={'60_Lifecycle_Return': 'Return', '60_Lifecycle_Objective': 'Objective'})
+df_simulate_chart_bar_summary = ((df_simulate_chart_bar_summary[['Age', '120_Lifecycle_Return', '120_Lifecycle_Objective']].set_index('Age'))*100).round(2)
+df_simulate_chart_bar_summary = df_simulate_chart_bar_summary.rename(columns={'120_Lifecycle_Return': 'Return', '120_Lifecycle_Objective': 'Objective'})
 fig_simulate_chart_bar_summary = df_simulate_chart_bar_summary.plot(kind='bar', color=[darkgreen, lightgreen])
 # fig_simulate_chart_bar_summary.set_title('5 Year Return for Each Age Cohort')
 fig_simulate_chart_bar_summary.set_ylabel('Return (%)')
@@ -414,7 +435,7 @@ fig_bar = fig_simulate_chart_bar_summary.get_figure()
 fig_bar.savefig('U:/CIO/#Investment_Report/Data/output/testing/mysuper/monitor.PNG', dpi=300)
 
 df_simulate_chart_cross_section = df_simulate[df_simulate['Date'] == report_date]
-df_simulate_chart_cross_section = df_simulate_chart_cross_section.drop(columns=['Date', 'Lag', '60_Lifecycle_Return', '60_Lifecycle_Objective'], axis=1)
+df_simulate_chart_cross_section = df_simulate_chart_cross_section.drop(columns=['Date', 'Lag', '120_Lifecycle_Return', '120_Lifecycle_Objective'], axis=1)
 df_simulate_chart_cross_section = df_simulate_chart_cross_section[df_simulate_chart_cross_section['Age'].isin([50, 55, 60, 65])]
 
 lifecycle_to_cross_section_dict = dict(list(df_simulate_chart_cross_section.groupby(['Lifecycle'])))
@@ -446,7 +467,7 @@ for lifecycle, df_cross_section in lifecycle_to_cross_section_dict.items():
     fig.suptitle(lifecycle)
     fig.tight_layout()
     fig.subplots_adjust(top=0.9)
-    fig.savefig('U:/CIO/#Investment_Report/Data/output/testing/charts/' + str(lifecycle) + '.png', dpi=300)
+    fig.savefig('U:/CIO/#Investment_Report/Data/output/testing/mysuper/' + str(lifecycle) + '.png', dpi=300)
 
 
 
