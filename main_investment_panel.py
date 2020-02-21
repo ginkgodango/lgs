@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
 # START USER INPUT DATA
-jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Main Returns and Benchmarks_v2.xlsx'
-jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Alternatives Returns and Benchmarks_v2.xlsx'
-jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Main Market Values_v2.xlsx'
-jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2019/12/Historical Time Series - Monthly - Alternatives Market Values_v2.xlsx'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2019/12/New Dictionary_v3.xlsx'
-FYTD = 6
-report_date = dt.datetime(2019, 12, 31)
+jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/01/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
+jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/01/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
+jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/01/Historical Time Series - Monthly - Main Market Values.xlsx'
+jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/01/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/01/New Dictionary_v4.xlsx'
+FYTD = 7
+report_date = dt.datetime(2020, 1, 31)
 # END USER INPUT DATA
 
 # Imports the JPM time-series.
@@ -541,7 +541,14 @@ for asset_class in asset_classes:
 
     df_chart_mv_temp = asset_class_to_chart_mv_dict[asset_class]
     df_chart_mv_temp = df_chart_mv_temp.set_index('Manager').sort_index()
-    axes[2] = df_chart_mv_temp.plot(kind='pie', ax=axes[2], y='Market Value', autopct='%1.0f%%', legend=None, title='Holdings')
+
+    try:
+        axes[2] = df_chart_mv_temp.plot(kind='pie', ax=axes[2], y='Market Value', autopct='%1.0f%%', legend=None, title='Holdings')
+    except ValueError:
+        print(asset_class, ' has negative values! Using absolute market values for pie chart.')
+        df_chart_mv_temp['Market Value'] = abs(df_chart_mv_temp['Market Value'])
+        axes[2] = df_chart_mv_temp.plot(kind='pie', ax=axes[2], y='Market Value', autopct='%1.0f%%', legend=None, title='Holdings')
+
     my_circle = plt.Circle((0, 0), 0.75, color='white')
     axes[2].add_artist(my_circle)
     axes[2].set_ylabel(None)

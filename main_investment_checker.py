@@ -3,9 +3,9 @@ import numpy as np
 import pandas as pd
 
 lgs_filepath = 'U:/CIO/#Data/output/investment/checker/lgs_table.csv'
-jpm_filepath = 'U:/CIO/#Data/input/jpm/report/LGSS Preliminary Performance 122019_AddKeys.xlsx'
-FYTD = 6
-report_date = dt.datetime(2019, 12, 31)
+jpm_filepath = 'U:/CIO/#Data/input/jpm/report/LGSS Preliminary Performance 012020_AddKeys.xlsx'
+FYTD = 7
+report_date = dt.datetime(2020, 1, 31)
 
 # Reads LGS Tables
 df_lgs = pd.read_csv(lgs_filepath)
@@ -77,10 +77,12 @@ lgscolumn_to_jpmcolumn_dict = {
     '84_Return': '7 Years'
 }
 
-df_check = pd.DataFrame()
+df_deviations = pd.DataFrame()
 deviants = []
 columns = []
 deviations = []
+jpm_missing = []
+lgs_missing = []
 total_count = 0
 deviant_count = 0
 for lgscolumn, jpmcolumn in lgscolumn_to_jpmcolumn_dict.items():
@@ -94,6 +96,12 @@ for lgscolumn, jpmcolumn in lgscolumn_to_jpmcolumn_dict.items():
             deviations.append(deviation)
             deviant_count += 1
 
+        if (not pd.isna(df_lgs_jpm[jpmcolumn][i])) and (pd.isna(df_lgs_jpm[lgscolumn][i])):
+            lgs_missing.append((df_lgs_jpm['Manager'][i], lgscolumn))
+
+        if (pd.isna(df_lgs_jpm[jpmcolumn][i])) and (not pd.isna(df_lgs_jpm[lgscolumn][i])):
+            jpm_missing.append((df_lgs_jpm['JPM ReportName'][i], jpmcolumn))
+
         total_count += 1
 
 # Fixes the column names
@@ -104,13 +112,18 @@ for column in columns:
     else:
         columns_fix.append(column)
 
-df_check['Manager'] = deviants
-df_check['Column'] = columns_fix
-df_check['Deviations'] = deviations
+df_deviations['Manager'] = deviants
+df_deviations['Column'] = columns_fix
+df_deviations['Deviations'] = deviations
+df_lgs_missing = pd.DataFrame(lgs_missing, columns=['Manager', 'Column'])
+df_jpm_missing = pd.DataFrame(jpm_missing, columns=['Manager', 'Column'])
+
 accuracy = round(((total_count - deviant_count)/total_count)*100, 2)
 
+print('\nMissing from LGS', lgs_missing)
+print('\nMissing from JPM', jpm_missing)
 print('\nThe deviants are:\n')
-print(df_check, '\n')
+print(df_deviations, '\n')
 print('Total Count: ', total_count, 'Deviant Count: ', deviant_count, 'Accuracy: ', accuracy, '%')
 
 

@@ -26,18 +26,18 @@ import numpy as np
 # df_bonds.to_csv(jpm_directory + 'bonds.csv', index=True)
 
 # Begin User Input Data
-report_date = dt.datetime(2019, 12, 31)
+report_date = dt.datetime(2020, 1, 31)
 
 wscf_market_value = 188197744.70
 aqr_market_value = 223033840.40
 delaware_market_value = 183241040.60
 wellington_market_value = 183357208.68
 
-jpm_filepath = 'U:/CIO/#Holdings/Data/input/holdings/jpm/2019/12/Priced Positions - All.csv'
-wscf_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/12/wscf_holdings.xls'
-aqr_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/12/aqr_holdings.xls'
-delaware_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/12/delaware_holdings.xlsx'
-wellington_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2019/12/wellington_holdings.xlsx'
+jpm_filepath = 'U:/CIO/#Holdings/Data/input/holdings/jpm/2020/01/Priced Positions - All.csv'
+wscf_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/wscf_holdings.xls'
+aqr_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/aqr_holdings.xls'
+delaware_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/delaware_holdings.xlsx'
+wellington_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/wellington_holdings.xlsx'
 tickers_filepath = 'U:/CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
 asx_filepath = 'D:/data/ASX List/ASX300/20191201-asx300.csv'
 
