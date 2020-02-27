@@ -10,7 +10,7 @@ jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/01/Historical Time 
 jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/01/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
 jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/01/Historical Time Series - Monthly - Main Market Values.xlsx'
 jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/01/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/01/New Dictionary_v4.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/01/New Dictionary_v5.xlsx'
 FYTD = 7
 report_date = dt.datetime(2020, 1, 31)
 # END USER INPUT DATA
@@ -357,8 +357,8 @@ df_jpm_main = df_jpm_main.sort_values(['LGS Asset Class Order', 'LGS Manager Ord
 
 
 # CREATES LATEX TABLES AND CHARTS
-# Selects rows as at report date
-df_jpm_table = df_jpm_main[df_jpm_main['Date'] == report_date].reset_index(drop=True)
+# Selects rows as at report date and filters liquidity accounts
+df_jpm_table = df_jpm_main[(df_jpm_main['Date'] == report_date) & (df_jpm_main['LGS Liquidity'] == 0)].reset_index(drop=True)
 
 # Sets list of columns for each table
 columns_lead = ['Manager', 'Market Value']
@@ -486,21 +486,23 @@ with open('U:/CIO/#Data/output/investment/contributors/contributors.tex', 'w') a
 
 
 # Creates charts
-df_jpm_chart_12_excess = df_jpm_main[['Manager', 'Date', '12_Excess', 'LGS Sector Aggregate', 'LGS Asset Class']]
+df_jpm_chart_12_excess = df_jpm_main[['Manager', 'Date', '12_Excess', 'LGS Sector Aggregate', 'LGS Asset Class', 'LGS Liquidity']]
 df_jpm_chart_12_excess = df_jpm_chart_12_excess[df_jpm_chart_12_excess['LGS Sector Aggregate'] == 0].reset_index(drop=True)
+df_jpm_chart_12_excess = df_jpm_chart_12_excess[df_jpm_chart_12_excess['LGS Liquidity'] == 0].reset_index(drop=True)
 df_jpm_chart_12_excess = df_jpm_chart_12_excess.drop(columns=['LGS Sector Aggregate'], axis=1)
 df_jpm_chart_12_excess['12_Excess'] = df_jpm_chart_12_excess['12_Excess']*100
 asset_class_to_chart_12_dict = dict(list(df_jpm_chart_12_excess.groupby(['LGS Asset Class'])))
 
-df_jpm_chart_60_excess = df_jpm_main[['Manager', 'Date', '60_Excess', 'LGS Sector Aggregate', 'LGS Asset Class']]
+df_jpm_chart_60_excess = df_jpm_main[['Manager', 'Date', '60_Excess', 'LGS Sector Aggregate', 'LGS Asset Class', 'LGS Liquidity']]
 df_jpm_chart_60_excess = df_jpm_chart_60_excess[(df_jpm_chart_60_excess['LGS Sector Aggregate'] == 1) | (df_jpm_chart_60_excess['Manager'] == 'FX Overlay')].reset_index(drop=True)
 df_jpm_chart_60_excess = df_jpm_chart_60_excess.drop(columns=['LGS Sector Aggregate'], axis=1)
 df_jpm_chart_60_excess['60_Excess'] = df_jpm_chart_60_excess['60_Excess']*100
 asset_class_to_chart_60_dict = dict(list(df_jpm_chart_60_excess.groupby(['LGS Asset Class'])))
 
-df_jpm_chart_mv = df_jpm_main[['Manager', 'Date', 'Market Value', 'LGS Sector Aggregate', 'LGS Asset Class']]
+df_jpm_chart_mv = df_jpm_main[['Manager', 'Date', 'Market Value', 'LGS Sector Aggregate', 'LGS Asset Class', 'LGS Liquidity']]
 df_jpm_chart_mv = df_jpm_chart_mv[df_jpm_chart_mv['Date'] == report_date].reset_index(drop=True)
 df_jpm_chart_mv = df_jpm_chart_mv[df_jpm_chart_mv['LGS Sector Aggregate'] == 0].reset_index(drop=True)
+df_jpm_chart_mv = df_jpm_chart_mv[df_jpm_chart_mv['LGS Liquidity'] == 0].reset_index(drop=True)
 df_jpm_chart_mv = df_jpm_chart_mv.drop(columns=['LGS Sector Aggregate'], axis=1)
 asset_class_to_chart_mv_dict = dict(list(df_jpm_chart_mv.groupby(['LGS Asset Class'])))
 
@@ -556,6 +558,24 @@ for asset_class in asset_classes:
     fig.tight_layout()
     fig.subplots_adjust(top=0.9)
     fig.savefig('U:/CIO/#Data/output/investment/charts/' + str(asset_class) + '.png', dpi=300)
+
+
+# Creates Manager Allocations table
+df_jpm_manager_allocations = df_jpm_main[df_jpm_main['Date'] == report_date].reset_index(drop=True)
+df_jpm_manager_allocations = df_jpm_manager_allocations[['Manager', 'Market Value', 'LGS Target Weight', 'LGS Asset Class']]
+df_jpm_manager_allocations = df_jpm_manager_allocations[~df_jpm_manager_allocations['LGS Target Weight'].isin([np.nan])].reset_index(drop=True)
+
+df_jpm_manager_allocations['Asset Class Market Value'] = df_jpm_manager_allocations.groupby(['LGS Asset Class'])['Market Value'].transform('sum').reset_index(drop=True)
+df_jpm_manager_allocations['Weight'] = df_jpm_manager_allocations['Market Value']/df_jpm_manager_allocations['Asset Class Market Value']
+df_jpm_manager_allocations['Deviation'] = df_jpm_manager_allocations['Weight'] - df_jpm_manager_allocations['LGS Target Weight']
+df_jpm_manager_allocations = df_jpm_manager_allocations[['Manager', 'Weight', 'LGS Target Weight', 'Deviation']]
+df_jpm_manager_allocations[['Weight', 'LGS Target Weight', 'Deviation']] = (df_jpm_manager_allocations[['Weight', 'LGS Target Weight', 'Deviation']]*100).round(1)
+df_jpm_manager_allocations = df_jpm_manager_allocations.rename(columns={'LGS Target Weight': 'Target'})
+df_jpm_manager_allocations1 = df_jpm_manager_allocations[:25].reset_index(drop=True)
+df_jpm_manager_allocations2 = df_jpm_manager_allocations[25:].reset_index(drop=True)
+df_jpm_manager_allocations3 = pd.concat([df_jpm_manager_allocations1, df_jpm_manager_allocations2], axis=1)
+
+df_jpm_manager_allocations3.to_latex('U:/CIO/#Data/output/investment/manager/manager_allocations.tex', index=False, na_rep='', column_format='lRRRlRRR')
 
 # Creates sustainability esg table
 df_jpm_main_esg = df_jpm_main[

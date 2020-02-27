@@ -117,6 +117,7 @@ def rename_funds(df):
         'LGMO - LGS IE MESIROW OVERLAY': 'Mesirow',
         'LGII:  Wellington Management Portfolios Emerging Markets Equity 572320U': 'Wellington',
         'LGII:  Delaware Investments Emerging Markets Fund 47552EU': 'Delaware',
+        'LGII:  MACQUARIE EMERGING MARKETS FUND CLASS I USD MFJ96EU': 'Delaware',
         'LGII:  AQR GLBL ENHAN EQ FD 53062EU': 'AQR',
         'LGOV -LGS NAB CURRENCY OVERLAY': 'NAB Overlay',
         'LGTM - LGS IE TM MACQUARIE 2019': 'Macquarie Transition',
