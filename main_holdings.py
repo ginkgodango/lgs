@@ -169,7 +169,7 @@ df_aqr['Date'] = report_date
 # Imports Delaware holdings data
 df_delaware = pd.read_excel(
         pd.ExcelFile(delaware_filepath),
-        sheet_name='EM UCITS holdings 11-30-19',
+        sheet_name='EM UCITS holdings 12-31-19',
         header=0,
         usecols=[
                 'Security SEDOL',
@@ -255,6 +255,8 @@ df_main = df_main[~df_main['ISIN'].isin([np.nan])].reset_index(drop=True)
 df_main['SEDOL'] = [str(df_main['SEDOL'][i]).replace(" ", "").upper() for i in range(0, len(df_main))]
 df_main['ISIN'] = [str(df_main['ISIN'][i]).replace(" ", "").upper() for i in range(0, len(df_main))]
 
+# Outputs all of the holdings
+df_main.to_csv('U:/CIO/#Holdings/Data/output/holdings/all_holdings.csv', index=False)
 
 # TOP HOLDINGS SECTION
 australian_equity_managers_list = [
@@ -337,7 +339,8 @@ sedol_to_common_name_dict = {
         '2210959': 'Canadian Rail',
         '7123870': 'Nestle',
         '2588173': 'Microsoft',
-        'B4MGBG6': 'HCA'
+        'B4MGBG6': 'HCA',
+        'BMMV2K8': 'Tencent'
 }
 
 df_main_aeq_top10 = df_main_aeq.head(10)[['SEDOL', 'Market Value AUD', '(%) of Portfolio']]
