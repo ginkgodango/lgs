@@ -83,6 +83,7 @@ def filter_misc_funds(df):
         'LGQP:  Cash / Other',
         'LGQP:  UUT Sub Total',
         'LGQP:  Cash/Other',
+        'A'
     ]
 
     df = df[~df['Fund'].isin(misc_filter)].reset_index(drop=True)
@@ -162,6 +163,7 @@ def rename_funds(df):
         'LGMI - Absolute Return re MIML': 'Macquarie Short Term',
         'LGMI - Short Team FI MIML': 'Macquarie Short Term',
         'LGMI - Short Term FI MIML': 'Macquarie Short Term',
+        'LGMI - Short Term FI Macquarie': 'Macquarie Short Term',
         'LGKP - LGS Absolute Return re Kapstream': 'Kapstream Short Term',
         'LGKP - LGS Short Term FI Kapstream': 'Kapstream Short Term',
         'LGKP - LGS Short Team FI Kapstream': 'Kapstream Short Term',

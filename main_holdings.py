@@ -26,20 +26,20 @@ import numpy as np
 # df_bonds.to_csv(jpm_directory + 'bonds.csv', index=True)
 
 # Begin User Input Data
-report_date = dt.datetime(2020, 1, 31)
+report_date = dt.datetime(2020, 2, 29)
 
 wscf_market_value = 188197744.70
 aqr_market_value = 223033840.40
 delaware_market_value = 183241040.60
 wellington_market_value = 183357208.68
 
-jpm_filepath = 'U:/CIO/#Holdings/Data/input/holdings/jpm/2020/01/Priced Positions - All.csv'
+jpm_filepath = 'U:/CIO/#Holdings/Data/input/holdings/jpm/2020/02/Priced Positions - All.csv'
 wscf_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/wscf_holdings.xls'
 aqr_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/aqr_holdings.xls'
 delaware_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/delaware_holdings.xlsx'
 wellington_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/wellington_holdings.xlsx'
 tickers_filepath = 'U:/CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
-asx_filepath = 'D:/data/ASX List/ASX300/20191201-asx300.csv'
+asx_filepath = 'U:/CIO/#Data/input/asx/ASX300/20191201-asx300.csv'
 
 aeq_filepath = 'U:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_AEQ_Manager Version.xlsx'
 ieq_filepath = 'U:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_IEQ_Manager Version.xlsx'
@@ -70,6 +70,7 @@ df_jpm = pd.read_csv(
         infer_datetime_format=True
 )
 
+# Renames the columns into LGS column names
 df_jpm = df_jpm.rename(
         columns={
                 'Security ID': 'SEDOL',
@@ -102,6 +103,7 @@ df_wscf = pd.read_excel(
         ]
 )
 
+# Renames the columns into LGS column names
 df_wscf = df_wscf.rename(
         columns={
                 'Security SEDOL': 'SEDOL',
@@ -113,6 +115,7 @@ df_wscf = df_wscf.rename(
         }
 )
 
+# Scales holdings by market value
 wscf_scaling_factor = wscf_market_value/df_wscf['Market Value AUD'].sum()
 df_wscf['Market Value Local'] = wscf_scaling_factor * df_wscf['Market Value Local']
 df_wscf['Market Value AUD'] = wscf_scaling_factor * df_wscf['Market Value AUD']
@@ -144,6 +147,7 @@ df_aqr = pd.read_excel(
         ]
 )
 
+# Renames the columns into LGS column names
 df_aqr = df_aqr.rename(
         columns={
                 'Sedol': 'SEDOL',
@@ -157,6 +161,7 @@ df_aqr = df_aqr.rename(
         }
 )
 
+# Scales holdings by market value
 aqr_scaling_factor = aqr_market_value/df_aqr['Market Value AUD'].sum()
 df_aqr['Market Value Local'] = aqr_scaling_factor * df_aqr['Market Value Local']
 df_aqr['Market Value AUD'] = aqr_scaling_factor * df_aqr['Market Value AUD']
@@ -183,6 +188,7 @@ df_delaware = pd.read_excel(
         ]
 )
 
+# Renames the columns into LGS column names
 df_delaware = df_delaware.rename(
         columns={
                 'Security SEDOL': 'SEDOL',
@@ -196,6 +202,7 @@ df_delaware = df_delaware.rename(
         }
 )
 
+# Scales holdings by market value
 delaware_scaling_factor = delaware_market_value/df_delaware['Market Value AUD'].sum()
 df_delaware['Market Value Local'] = delaware_scaling_factor * df_delaware['Market Value Local']
 df_delaware['Market Value AUD'] = delaware_scaling_factor * df_delaware['Market Value AUD']
@@ -222,6 +229,7 @@ df_wellington = pd.read_excel(
         ]
 )
 
+# Renames the columns into LGS column names
 df_wellington = df_wellington.rename(
         columns={
                 'Security': 'Security Name',
@@ -232,6 +240,7 @@ df_wellington = df_wellington.rename(
         }
 )
 
+# Scales holdings by market value
 wellington_scaling_factor = wellington_market_value/df_wellington['Market Value AUD'].sum()
 df_wellington['Market Value Local'] = wellington_scaling_factor * df_wellington['Market Value Local']
 df_wellington['Market Value AUD'] = wellington_scaling_factor * df_wellington['Market Value AUD']
@@ -258,6 +267,9 @@ df_main['ISIN'] = [str(df_main['ISIN'][i]).replace(" ", "").upper() for i in ran
 # Outputs all of the holdings
 df_main.to_csv('U:/CIO/#Holdings/Data/output/holdings/all_holdings.csv', index=False)
 
+df_cp = df_main[['Account Name', 'Security Name', 'Market Value AUD']]
+df_cp.to_csv('U:/CIO/#Holdings/Data/output/holdings/craigpete.csv', index=False)
+
 # TOP HOLDINGS SECTION
 australian_equity_managers_list = [
         'LGS AUSTRALIAN EQUITIES - BLACKROCK',
@@ -282,19 +294,24 @@ international_equity_managers_list = [
         'LGS GLOBAL LISTED PROPERTY - RESOLU TION',
 ]
 
+# Selects Australian Equity and International Equity managers only
 df_main_aeq = df_main[df_main['Account Name'].isin(australian_equity_managers_list)].reset_index(drop=True)
 df_main_ieq = df_main[df_main['Account Name'].isin(international_equity_managers_list)].reset_index(drop=True)
 
+# Calculates % of portfolio within each asset class
 df_main_aeq['(%) of Portfolio'] = (df_main_aeq['Market Value AUD'] / df_main_aeq['Market Value AUD'].sum()) * 100
 df_main_ieq['(%) of Portfolio'] = (df_main_ieq['Market Value AUD'] / df_main_ieq['Market Value AUD'].sum()) * 100
 
 a = df_main_aeq['Market Value AUD'].sum()
 
+# Sums all the security market values by their SEDOL
 df_main_aeq = df_main_aeq.groupby(['SEDOL']).sum().sort_values(['Market Value AUD'], ascending=[False])[['Market Value AUD', '(%) of Portfolio']]
 df_main_ieq = df_main_ieq.groupby(['SEDOL']).sum().sort_values(['Market Value AUD'], ascending=[False])[['Market Value AUD', '(%) of Portfolio']]
 
+# Selects SEDOLS and Security names
 df_security_names = df_main[['SEDOL', 'Security Name']].drop_duplicates(subset=['SEDOL'], keep='first').reset_index(drop=True)
 
+# Merges security names back onto df_main_aeq
 df_main_aeq = pd.merge(
         left=df_main_aeq,
         right=df_security_names,
@@ -305,6 +322,7 @@ df_main_aeq = pd.merge(
 )
 df_main_aeq = df_main_aeq[df_main_aeq['_merge'].isin(['left_only', 'both'])].drop(columns=['_merge'], axis=1)
 
+# Merges security names back onto df_main_ieq
 df_main_ieq = pd.merge(
         left=df_main_ieq,
         right=df_security_names,
@@ -315,6 +333,7 @@ df_main_ieq = pd.merge(
 )
 df_main_ieq = df_main_ieq[df_main_ieq['_merge'].isin(['left_only', 'both'])].drop(columns=['_merge'], axis=1)
 
+# Creates SEDOL to LGS friendly names dictionary for the top 10 holdings table for AE and IE.
 sedol_to_common_name_dict = {
         '6215035': 'CBA',
         '6144690': 'BHP',
@@ -342,19 +361,23 @@ sedol_to_common_name_dict = {
         'B4MGBG6': 'HCA',
         'BMMV2K8': 'Tencent'
 }
-
+# Selects top 10 holdings for AE and IE
 df_main_aeq_top10 = df_main_aeq.head(10)[['SEDOL', 'Market Value AUD', '(%) of Portfolio']]
 df_main_ieq_top10 = df_main_ieq.head(10)[['SEDOL', 'Market Value AUD', '(%) of Portfolio']]
 
+# Applies SEDOL to company name dictionary
 df_main_aeq_top10['Company'] = [sedol_to_common_name_dict[df_main_aeq_top10['SEDOL'][i]] for i in range(0, len(df_main_aeq_top10))]
 df_main_ieq_top10['Company'] = [sedol_to_common_name_dict[df_main_ieq_top10['SEDOL'][i]] for i in range(0, len(df_main_ieq_top10))]
 
+# Divides market value by a million
 df_main_aeq_top10['Market Value'] = df_main_aeq_top10['Market Value AUD'] / 1000000
 df_main_ieq_top10['Market Value'] = df_main_ieq_top10['Market Value AUD'] / 1000000
 
+# Selects columns for output into latex
 df_main_aeq_top10 = df_main_aeq_top10[['Company', 'Market Value', '(%) of Portfolio']].round(2)
 df_main_ieq_top10 = df_main_ieq_top10[['Company', 'Market Value', '(%) of Portfolio']].round(2)
 
+# Outputs the tables into latex
 with open('U:/CIO/#Investment_Report/Data/output/holdings/top10_local.tex', 'w') as tf:
     tf.write(df_main_aeq_top10.to_latex(index=False))
 

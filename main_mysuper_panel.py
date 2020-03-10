@@ -77,6 +77,7 @@ df_cpi = pd.read_csv(
     index_col=['Series ID']
 )
 
+# Converts quarterly inflation into monthly
 df_cpi = df_cpi.rename(columns={'GCPIAGQP': 'Inflation'})
 df_cpi = df_cpi[df_cpi.index >= dt.datetime(1999, 1, 1)]
 df_cpi['Inflation'] = df_cpi['Inflation']/100
@@ -88,6 +89,7 @@ df_cpi = df_cpi.rename(columns={'Series ID': 'Date'})
 
 df_cpi.to_csv('U:/CIO/#Research/inflation_output.csv', index=False)
 
+# Merges monthly unit price returns with inflation
 df_up_monthly = pd.merge(
     left=df_up_monthly,
     right=df_cpi,
@@ -95,6 +97,9 @@ df_up_monthly = pd.merge(
     right_on=['Date']
 )
 
+
+# Creates core_benchmark. For High Growth, Balanced Growth, Balanced, Conservative, and Growth is inflation.
+# core_benchmark for employer reserve is a constant 5.75% pa.
 employer_reserve_benchmark_monthly = ((1 + 0.0575)**(1/12) - 1)
 core_benchmark = []
 for i in range(0, len(df_up_monthly)):
@@ -128,6 +133,7 @@ horizon_to_period_dict = {
 #     'Defined Benefit Strategy': 0
 # }
 
+# Sets product to hurdle dictionary
 product_to_hurdle_dict = {
     'High Growth': 0.03,
     'Growth': 0.03,
@@ -149,6 +155,7 @@ product_to_hurdle_dict = {
 #     'Defined Benefit Strategy': 0.08
 # }
 
+# Sets product to tax dictionary
 product_to_tax_dict = {
     'High Growth': 0,
     'Growth': 0,

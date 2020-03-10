@@ -28,7 +28,7 @@ def get_total_size(ftp_dir):
         print('Count: ', count, 'Size:', size, 'Filename: ', filename)
     return size
 
-total_size = get_total_size(ftp.pwd())
+# total_size = get_total_size(ftp.pwd())
 
 # ftp.quit()
 

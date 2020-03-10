@@ -10,6 +10,8 @@ filepath = 'U:/CIO/#Data/input/jpm/report/daymove/2020/03/'
 filenames = sorted(os.listdir(filepath))
 output_directory = 'U:/CIO/#Daymove/tables/'
 
+filenames = filenames[1:]
+
 df_main = pd.DataFrame()
 
 for filename in filenames:
