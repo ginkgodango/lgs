@@ -3,15 +3,15 @@ import numpy as np
 import datetime as dt
 import matplotlib
 import matplotlib.pyplot as plt
-FYTD = 6
-report_date = dt.datetime(2019, 12, 31)
+FYTD = 8
+report_date = dt.datetime(2020, 2, 28)
 darkgreen = (75/256, 120/256, 56/256)
 middlegreen = (141/256, 177/256, 66/256)
 lightgreen = (175/256, 215/256, 145/256)
 
 # UNIT PRICES
 # Imports unit price panel
-df_up = pd.read_csv('U:/CIO/#Data/input/lgs/unitprices/20191231 Unit Prices.csv', parse_dates=['Date'])
+df_up = pd.read_csv('U:/CIO/#Data/input/lgs/unitprices/20200228 Unit Prices.csv', parse_dates=['Date'])
 df_up_unique = df_up[df_up['Date'] == report_date]
 # df_up_unique.to_csv('U:/CIO/#Research/product_unique.csv', index=False)
 
@@ -95,8 +95,15 @@ df_up_monthly = pd.merge(
     right=df_cpi,
     left_on=['Date'],
     right_on=['Date']
-)
+).reset_index(drop=True)
 
+non_leap_dates = []
+for i in range(0, len(df_up_monthly)):
+    if df_up_monthly['Date'][i].month == 2 and df_up_monthly['Date'][i].day == 29:
+        non_leap_dates.append(df_up_monthly['Date'][i] - pd.Timedelta(days=1))
+    else:
+        non_leap_dates.append(df_up_monthly['Date'][i])
+df_up_monthly['Date'] = non_leap_dates
 
 # Creates core_benchmark. For High Growth, Balanced Growth, Balanced, Conservative, and Growth is inflation.
 # core_benchmark for employer reserve is a constant 5.75% pa.

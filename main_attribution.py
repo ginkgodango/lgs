@@ -10,16 +10,16 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2019, 10, 31)
-end_date = datetime.datetime(2019, 12, 31)
+start_date = datetime.datetime(2019, 11, 30)
+end_date = datetime.datetime(2020, 1, 31)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
 output_directory = 'U:/CIO/#Attribution/tables/base/'
 
 table_filename = 'link_2019-12-31.csv'
-returns_filename = 'returns_2019-12-31.csv'
-market_values_filename = 'market_values_2019-12-31.csv'
-asset_allocations_filename = 'asset_allocations_2019-12-31.csv'
+returns_filename = 'returns_2020-01-31_fx_fix.csv'
+market_values_filename = 'market_values_2020-01-31_test.csv'
+asset_allocations_filename = 'asset_allocations_2020-01-31.csv'
 
 latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
@@ -56,13 +56,24 @@ df_returns = pd.melt(df_returns, id_vars=['Manager'], value_name='1_r')
 # Selects returns for this month or within a date_range
 df_returns = df_returns[(df_returns['Date'] >= start_date) & (df_returns['Date'] <= end_date)].reset_index(drop=True)
 
-df_benchmarks = pd.merge(left=df_returns, right=df_table, left_on=['Manager'], right_on=['Associated Benchmark'],
-                         how='inner')
+df_benchmarks = pd.merge(
+    left=df_returns,
+    right=df_table,
+    left_on=['Manager'],
+    right_on=['Associated Benchmark'],
+    how='inner'
+)
+
 df_benchmarks = df_benchmarks[['Date', 'Associated Benchmark', '1_r', 'ModelCode']]
 df_benchmarks.columns = ['Date', 'Benchmark Name', 'bmk_1_r', 'ModelCode']
 
-df_returns_benchmarks = pd.merge(left=df_returns, right=df_benchmarks, left_on=['Date', 'Manager'],
-                                 right_on=['Date', 'ModelCode'], how='inner')
+df_returns_benchmarks = pd.merge(
+    left=df_returns,
+    right=df_benchmarks,
+    left_on=['Date', 'Manager'],
+    right_on=['Date', 'ModelCode'],
+    how='inner'
+)
 
 # Loads market values
 df_market_values = attribution.extraction.load_market_values(input_directory + 'market_values/' + market_values_filename)

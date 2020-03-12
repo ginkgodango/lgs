@@ -18,8 +18,11 @@ df_ff_monthly = df_ff[:split_index].reset_index(drop=True)
 
 df_ff_yearly = df_ff[split_index+2:].reset_index(drop=True)
 
-df_ff_monthly['Date'] = [str(df_ff_monthly['Date'][i]), for i in range(0,len(df_ff_monthly))]
-df_ff_monthly['Date'] = pd.to_datetime(df_ff_monthly['Date'], format='%Y%m', errors='coerce')
+
+
+#df_ff_monthly['Date'] = [str(df_ff_monthly['Date'][i]) for i in range(0, len(df_ff_monthly))]
+#df_ff_monthly['Date'] = pd.to_datetime(df_ff_monthly['Date'], format='%Y%m', errors='coerce')
+
 
 # df_ff_monthly = df_ff_monthly.set_index('Date')
 #
