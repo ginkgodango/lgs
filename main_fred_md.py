@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df_fred_data = pd.read_csv('U:/CIO/#Data/input/fred/FRED_MD/fred-md/monthly/2020-01.csv', parse_dates=['sasdate'])
+df_fred_data = pd.read_csv('U:/CIO/#Data/input/fred/FRED_MD/fred-md/monthly/2020-02.csv', parse_dates=['sasdate'])
 df_fred_dict = pd.read_csv('U:/CIO/#Data/input/fred/fred_dictionary_20200229v2.csv', encoding='unicode_escape')
 
 match_count = 0

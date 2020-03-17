@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
 # START USER INPUT DATA
-jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/01/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
-jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/01/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
-jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/01/Historical Time Series - Monthly - Main Market Values.xlsx'
-jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/01/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/01/New Dictionary_v5.xlsx'
-FYTD = 7
-report_date = dt.datetime(2020, 1, 31)
+jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
+jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
+jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Main Market Values.xlsx'
+jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/02/New Dictionary_v6.xlsx'
+FYTD = 8
+report_date = dt.datetime(2020, 2, 29)
 # END USER INPUT DATA
 
 # Imports the JPM time-series.
@@ -59,9 +59,11 @@ df_jpm_alts = df_jpm_alts.replace('-', np.NaN)
 
 df_jpm = pd.concat([df_jpm_alts, df_jpm_main], axis=0).reset_index(drop=True)
 
-# df_jpm = df_jpm[df_jpm['Date'] == report_date].reset_index(drop=True)
-# df_jpm = df_jpm_main
-# df_jpm = df_jpm_alts
+# Checks for str/int errors before converting returns to percentages.
+string_error_list = []
+for i in range(0, len(df_jpm)):
+    if isinstance(df_jpm['JPM_Return'][i], str):
+        string_error_list.append(df_jpm['Manager'][i])
 
 # Converts the returns to percentage.
 df_jpm['JPM_Return'] = df_jpm['JPM_Return']/100

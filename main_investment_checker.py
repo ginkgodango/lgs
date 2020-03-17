@@ -3,9 +3,9 @@ import numpy as np
 import pandas as pd
 
 lgs_filepath = 'U:/CIO/#Data/output/investment/checker/lgs_table.csv'
-jpm_filepath = 'U:/CIO/#Data/input/jpm/report/LGSS Preliminary Performance 012020_AddKeys.xlsx'
-FYTD = 7
-report_date = dt.datetime(2020, 1, 31)
+jpm_filepath = 'U:/CIO/#Data/input/jpm/report/investment/LGSS Preliminary Performance 202002.xlsx'
+FYTD = 8
+report_date = dt.datetime(2020, 2, 29)
 
 # Reads LGS Tables
 df_lgs = pd.read_csv(lgs_filepath)

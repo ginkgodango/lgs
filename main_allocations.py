@@ -4,9 +4,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/allocations/'
-output_directory = 'U:/CIO/#Investment_Report/Data/output/allocations/'
+output_directory = 'U:/CIO/#Data/output/investment/allocations/'
 
-allocations_filename = 'asset_allocations_2019-12-31.csv'
+allocations_filename = 'asset_allocations_2020-02-29.csv'
 dictionary_filename = 'allocations_dictionary_2019-11-30.csv'
 
 df_allocations = pd.read_csv(
