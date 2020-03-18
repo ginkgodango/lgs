@@ -2,8 +2,8 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 
-lgs_filepath = 'U:/CIO/#Data/output/investment/checker/lgs_table.csv'
-jpm_filepath = 'U:/CIO/#Data/input/jpm/report/investment/LGSS Preliminary Performance 202002.xlsx'
+lgs_filepath = 'D:/CIO/#Data/output/investment/checker/lgs_table.csv'
+jpm_filepath = 'D:/CIO/#Data/input/jpm/report/investment/LGSS Preliminary Performance 202002.xlsx'
 FYTD = 8
 report_date = dt.datetime(2020, 2, 29)
 
@@ -51,7 +51,7 @@ df_jpm = df_jpm.drop(columns=['ModelCode'], axis=1)
 df_jpm['Market Value'] = (df_jpm['Market Value']/1000000).round(2)
 
 # Reads footers and removes them
-df_footers = pd.read_excel('U:/CIO/#Investment_Report/Data/input/testing/20191031 Footers.xlsx')
+df_footers = pd.read_excel('D:/CIO/#Investment_Report/Data/input/testing/20191031 Footers.xlsx')
 
 remove_items = list(df_footers['Footers']) + [np.nan, 'Excess return']
 df_jpm = df_jpm[~df_jpm['JPM ReportName'].isin(remove_items)].reset_index(drop=True)

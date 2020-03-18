@@ -351,7 +351,6 @@ def reorder_sectors(df):
         'GLOBAL PROPERTY',
         'PROPERTY',
         'BONDS',
-        'ABSOLUTE RETURN',
         'LIQUID ALTERNATIVES',
         'SHORT TERM FIXED INTEREST',
         'CASH',

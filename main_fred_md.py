@@ -1,8 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df_fred_data = pd.read_csv('U:/CIO/#Data/input/fred/FRED_MD/fred-md/monthly/2020-02.csv', parse_dates=['sasdate'])
-df_fred_dict = pd.read_csv('U:/CIO/#Data/input/fred/fred_dictionary_20200229v2.csv', encoding='unicode_escape')
+df_fred_data = pd.read_csv('D:/CIO/#Data/input/fred/FRED_MD/fred-md/monthly/2020-02.csv', parse_dates=['sasdate'])
+df_fred_dict = pd.read_csv('D:/CIO/#Data/input/fred/fred_dictionary_20200229v2.csv', encoding='unicode_escape')
 
 match_count = 0
 for i in range(0, len(df_fred_dict)):
@@ -27,5 +27,5 @@ for i in range(0, len(df_fred_dict)):
         plt.axhline(y=0, linestyle=':', linewidth=1, color='k', )
         filename = df_fred_dict['description'][i].replace('/', '').replace(':', '')
         plt.tight_layout()
-        plt.savefig('U:/CIO/#Data/output/fred/charts/' + str(i) + '. ' + filename + '.png')
+        plt.savefig('D:/CIO/#Data/output/fred/charts/' + str(i) + '. ' + filename + '.png')
         plt.clf()

@@ -13,8 +13,8 @@ from dateutil.relativedelta import relativedelta
 start_date = datetime.datetime(2019, 12, 31)
 end_date = datetime.datetime(2020, 2, 29)
 
-input_directory = 'U:/CIO/#Investment_Report/Data/input/'
-output_directory = 'U:/CIO/#Attribution/tables/base/'
+input_directory = 'D:/CIO/#Investment_Report/Data/input/'
+output_directory = 'D:/CIO/#Attribution/tables/base/'
 
 table_filename = 'link_2019-12-31.csv'
 returns_filename = 'returns_2020-02-29.csv'

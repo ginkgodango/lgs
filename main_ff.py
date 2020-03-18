@@ -4,7 +4,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 
 df_ff = pd.read_csv(
-    'U:/CIO/#Data/input/ff/F-F_Research_Data_5_Factors_2x3.csv',
+    'D:/CIO/#Data/input/ff/F-F_Research_Data_5_Factors_2x3.csv',
     skiprows=[0, 1, 2]
 )
 
