@@ -2,6 +2,7 @@ from ftplib import FTP
 import os
 import xml.etree.ElementTree as ET
 import pandas as pd
+import datetime as dt
 
 ftp = FTP("ftp.msci.com")
 ftp.login('wnvyzpng', 'hxcksyyx')
@@ -44,6 +45,7 @@ def load_msci(filepath):
 
 # df_msci = load_msci('U:/CIO/#Research/MSCI/20200113core_dm_daily_d/20200113_20200113_CORE_DM_ALL_SECURITY_MAIN_DAILY_D.xml')
 
+
 def download_msci(ftp_dir):
     size = 0
     count = 0
@@ -61,12 +63,52 @@ def download_msci(ftp_dir):
             size += ftp.size(path)
 
         try:
-            ftp.retrbinary("RETR " + filename, open('E:' + str(filename), 'wb').write)
-            with open('E:/download/Record.txt', 'a') as tf:
-                tf.write(str(count) + ',' + str(ftp.size(path)) + ',' + str(path) + ',' + 'Success\n')
+            ftp.retrbinary("RETR " + filename, open('F:' + str(filename), 'wb').write)
+            with open('F:/download/Record.txt', 'a') as tf:
+                tf.write(str(count) + ',' + str(ftp.size(path)) + ',' + str(path) + ',' + 'Success' + ',' + str(dt.datetime.now()) + '\n')
         except:
-            with open('E:/download/Record.txt', 'a') as tf:
-                tf.write(str(count) + ',' + str(ftp.size(path)) + ',' + str(path) + ',' + 'Failed\n')
+            with open('F:/download/Record.txt', 'a') as tf:
+                tf.write(str(count) + ',' + str(ftp.size(path)) + ',' + str(path) + ',' + 'Failed' + ',' + str(dt.datetime.now()) + '\n')
+
+        count += 1
+        print('Count: ', count, 'Size:', size, 'Filename: ', filename)
+
+        # if count == 5:
+        #    break
+    return size
+
+
+def download_msci_history(ftp_dir):
+    size = 0
+    count = 0
+    parent_dir = ftp.pwd() # get the current directory
+    for filename in reversed(ftp.nlst(ftp_dir)):
+        # (don't forget to import os)
+        path = os.path.join(parent_dir, filename) # keeps recursively track of the path
+        print(path)
+        try:
+            ftp.retrbinary("RETR " + filename, open('F:' + str(filename), 'wb').write)
+        except PermissionError:
+            pass
+
+        # try:
+        #     ftp.cwd(path)
+        #     size += get_total_size(path)
+        #     ftp.cwd(parent_dir)
+        #
+        # except:
+        #     ftp.voidcmd('TYPE I')
+        #     size += ftp.size(path)
+
+        # ftp.retrbinary("RETR " + path, open('F:' + str(path), 'wb').write)
+
+        # try:
+        #     ftp.retrbinary("RETR " + filename, open('F:' + str(filename), 'wb').write)
+        #     with open('F:/download/history/Record_history.txt', 'a') as tf:
+        #         tf.write(str(count) + ',' + str(ftp.size(path)) + ',' + str(path) + ',' + 'Success' + ',' + str(dt.datetime.now()) + '\n')
+        # except:
+        #     with open('F:/download/history/Record_history.txt', 'a') as tf:
+        #         tf.write(str(count) + ',' + str(ftp.size(path)) + ',' + str(path) + ',' + 'Failed' + ',' + str(dt.datetime.now()) + '\n')
 
         count += 1
         print('Count: ', count, 'Size:', size, 'Filename: ', filename)
@@ -75,18 +117,22 @@ def download_msci(ftp_dir):
             break
     return size
 
+# with open('F:/download/Record.txt', 'w') as file:
+#     file.write('Count, Size, Filepath, Outcome, Timestamp\n')
+#
+# download_start = download_msci(ftp.pwd())
 
-with open('E:/download/Record.txt', 'w') as file:
-    file.write('Count, Size, Filepath, Outcome\n')
 
-download_start = download_msci(ftp.pwd())
+with open('F:/download/history/Record_history.txt', 'w') as file:
+    file.write('Count, Size, Filepath, Outcome, Timestamp\n')
 
+download_history_start = download_msci_history(ftp.pwd())
 
 
 # ftp.retrbinary("RETR " + filename ,open(A, 'wb').write)
 # with open('D:/somefile.txt', 'a') as file:
 #     file.write('Hello\n')
-
+# /download/history/19950403_19950428_corevg_ap_index_main_monthly.zip
 """
 lgs_msci_dict = {
     'AQR Delta': 'LG-HF01',
