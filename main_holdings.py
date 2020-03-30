@@ -33,18 +33,18 @@ aqr_market_value = 223033840.40
 delaware_market_value = 183241040.60
 wellington_market_value = 183357208.68
 
-jpm_filepath = 'U:/CIO/#Holdings/Data/input/holdings/jpm/2020/02/Priced Positions - All.csv'
-wscf_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/wscf_holdings.xls'
-aqr_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/aqr_holdings.xls'
-delaware_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/delaware_holdings.xlsx'
-wellington_filepath = 'U:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/wellington_holdings.xlsx'
-tickers_filepath = 'U:/CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
-asx_filepath = 'U:/CIO/#Data/input/asx/ASX300/20191201-asx300.csv'
+jpm_filepath = 'D:/CIO/#Holdings/Data/input/holdings/jpm/2020/02/Priced Positions - All.csv'
+wscf_filepath = 'D:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/wscf_holdings.xls'
+aqr_filepath = 'D:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/aqr_holdings.xls'
+delaware_filepath = 'D:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/delaware_holdings.xlsx'
+wellington_filepath = 'D:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/wellington_holdings.xlsx'
+tickers_filepath = 'D:/CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
+asx_filepath = 'D:/CIO/#Data/input/asx/ASX300/20191201-asx300.csv'
 
-aeq_filepath = 'U:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_AEQ_Manager Version.xlsx'
-ieq_filepath = 'U:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_IEQ_Manager Version.xlsx'
-aeq_exclusions_filepath = 'U:/CIO/#Holdings/Data/output/exclusions/aeq_exclusions_' + str(report_date.date()) + '.csv'
-ieq_exclusions_filepath = 'U:/CIO/#Holdings/Data/output/exclusions/ieq_exclusions_' + str(report_date.date()) + '.csv'
+aeq_filepath = 'D:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_AEQ_Manager Version.xlsx'
+ieq_filepath = 'D:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_IEQ_Manager Version.xlsx'
+aeq_exclusions_filepath = 'D:/CIO/#Holdings/Data/output/exclusions/aeq_exclusions_' + str(report_date.date()) + '.csv'
+ieq_exclusions_filepath = 'D:/CIO/#Holdings/Data/output/exclusions/ieq_exclusions_' + str(report_date.date()) + '.csv'
 # End User Input Data
 
 # Imports JPM Mandates holdings data
@@ -265,10 +265,10 @@ df_main['SEDOL'] = [str(df_main['SEDOL'][i]).replace(" ", "").upper() for i in r
 df_main['ISIN'] = [str(df_main['ISIN'][i]).replace(" ", "").upper() for i in range(0, len(df_main))]
 
 # Outputs all of the holdings
-df_main.to_csv('U:/CIO/#Holdings/Data/output/holdings/all_holdings.csv', index=False)
+df_main.to_csv('D:/CIO/#Holdings/Data/output/holdings/all_holdings.csv', index=False)
 
 df_cp = df_main[['Account Name', 'Security Name', 'Market Value AUD']]
-df_cp.to_csv('U:/CIO/#Holdings/Data/output/holdings/craigpete.csv', index=False)
+df_cp.to_csv('D:/CIO/#Holdings/Data/output/holdings/craigpete.csv', index=False)
 
 # TOP HOLDINGS SECTION
 australian_equity_managers_list = [
@@ -378,14 +378,14 @@ df_main_aeq_top10 = df_main_aeq_top10[['Company', 'Market Value', '(%) of Portfo
 df_main_ieq_top10 = df_main_ieq_top10[['Company', 'Market Value', '(%) of Portfolio']].round(2)
 
 # Outputs the tables into latex
-with open('U:/CIO/#Investment_Report/Data/output/holdings/top10_local.tex', 'w') as tf:
+with open('D:/CIO/#Investment_Report/Data/output/holdings/top10_local.tex', 'w') as tf:
     tf.write(df_main_aeq_top10.to_latex(index=False))
 
-with open('U:/CIO/#Investment_Report/Data/output/holdings/top10_foreign.tex', 'w') as tf:
+with open('D:/CIO/#Investment_Report/Data/output/holdings/top10_foreign.tex', 'w') as tf:
     tf.write(df_main_ieq_top10.to_latex(index=False))
 
 # Writes to excel
-writer = pd.ExcelWriter('U:/CIO/#Holdings/Data/output/holdings/top_holdings.xlsx', engine='xlsxwriter')
+writer = pd.ExcelWriter('D:/CIO/#Holdings/Data/output/holdings/top_holdings.xlsx', engine='xlsxwriter')
 df_main_aeq.to_excel(writer, sheet_name='local', index=False)
 df_main_ieq.to_excel(writer, sheet_name='foreign', index=False)
 writer.save()
@@ -518,7 +518,7 @@ df_main_eq_ticker_left = (
         .reset_index(drop=True)
 )
 
-df_main_eq_ticker_left.to_csv('U:/CIO/#Holdings/Data/output/missing/missing.csv', index=False)
+df_main_eq_ticker_left.to_csv('D:/CIO/#Holdings/Data/output/missing/missing.csv', index=False)
 
 # Creates Yahoo Upload File
 df_main_eq_ticker_both = df_main_eq_ticker[df_main_eq_ticker['_merge'].isin(['both'])].sort_values(['Account Name']).reset_index(drop=True)
@@ -664,4 +664,4 @@ df_main_relative_aeq = pd.merge(
 )
 
 df_main_relative_aeq['Relative Weight'] = df_main_relative_aeq['Portfolio Weight'] - df_main_relative_aeq['Benchmark Weight']
-df_main_relative_aeq.to_csv('U:/CIO/#Holdings/Data/output/relative_holdings_aeq.csv', index=False)
+df_main_relative_aeq.to_csv('D:/CIO/#Holdings/Data/output/relative_holdings_aeq.csv', index=False)

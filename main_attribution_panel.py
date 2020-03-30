@@ -143,33 +143,3 @@ df_jpm_combined = df_jpm_combined.sort_values(['Manager', 'Date'], ascending=[Tr
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
