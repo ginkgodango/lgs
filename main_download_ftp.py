@@ -12,7 +12,7 @@ def downloadFiles(path, destination):
     path & destination are str of the form "/dir/folder/something/"
     path should be the abs path to the root FOLDER of the file tree to download
     """
-    count = 1
+
     try:
         ftp.cwd(path)
         # clone path to destination
@@ -28,9 +28,12 @@ def downloadFiles(path, destination):
         sys.exit("ending session")
 
     # list children:
-    filelist = ftp.nlst()
+    filelist = ftp.nlst()[:]
+    existing_filelist = sorted(os.listdir(destination))
+    new_filelist = sorted(list(set(filelist) ^ set(existing_filelist)))
+    count = len(existing_filelist) + 1
 
-    for file in filelist:
+    for file in new_filelist:
         try:
             # this will check if file is folder:
             ftp.cwd(path+file+"/")
@@ -41,10 +44,21 @@ def downloadFiles(path, destination):
             # download & return
             os.chdir(destination)
             # possibly need a permission exception catch:
-            ftp.retrbinary("RETR " + file, open(file, "wb").write)
-            with open(destination + '/Record.txt', 'a') as tf:
-                tf.write(str(count) + ',' + str(file) + ',' + 'downloaded' + ',' + str(dt.datetime.now()) + '\n')
-            print(count, file + " downloaded", str(dt.datetime.now()))
+
+            if file in new_filelist:
+                ftp.retrbinary("RETR " + file, open(file, "wb").write)
+                with open(destination + '/Record.txt', 'a') as tf:
+                    tf.write(str(count) + ',' + str(file) + ',' + 'downloaded' + ',' + str(dt.datetime.now()) + '\n')
+                print(count, file + " downloaded", str(dt.datetime.now()))
+
+            # if file in existing_filelist:
+            #     print(count, file + " existing", str(dt.datetime.now()))
+            # else:
+            #     ftp.retrbinary("RETR " + file, open(file, "wb").write)
+            #     with open(destination + '/Record.txt', 'a') as tf:
+            #         tf.write(str(count) + ',' + str(file) + ',' + 'downloaded' + ',' + str(dt.datetime.now()) + '\n')
+            #     print(count, file + " downloaded", str(dt.datetime.now()))
+
         count += 1
     return
 
@@ -52,8 +66,8 @@ def downloadFiles(path, destination):
 source = "/download/history/"
 dest = "F:/download/history/"
 
-with open(dest + '/Record.txt', 'w') as tf:
-    tf.write('Count, Filepath, Outcome, Timestamp\n')
+# with open(dest + '/Record.txt', 'w') as tf:
+#     tf.write('Count, Filepath, Outcome, Timestamp\n')
 
 downloadFiles(source, dest)
 
