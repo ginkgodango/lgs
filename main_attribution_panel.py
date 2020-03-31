@@ -163,8 +163,8 @@ df_jpm_combined = df_jpm_combined[~df_jpm_combined['JPM ReportName'].isin([np.na
 df_jpm_combined = df_jpm_combined.sort_values(['Manager', 'Date'], ascending=[True, True]).reset_index(drop=True)
 
 # Converts everything into decimals
-# df_jpm_combined['JPM Return'] = df_jpm_combined['JPM Return'] / 100
-# df_jpm_combined['JPM Benchmark'] = df_jpm_combined['JPM Benchmark'] / 100
+df_jpm_combined['JPM Return'] = df_jpm_combined['JPM Return'] / 100
+df_jpm_combined['JPM Benchmark'] = df_jpm_combined['JPM Benchmark'] / 100
 
 # Selects sectors only
 df_jpm_sectors = df_jpm_combined[df_jpm_combined['LGS Sector Aggregate'].isin([1])].reset_index(drop=True)
@@ -228,6 +228,8 @@ df_jpm_strategies = pd.merge(
 
 df_jpm_strategies = df_jpm_strategies.rename(columns={'Manager':'Strategy'})
 
+df_jpm_strategies.drop('JPM Market Value', axis=1)
+
 # Reads in allocation data
 df_lgs_allocations = pd.read_csv(
         lgs_allocations_filepath,
@@ -238,6 +240,10 @@ df_lgs_allocations['Date'] = [
         df_lgs_allocations['Date'][i] + relativedelta(months=1, day=31)
         for i in range(0, len(df_lgs_allocations))
         ]
+
+df_lgs_allocations['Portfolio Weight'] = df_lgs_allocations['Portfolio Weight'] / 100
+df_lgs_allocations['Dynamic Weight'] = df_lgs_allocations['Dynamic Weight'] / 100
+df_lgs_allocations['Benchmark Weight'] = df_lgs_allocations['Benchmark Weight'] / 100
 
 df_jpm_combined = pd.merge(
         left=df_lgs_allocations,
@@ -258,13 +264,13 @@ df_jpm_combined = df_jpm_combined.sort_values(['Date', 'Strategy', 'LGS Asset Cl
 
 
 # Performs calculations
-df_jpm_combined['TAA'] = (df_jpm_combined['Portfolio Weight']/100 - df_jpm_combined['Dynamic Weight']/100) * df_jpm_combined['JPM Benchmark']
+df_jpm_combined['TAA'] = (df_jpm_combined['Portfolio Weight'] - df_jpm_combined['Dynamic Weight']) * df_jpm_combined['JPM Benchmark']
 
-df_jpm_combined['DAA'] = (df_jpm_combined['Dynamic Weight']/100 - df_jpm_combined['Benchmark Weight']/100) * df_jpm_combined['JPM Benchmark']
+df_jpm_combined['DAA'] = (df_jpm_combined['Dynamic Weight'] - df_jpm_combined['Benchmark Weight']) * df_jpm_combined['JPM Benchmark']
 
 df_jpm_combined['SAA'] = df_jpm_combined['TAA'] + df_jpm_combined['DAA']
 
-df_jpm_combined['SS'] = (df_jpm_combined['Benchmark Weight']/100) * (df_jpm_combined['JPM Return'] - df_jpm_combined['JPM Benchmark'])
+df_jpm_combined['SS'] = (df_jpm_combined['Benchmark Weight']) * (df_jpm_combined['JPM Return'] - df_jpm_combined['JPM Benchmark'])
 
 df_jpm_combined['Asset Class Total'] = df_jpm_combined['SAA'] + df_jpm_combined['SS']
 
@@ -295,7 +301,7 @@ horizon_to_period_dict = {
 # Calculates the holding period returns and annualises for periods greater than 12 months.
 for horizon, period in horizon_to_period_dict.items():
 
-    for column in ['TAA', 'DAA', 'SAA', 'SS', 'Asset Class Total', 'Strategy Total']:
+    for column in ['TAA', 'DAA', 'SAA', 'SS', 'Asset Class Total', 'Strategy Total', 'JPM Strategy Return', 'JPM Strategy Benchmark']:
 
         column_name = horizon + column
         return_type = column
@@ -330,11 +336,15 @@ for horizon, period in horizon_to_period_dict.items():
             how='inner'
     )
 
+    df_jpm_combined[horizon + 'Strategy Excess'] = df_jpm_combined[horizon + 'JPM Strategy Return'] - df_jpm_combined[horizon + 'JPM Strategy Benchmark']
+
     df_jpm_combined[horizon + 'Residual_SAA'] = df_jpm_combined[horizon + 'SAA'] - (df_jpm_combined[horizon + 'TAA'] + df_jpm_combined[horizon + 'DAA'])
 
     df_jpm_combined[horizon + 'Residual_Asset_Class_Total'] = df_jpm_combined[horizon + 'Asset Class Total'] - (df_jpm_combined[horizon + 'SAA'] + df_jpm_combined[horizon + 'SS'])
 
     df_jpm_combined[horizon + 'Residual_Strategy'] = df_jpm_combined[horizon + 'Strategy Total'] - df_jpm_combined[horizon + 'Strategy Total by Asset Class Sum']
+
+    df_jpm_combined[horizon + 'Residual_Actual'] = df_jpm_combined[horizon + 'Strategy Excess'] - df_jpm_combined[horizon + 'Strategy Total']
 
     df_jpm_combined = df_jpm_combined.sort_values(['Strategy', 'Asset Class', 'Date'], ascending=[True, True, True]).reset_index(drop=True)
 
