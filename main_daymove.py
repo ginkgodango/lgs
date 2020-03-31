@@ -5,17 +5,17 @@ import daymove.calculation
 import daymove.format
 
 password = "lgsinvestops@LGS"
-filepath = 'D:/CIO/#Data/input/jpm/report/daymove/2020/03/'
-# filepath = 'U:/CIO/#Daymove/files/2019/test/'
-filenames = sorted(os.listdir(filepath))
-output_directory = 'D:/CIO/#Daymove/tables/'
+input_directory = 'C:/Users/merri/Dropbox/Work/LGS/'
+filepath = 'CIO/#Data/input/jpm/report/daymove/2020/03/'
+filenames = sorted(os.listdir(input_directory + filepath))
+output_directory = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Daymove/tables/'
 
 filenames = filenames[1:]
 
 df_main = pd.DataFrame()
 
 for filename in filenames:
-    df = daymove.extraction.load(filepath + filename, password)
+    df = daymove.extraction.load(input_directory + filepath + filename, password)
     df = daymove.extraction.clean(df)
     df = daymove.extraction.match_manager_to_sector(df)
     df = daymove.extraction.match_manager_to_benchmarks(df)

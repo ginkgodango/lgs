@@ -10,16 +10,16 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2019, 12, 31)
-end_date = datetime.datetime(2020, 2, 29)
+start_date = datetime.datetime(2019, 10, 31)
+end_date = datetime.datetime(2019, 12, 31)
 
-input_directory = 'D:/CIO/#Investment_Report/Data/input/'
-output_directory = 'D:/CIO/#Attribution/tables/base/'
+input_directory = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Investment_Report/Data/input/'
+output_directory = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Attribution/tables/base/'
 
 table_filename = 'link_2019-12-31.csv'
-returns_filename = 'returns_2020-02-29.csv'
-market_values_filename = 'market_values_2020-02-29.csv'
-asset_allocations_filename = 'asset_allocations_2020-02-29.csv'
+returns_filename = 'returns_2019-12-31.csv'
+market_values_filename = 'market_values_2019-12-31.csv'
+asset_allocations_filename = 'asset_allocations_2019-12-31.csv'
 
 latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
@@ -612,5 +612,5 @@ for name, tuple in name_tuple_dict.items():
         fig.tight_layout()
         plt.show()
 
-    fig.savefig('U:/CIO/#Attribution/charts/' + tuple[3] + '.png')
+    fig.savefig('C:/Users/merri/Dropbox/Work/LGS/CIO/#Attribution/charts/' + tuple[3] + '.png')
 

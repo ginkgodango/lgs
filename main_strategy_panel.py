@@ -41,7 +41,7 @@ df_jpm_market_values = df_jpm[~df_jpm.Manager.str.endswith(('.1', '.2'))].reset_
 df_jpm_returns = df_jpm[df_jpm.Manager.str.endswith('.1')].reset_index(drop=True)
 df_jpm_benchmarks = df_jpm[df_jpm.Manager.str.endswith('.2')].reset_index(drop=True)
 
-df_jpm_returns['Manager'] = [df_jpm_benchmarks['Manager'][i][:-2] for i in range(0, len(df_jpm_benchmarks))]
+df_jpm_returns['Manager'] = [df_jpm_returns['Manager'][i][:-2] for i in range(0, len(df_jpm_returns))]
 df_jpm_benchmarks['Manager'] = [df_jpm_benchmarks['Manager'][i][:-2] for i in range(0, len(df_jpm_benchmarks))]
 
 df_jpm_market_values = df_jpm_market_values.rename(columns={'Values': 'JPM_Market_Value'})
