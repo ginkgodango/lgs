@@ -6,6 +6,20 @@ import datetime as dt
 ftp = FTP("ftp.msci.com")
 ftp.login('wnvyzpng', 'hxcksyyx')
 
+# START USER INPUT
+# source is file directory of MSCI FTP
+source = "/download/"
+# source = "/download/history/"
+
+# choose where to download to local drive
+dest = "F:/download/"
+# dest = "F:/download/history/"
+# END USER INPUT
+
+# Comment this section out after first run to keep a record
+with open(dest + '/Record.txt', 'w') as tf:
+    tf.write('Count, Filepath, Outcome, Timestamp\n')
+
 
 def downloadFiles(path, destination):
     """
@@ -51,23 +65,9 @@ def downloadFiles(path, destination):
                     tf.write(str(count) + ',' + str(file) + ',' + 'downloaded' + ',' + str(dt.datetime.now()) + '\n')
                 print(count, file + " downloaded", str(dt.datetime.now()))
 
-            # if file in existing_filelist:
-            #     print(count, file + " existing", str(dt.datetime.now()))
-            # else:
-            #     ftp.retrbinary("RETR " + file, open(file, "wb").write)
-            #     with open(destination + '/Record.txt', 'a') as tf:
-            #         tf.write(str(count) + ',' + str(file) + ',' + 'downloaded' + ',' + str(dt.datetime.now()) + '\n')
-            #     print(count, file + " downloaded", str(dt.datetime.now()))
-
         count += 1
     return
 
-
-source = "/download/history/"
-dest = "F:/download/history/"
-
-# with open(dest + '/Record.txt', 'w') as tf:
-#     tf.write('Count, Filepath, Outcome, Timestamp\n')
-
+# Runs the function
 downloadFiles(source, dest)
 
