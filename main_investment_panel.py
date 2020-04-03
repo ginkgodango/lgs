@@ -15,11 +15,12 @@ FYTD = 8
 report_date = dt.datetime(2020, 2, 29)
 # END USER INPUT DATA
 
-# Imports the JPM time-series.
+# Sets rows to ignore when importing the JPM time-series.
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 15]
 use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15]
 footnote_rows = 28
 
+# Reads in the jpm main returns historical time series
 df_jpm_main = pd.read_excel(
         pd.ExcelFile(jpm_main_filepath),
         sheet_name='Sheet1',
@@ -39,6 +40,7 @@ df_jpm_main = df_jpm_main.sort_values(['Manager', 'Date'])
 df_jpm_main = df_jpm_main.reset_index(drop=True)
 df_jpm_main = df_jpm_main.replace('-', np.NaN)
 
+# Reads in the jpm alts returns historical time series
 df_jpm_alts = pd.read_excel(
         pd.ExcelFile(jpm_alts_filepath),
         sheet_name='Sheet1',
@@ -47,6 +49,7 @@ df_jpm_alts = pd.read_excel(
         header=1
         )
 
+# Reshapes the time-series into a panel.
 df_jpm_alts = df_jpm_alts.rename(columns={'Unnamed: 0': 'Date'})
 df_jpm_alts = df_jpm_alts.set_index('Date')
 df_jpm_alts = df_jpm_alts.transpose()
@@ -57,6 +60,7 @@ df_jpm_alts = df_jpm_alts.sort_values(['Manager', 'Date'])
 df_jpm_alts = df_jpm_alts.reset_index(drop=True)
 df_jpm_alts = df_jpm_alts.replace('-', np.NaN)
 
+# Joins the jpm main returns and jpm alts returns together
 df_jpm = pd.concat([df_jpm_alts, df_jpm_main], axis=0).reset_index(drop=True)
 
 # Checks for str/int errors before converting returns to percentages.
@@ -82,6 +86,7 @@ df_jpm_benchmarks = df_jpm_benchmarks.rename(columns={'JPM_Return': 'JPM_Benchma
 df_jpm_rf = df_jpm_benchmarks[df_jpm_benchmarks['Manager'].isin(['CLFACASH', 'Cash Aggregate'])].reset_index(drop=True)
 df_jpm_rf = df_jpm_rf.rename(columns={'JPM_Benchmark': 'JPM_Rf'})
 
+# Infers the risk-free rate from the Cash +0.2% benchmark, the +0.2% benchmark started November 2019.
 rf_values = []
 new_cash_benchmark_date = dt.datetime(2019, 11, 30)
 for i in range(0, len(df_jpm_rf)):
@@ -107,7 +112,7 @@ df_jpm = pd.merge(
 )
 
 
-# Merges returns, benchmarks and Rf
+# Merges returns, benchmarks, Rf, ASX300
 df_jpm = pd.merge(
         left=df_jpm,
         right=df_jpm_rf,
@@ -203,7 +208,7 @@ for i in range(0, len(df_jpm)):
         indices_problem.append(i)
 
 
-# Calculates volatility, tracking error, sharpe ratio, information ratio
+# Calculates volatility
 df_jpm['36_Volatility'] = (
     df_jpm
     .groupby(['Manager'])['1_Return']
@@ -212,6 +217,7 @@ df_jpm['36_Volatility'] = (
     .reset_index(drop=False)['1_Return']
 )
 
+# Calculates tracking error
 df_jpm['36_Tracking_Error'] = (
     df_jpm
     .groupby(['Manager'])['1_Excess']
@@ -220,8 +226,10 @@ df_jpm['36_Tracking_Error'] = (
     .reset_index(drop=False)['1_Excess']
 )
 
+# Calculates sharpe ratio
 df_jpm['36_Sharpe'] = (df_jpm['36_Return'] - df_jpm['36_Rf']) / df_jpm['36_Volatility']
 
+# Calculates information ratio
 df_jpm['36_Information'] = df_jpm['36_Excess'] / df_jpm['36_Tracking_Error']
 
 # Calculates rolling betas
@@ -247,7 +255,7 @@ for idx, sub_df in df.groupby("Manager"):
 df_jpm['36_Beta'] = pd.Series(kwargs["result"])
 # End calculation of rolling beta
 
-# Imports the JPM time-series of market values.
+# Imports the JPM main market values time-series.
 df_jpm_main_mv = pd.read_excel(
         pd.ExcelFile(jpm_mv_main_filepath),
         sheet_name='Sheet1',
@@ -267,7 +275,7 @@ df_jpm_main_mv = df_jpm_main_mv.sort_values(['Manager', 'Date'])
 df_jpm_main_mv = df_jpm_main_mv.reset_index(drop=True)
 df_jpm_main_mv = df_jpm_main_mv.replace('-', np.NaN)
 
-# Imports the JPM time-series of market values.
+# Imports the JPM alternatives market values time-series.
 df_jpm_mv_alts = pd.read_excel(
         pd.ExcelFile(jpm_mv_alts_filepath),
         sheet_name='Sheet1',

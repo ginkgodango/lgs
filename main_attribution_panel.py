@@ -352,3 +352,4 @@ for horizon, period in horizon_to_period_dict.items():
 df_jpm_combined = df_jpm_combined.sort_values(['Date', 'Strategy', 'LGS Asset Class Order'], ascending=[True, True, True]).reset_index(drop=True)
 
 df_jpm_combined.to_csv('C:/Users/merri/Dropbox/Work/LGS/CIO/#Data/output/prototype_attribution_v2_python.csv', index=False)
+

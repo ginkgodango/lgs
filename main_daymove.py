@@ -6,11 +6,11 @@ import daymove.format
 
 password = "lgsinvestops@LGS"
 input_directory = 'C:/Users/merri/Dropbox/Work/LGS/'
-filepath = 'CIO/#Data/input/jpm/report/daymove/2020/03/'
+filepath = 'CIO/#Data/input/jpm/report/daymove/2020/04/'
 filenames = sorted(os.listdir(input_directory + filepath))
 output_directory = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Daymove/tables/'
 
-filenames = filenames[1:]
+filenames = filenames[:]
 
 df_main = pd.DataFrame()
 

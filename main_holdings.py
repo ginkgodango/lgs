@@ -1,51 +1,56 @@
 import datetime as dt
 import pandas as pd
 import numpy as np
-# jpm_directory = 'U:/CIO/#Holdings/Data/input/holdings/jpm/2019/07/'
-# jpm_filename = 'Priced Positions - All.csv'
-# jpm_filepath = jpm_directory + jpm_filename
-#
-# dict_directory = 'U:/CIO/#Holdings/Data/input/dictionary/2019/07/'
-# dict_filename = 'jpm_dictionary.csv'
-# dict_filepath = dict_directory + dict_filename
-#
-# df_jpm = pd.read_csv(jpm_filepath, header=3)
-#
-# df_dict = pd.read_csv(dict_filepath, header=0)
-#
-# df_jpm = pd.merge(
-#     left=df_jpm,
-#     right=df_dict,
-#     left_on=['Account Number', 'Account Name'],
-#     right_on=['Account Number', 'Account Name']
-# )
-#
-# df_bonds = df_jpm[df_jpm['Sector Code'].isin(['AF', 'IF'])].reset_index(drop=True)
-# df_bonds = df_bonds.groupby(['Bloomberg Industry Sector']).sum()
-# df_bonds = df_bonds[['Total Market Value (Base)']]
-# df_bonds.to_csv(jpm_directory + 'bonds.csv', index=True)
 
 # Begin User Input Data
-report_date = dt.datetime(2020, 2, 29)
+report_date = dt.datetime(2020, 3, 31)
 
-wscf_market_value = 188197744.70
-aqr_market_value = 223033840.40
-delaware_market_value = 183241040.60
-wellington_market_value = 183357208.68
+wscf_market_value = 147668472.10
+aqr_market_value = 180638540.40
+delaware_market_value = 147355679.10
+wellington_market_value = 134860345.84
 
-jpm_filepath = 'D:/CIO/#Holdings/Data/input/holdings/jpm/2020/02/Priced Positions - All.csv'
-wscf_filepath = 'D:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/wscf_holdings.xls'
-aqr_filepath = 'D:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/aqr_holdings.xls'
-delaware_filepath = 'D:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/delaware_holdings.xlsx'
-wellington_filepath = 'D:/CIO/#Holdings/Data/input/holdings/unitprices/2020/01/wellington_holdings.xlsx'
-tickers_filepath = 'D:/CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
-asx_filepath = 'D:/CIO/#Data/input/asx/ASX300/20191201-asx300.csv'
+input_directory = 'C:/Users/merri/Dropbox/Work/LGS/'
+output_directory = 'C:/Users/merri/Dropbox/Work/LGS/'
+jpm_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/jpm/2020/03/Priced Positions - All.csv'
+wscf_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/02/wscf_holdings.xls'
+aqr_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/02/aqr_holdings.xls'
+delaware_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/02/delaware_holdings.xlsx'
+wellington_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/02/wellington_holdings.xlsx'
+tickers_filepath = input_directory + 'CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
+asx_filepath = input_directory + 'CIO/#Data/input/asx/ASX300/20191201-asx300.csv'
 
-aeq_filepath = 'D:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_AEQ_Manager Version.xlsx'
-ieq_filepath = 'D:/CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_IEQ_Manager Version.xlsx'
-aeq_exclusions_filepath = 'D:/CIO/#Holdings/Data/output/exclusions/aeq_exclusions_' + str(report_date.date()) + '.csv'
-ieq_exclusions_filepath = 'D:/CIO/#Holdings/Data/output/exclusions/ieq_exclusions_' + str(report_date.date()) + '.csv'
+aeq_filepath = input_directory + 'CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_AEQ_Manager Version.xlsx'
+ieq_filepath = input_directory + 'CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_IEQ_Manager Version.xlsx'
+aeq_exclusions_filepath = input_directory + 'CIO/#Holdings/Data/output/exclusions/aeq_exclusions_' + str(report_date.date()) + '.csv'
+ieq_exclusions_filepath = input_directory + 'CIO/#Holdings/Data/output/exclusions/ieq_exclusions_' + str(report_date.date()) + '.csv'
 # End User Input Data
+
+# Account Name to LGS Name dictionary
+australian_equity_managers_dict = {
+        'LGS AUSTRALIAN EQUITIES - BLACKROCK': 'BlackRock',
+        'LGS AUSTRALIAN EQUITIES - ECP': 'ECP',
+        'LGS AUSTRALIAN EQUITIES DNR CAPITAL': 'DNR',
+        'LGS AUSTRALIAN EQUITIES - PENDAL': 'Pendal',
+        'LGS AUSTRALIAN EQUITIES - SSGA': 'SSGA',
+        'LGS AUSTRALIAN EQUITIES - UBIQUE': 'Ubique',
+        'LGS AUSTRALIAN EQUITIES - WSCF': 'First Sentier',
+        'LGS AUSTRALIAN EQUITIES REBALANCE': 'Rebalance',
+}
+international_equity_managers_dict = {
+        'LGS INTERNATIONAL EQUITIES - WCM': 'WCM',
+        'LGS INTERNATIONAL EQUITIES - AQR': 'AQR',
+        'LGS INTERNATIONAL EQUITIES - HERMES': 'Hermes',
+        'LGS INTERNATIONAL EQUITIES - IMPAX': 'Impax',
+        'LGS INTERNATIONAL EQUITIES - LONGVI EW': 'Longview',
+        'LGS INTERNATIONAL EQUITIES - LSV': 'LSV',
+        'LGS INTERNATIONAL EQUITIES - MFS': 'MFS',
+        'LGS INTERNATIONAL EQUITIES - MACQUARIE': 'Macquarie',
+        'LGS INTERNATIONAL EQUITIES - WELLINGTON': 'Wellington',
+        'LGS GLOBAL LISTED PROPERTY - RESOLUTION': 'Resolution',
+}
+
+
 
 # Imports JPM Mandates holdings data
 df_jpm = pd.read_csv(
@@ -174,7 +179,7 @@ df_aqr['Date'] = report_date
 # Imports Delaware holdings data
 df_delaware = pd.read_excel(
         pd.ExcelFile(delaware_filepath),
-        sheet_name='EM UCITS holdings 12-31-19',
+        sheet_name='EM UCITS holdings 1-31-2020',
         header=0,
         usecols=[
                 'Security SEDOL',
@@ -209,8 +214,8 @@ df_delaware['Market Value AUD'] = delaware_scaling_factor * df_delaware['Market 
 df_delaware['Quantity'] = delaware_scaling_factor * df_aqr['Quantity']
 df_delaware['Purchase Price Local'] = df_delaware['Market Value Local'] / df_delaware['Quantity']
 df_delaware['Purchase Price AUD'] = df_delaware['Market Value AUD'] / df_delaware['Quantity']
-df_delaware['Account Number'] = 'DELAWARE'
-df_delaware['Account Name'] = 'LGS INTERNATIONAL EQUITIES - DELAWARE'
+df_delaware['Account Number'] = 'MACQUARIE'
+df_delaware['Account Name'] = 'LGS INTERNATIONAL EQUITIES - MACQUARIE'
 df_delaware['Date'] = report_date
 
 # Imports Wellington holdings data
@@ -254,6 +259,34 @@ df_wellington['Date'] = report_date
 # Joins all the dataframes
 df_main = pd.concat([df_jpm, df_wscf, df_aqr, df_delaware, df_wellington], axis=0, sort=True).reset_index(drop=True)
 
+# Outputs all of the holdings
+df_main_all = df_main.copy()
+df_main_all = df_main_all.drop(['Date'], axis=1)
+df_main_all.to_csv(output_directory + 'CIO/#Holdings/Data/output/holdings/all_holdings.csv', index=False)
+
+# Craig Pete Spreadsheet
+df_cp = df_main_all[['Account Name', 'Security Name', 'Market Value AUD']]
+df_cp.to_csv(output_directory + 'CIO/#Holdings/Data/output/holdings/craigpete.csv', index=False)
+
+# Selects Australian Equity and International Equity managers only JANA
+df_main_all_aeq = df_main_all[df_main_all['Account Name'].isin(australian_equity_managers_dict)].reset_index(drop=True)
+df_main_all_ieq = df_main_all[df_main_all['Account Name'].isin(international_equity_managers_dict)].reset_index(drop=True)
+
+# Writes to excel file for JANA
+writer = pd.ExcelWriter(output_directory + 'CIO/#Holdings/Data/output/jana/aeq_holdings.xlsx', engine='xlsxwriter')
+account_to_dataframe_dict = dict(list(df_main_all_aeq.groupby('Account Name')))
+for account, dataframe in account_to_dataframe_dict.items():
+    dataframe.to_excel(writer, sheet_name=australian_equity_managers_dict[account], index=False)
+writer.save()
+
+writer = pd.ExcelWriter(output_directory + 'CIO/#Holdings/Data/output/jana/ieq_holdings.xlsx', engine='xlsxwriter')
+account_to_dataframe_dict = dict(list(df_main_all_ieq.groupby('Account Name')))
+for account, dataframe in account_to_dataframe_dict.items():
+    dataframe.to_excel(writer, sheet_name=international_equity_managers_dict[account], index=False)
+writer.save()
+
+
+# Starts top holdings section
 # Removes SEDOLS with np.nan value
 df_main_nan = df_main[df_main['SEDOL'].isin([np.nan])]
 
@@ -264,45 +297,13 @@ df_main = df_main[~df_main['ISIN'].isin([np.nan])].reset_index(drop=True)
 df_main['SEDOL'] = [str(df_main['SEDOL'][i]).replace(" ", "").upper() for i in range(0, len(df_main))]
 df_main['ISIN'] = [str(df_main['ISIN'][i]).replace(" ", "").upper() for i in range(0, len(df_main))]
 
-# Outputs all of the holdings
-df_main.to_csv('D:/CIO/#Holdings/Data/output/holdings/all_holdings.csv', index=False)
-
-df_cp = df_main[['Account Name', 'Security Name', 'Market Value AUD']]
-df_cp.to_csv('D:/CIO/#Holdings/Data/output/holdings/craigpete.csv', index=False)
-
-# TOP HOLDINGS SECTION
-australian_equity_managers_list = [
-        'LGS AUSTRALIAN EQUITIES - BLACKROCK',
-        'LGS AUSTRALIAN EQUITIES - ECP',
-        'LGS AUSTRALIAN EQUITIES DNR CAPITAL',
-        'LGS AUSTRALIAN EQUITIES - PENDAL',
-        'LGS AUSTRALIAN EQUITIES - SSGA',
-        'LGS AUSTRALIAN EQUITIES - UBIQUE',
-        'LGS AUSTRALIAN EQUITIES - WSCF',
-        'LGS AUSTRALIAN EQUITIES REBALANCE',
-]
-international_equity_managers_list = [
-        'LGS INTERNATIONAL EQUITIES - WCM',
-        'LGS INTERNATIONAL EQUITIES - AQR',
-        'LGS INTERNATIONAL EQUITIES - HERMES',
-        'LGS INTERNATIONAL EQUITIES - IMPAX',
-        'LGS INTERNATIONAL EQUITIES - LONGVI EW',
-        'LGS INTERNATIONAL EQUITIES - LSV',
-        'LGS INTERNATIONAL EQUITIES - MFS',
-        'LGS INTERNATIONAL EQUITIES - DELAWARE',
-        'LGS INTERNATIONAL EQUITIES - WELLINGTON',
-        'LGS GLOBAL LISTED PROPERTY - RESOLU TION',
-]
-
 # Selects Australian Equity and International Equity managers only
-df_main_aeq = df_main[df_main['Account Name'].isin(australian_equity_managers_list)].reset_index(drop=True)
-df_main_ieq = df_main[df_main['Account Name'].isin(international_equity_managers_list)].reset_index(drop=True)
+df_main_aeq = df_main[df_main['Account Name'].isin(australian_equity_managers_dict)].reset_index(drop=True)
+df_main_ieq = df_main[df_main['Account Name'].isin(international_equity_managers_dict)].reset_index(drop=True)
 
 # Calculates % of portfolio within each asset class
 df_main_aeq['(%) of Portfolio'] = (df_main_aeq['Market Value AUD'] / df_main_aeq['Market Value AUD'].sum()) * 100
 df_main_ieq['(%) of Portfolio'] = (df_main_ieq['Market Value AUD'] / df_main_ieq['Market Value AUD'].sum()) * 100
-
-a = df_main_aeq['Market Value AUD'].sum()
 
 # Sums all the security market values by their SEDOL
 df_main_aeq = df_main_aeq.groupby(['SEDOL']).sum().sort_values(['Market Value AUD'], ascending=[False])[['Market Value AUD', '(%) of Portfolio']]
@@ -378,14 +379,14 @@ df_main_aeq_top10 = df_main_aeq_top10[['Company', 'Market Value', '(%) of Portfo
 df_main_ieq_top10 = df_main_ieq_top10[['Company', 'Market Value', '(%) of Portfolio']].round(2)
 
 # Outputs the tables into latex
-with open('D:/CIO/#Investment_Report/Data/output/holdings/top10_local.tex', 'w') as tf:
+with open(output_directory + 'CIO/#Investment_Report/Data/output/holdings/top10_local.tex', 'w') as tf:
     tf.write(df_main_aeq_top10.to_latex(index=False))
 
-with open('D:/CIO/#Investment_Report/Data/output/holdings/top10_foreign.tex', 'w') as tf:
+with open(output_directory + 'CIO/#Investment_Report/Data/output/holdings/top10_foreign.tex', 'w') as tf:
     tf.write(df_main_ieq_top10.to_latex(index=False))
 
 # Writes to excel
-writer = pd.ExcelWriter('D:/CIO/#Holdings/Data/output/holdings/top_holdings.xlsx', engine='xlsxwriter')
+writer = pd.ExcelWriter(output_directory + 'CIO/#Holdings/Data/output/holdings/top_holdings.xlsx', engine='xlsxwriter')
 df_main_aeq.to_excel(writer, sheet_name='local', index=False)
 df_main_ieq.to_excel(writer, sheet_name='foreign', index=False)
 writer.save()
@@ -495,7 +496,7 @@ equity_managers_list = [
         'LGS INTERNATIONAL EQUITIES - MFS',
         'LGS INTERNATIONAL EQUITIES - DELAWARE',
         'LGS INTERNATIONAL EQUITIES - WELLINGTON',
-        'LGS GLOBAL LISTED PROPERTY - RESOLU TION',
+        'LGS GLOBAL LISTED PROPERTY - RESOLUTION',
 ]
 df_main_eq = df_main[df_main['Account Name'].isin(equity_managers_list)].reset_index(drop=True)
 
@@ -518,7 +519,7 @@ df_main_eq_ticker_left = (
         .reset_index(drop=True)
 )
 
-df_main_eq_ticker_left.to_csv('D:/CIO/#Holdings/Data/output/missing/missing.csv', index=False)
+df_main_eq_ticker_left.to_csv(output_directory + 'CIO/#Holdings/Data/output/missing/missing.csv', index=False)
 
 # Creates Yahoo Upload File
 df_main_eq_ticker_both = df_main_eq_ticker[df_main_eq_ticker['_merge'].isin(['both'])].sort_values(['Account Name']).reset_index(drop=True)
@@ -628,7 +629,7 @@ account_to_df_dict = dict(list(df_yahoo.groupby(['Account Name'])))
 
 for account, df in account_to_df_dict.items():
     df = df[columns_yahoo]
-    df.to_csv('U:/CIO/#Holdings/Data/output/yahoo/' + account + '.csv', index=False)
+    df.to_csv(output_directory + 'CIO/#Holdings/Data/output/yahoo/' + account + '.csv', index=False)
 
 
 # Renames columns
@@ -636,10 +637,10 @@ df_main_eq_ticker = df_main_eq_ticker.rename(columns={'Security Name_x': 'Securi
 
 # Calculates Relative
 df_main_relative = df_main_eq_ticker[['Account Name', 'TICKER', 'Security Name', 'Market Value AUD']]
-df_main_relative_aeq = df_main_relative[df_main_relative['Account Name'].isin(australian_equity_managers_list)]
+df_main_relative_aeq = df_main_relative[df_main_relative['Account Name'].isin(australian_equity_managers_dict)]
 df_main_relative_aeq.drop(columns=['Account Name'], axis=1)
 df_main_relative_aeq = df_main_relative_aeq.groupby(['TICKER']).sum().reset_index(drop=False)
-df_main_relative_aeq['Portfolio Weight'] = ((df_main_relative_aeq['Market Value AUD'] / a)*100).round(2)
+df_main_relative_aeq['Portfolio Weight'] = ((df_main_relative_aeq['Market Value AUD'] / df_main_relative_aeq['Market Value AUD'].sum())*100).round(2)
 df_main_relative_aeq = df_main_relative_aeq.sort_values(['Portfolio Weight'], ascending=[False])
 
 df_asx = pd.read_csv(
@@ -664,4 +665,4 @@ df_main_relative_aeq = pd.merge(
 )
 
 df_main_relative_aeq['Relative Weight'] = df_main_relative_aeq['Portfolio Weight'] - df_main_relative_aeq['Benchmark Weight']
-df_main_relative_aeq.to_csv('D:/CIO/#Holdings/Data/output/relative_holdings_aeq.csv', index=False)
+df_main_relative_aeq.to_csv(output_directory + 'CIO/#Holdings/Data/output/relative_holdings_aeq.csv', index=False)
