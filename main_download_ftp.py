@@ -70,4 +70,3 @@ def downloadFiles(path, destination):
 
 # Runs the function
 downloadFiles(source, dest)
-

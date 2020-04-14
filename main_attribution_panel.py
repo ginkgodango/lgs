@@ -288,7 +288,7 @@ df_jpm_combined = pd.merge(
         how='inner'
 )
 
-
+"""
 # Sort values VERY IMPORTANT for groupby merging
 df_jpm_combined = df_jpm_combined.sort_values(['Strategy', 'Asset Class', 'Date'], ascending=[True, True, True]).reset_index(drop=True)
 
@@ -354,7 +354,7 @@ for horizon, period in horizon_to_period_dict.items():
 df_jpm_combined = df_jpm_combined.sort_values(['Date', 'Strategy', 'LGS Asset Class Order'], ascending=[True, True, True]).reset_index(drop=True)
 
 df_jpm_combined.to_csv('C:/Users/merri/Dropbox/Work/LGS/CIO/#Data/output/prototype_attribution_v2_python.csv', index=False)
-
+"""
 
 # Calculates FX, Pure Active, and Style at the manager level
 df_jpm_managers_asset_class_mv_total = df_jpm_managers.groupby(['Date', 'LGS Attribution Asset Class']).sum().reset_index(drop=False)
@@ -434,3 +434,19 @@ df_jpm_managers_style_asset_class_fx = pd.merge(
     right_on=['Date', 'LGS Attribution Asset Class'],
     how='outer'
 )
+
+df_jpm_managers_style_asset_class_fx.fillna({'FX Market Value': 0, 'FX Return': 0, 'FX Benchmark': 0, 'FX Excess Return': 0}, inplace=True)
+
+df_jpm_all_combined = pd.merge(
+    left=df_jpm_combined,
+    right=df_jpm_managers_style_asset_class_fx,
+    left_on=['Date', 'LGS Attribution Asset Class'],
+    right_on=['Date', 'LGS Attribution Asset Class']
+)
+
+df_jpm_all_combined = df_jpm_all_combined.sort_values(['Date', 'Strategy', 'LGS Asset Class Order'], ascending=[True, True, True]).reset_index(drop=True)
+
+df_jpm_all_combined['Check Sum Asset Class Market Value Difference (Millions)'] = (df_jpm_all_combined['JPM Market Value'] - df_jpm_all_combined['Weighted Asset Class Sum Market Value'] - df_jpm_all_combined['FX Market Value'])/1000000
+df_jpm_all_combined['Check Sum Asset Class Return Difference'] = df_jpm_all_combined['JPM Return'] - df_jpm_all_combined['Weighted Asset Class Return'] - df_jpm_all_combined['FX Return']
+df_jpm_all_combined['Check Sum Asset Class Benchmark Difference'] = df_jpm_all_combined['JPM Benchmark'] - df_jpm_all_combined['Weighted Asset Class Benchmark'] - df_jpm_all_combined['FX Benchmark']
+
