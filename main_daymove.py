@@ -5,10 +5,10 @@ import daymove.calculation
 import daymove.format
 
 password = "lgsinvestops@LGS"
-input_directory = 'C:/Users/merri/Dropbox/Work/LGS/'
+input_directory = 'U:/'
 filepath = 'CIO/#Data/input/jpm/report/daymove/2020/04/'
 filenames = sorted(os.listdir(input_directory + filepath))
-output_directory = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Daymove/tables/'
+output_directory = 'U:/CIO/#Daymove/tables/'
 
 filenames = filenames[:]
 

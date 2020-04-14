@@ -6,13 +6,13 @@ from dateutil.relativedelta import relativedelta
 import matplotlib.pyplot as plt
 
 # START USER INPUT DATA
-jpm_main_filepath = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
-jpm_alts_filepath = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
-jpm_mv_filepath = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Main Market Values.xlsx'
-jpm_mv_alts_filepath = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
-jpm_strategies_filepath = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks_GOF.xlsx'
-lgs_dictionary_filepath = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Data/input/lgs/dictionary/2020/02/New Dictionary_v7.xlsx'
-lgs_allocations_filepath = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Data/input/lgs/allocations/asset_allocations_2020-01-31.csv'
+jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
+jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
+jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Main Market Values.xlsx'
+jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
+jpm_strategies_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks_GOF.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/02/New Dictionary_v7.xlsx'
+lgs_allocations_filepath ='U:/CIO/#Data/input/lgs/allocations/asset_allocations_2020-01-31.csv'
 
 FYTD = 8
 report_date = dt.datetime(2020, 2, 29)
