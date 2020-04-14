@@ -169,6 +169,8 @@ df_jpm_combined['JPM Benchmark'] = df_jpm_combined['JPM Benchmark'] / 100
 # Selects sectors only
 df_jpm_sectors = df_jpm_combined[df_jpm_combined['LGS Sector Aggregate'].isin([1])].reset_index(drop=True)
 
+# Selects managers only
+df_jpm_managers = df_jpm_combined[df_jpm_combined['LGS Sector Aggregate'].isin([0])].reset_index(drop=True)
 
 # Imports strategy returns and market values
 df_jpm_strategies = pd.read_excel(
@@ -201,7 +203,7 @@ df_jpm_strategies_benchmarks = df_jpm_strategies[df_jpm_strategies.Manager.str.e
 df_jpm_strategies_returns['Manager'] = [df_jpm_strategies_returns['Manager'][i][:-2] for i in range(0, len(df_jpm_strategies_returns))]
 df_jpm_strategies_benchmarks['Manager'] = [df_jpm_strategies_benchmarks['Manager'][i][:-2] for i in range(0, len(df_jpm_strategies_benchmarks))]
 
-df_jpm_strategies_mv = df_jpm_strategies_mv.rename(columns={'Values': 'JPM Market Value'})
+df_jpm_strategies_mv = df_jpm_strategies_mv.rename(columns={'Values': 'JPM Strategy Market Value'})
 df_jpm_strategies_returns = df_jpm_strategies_returns.rename(columns={'Values': 'JPM Strategy Return'})
 df_jpm_strategies_benchmarks = df_jpm_strategies_benchmarks.rename(columns={'Values': 'JPM Strategy Benchmark'})
 
@@ -226,9 +228,9 @@ df_jpm_strategies = pd.merge(
         how='inner'
 )
 
-df_jpm_strategies = df_jpm_strategies.rename(columns={'Manager':'Strategy'})
+df_jpm_strategies = df_jpm_strategies.rename(columns={'Manager': 'Strategy'})
 
-df_jpm_strategies.drop('JPM Market Value', axis=1)
+# df_jpm_strategies.drop('JPM Market Value', axis=1)
 
 # Reads in allocation data
 df_lgs_allocations = pd.read_csv(
@@ -301,7 +303,7 @@ horizon_to_period_dict = {
 # Calculates the holding period returns and annualises for periods greater than 12 months.
 for horizon, period in horizon_to_period_dict.items():
 
-    for column in ['TAA', 'DAA', 'SAA', 'SS', 'Asset Class Total', 'Strategy Total', 'JPM Strategy Return', 'JPM Strategy Benchmark']:
+    for column in ['JPM Strategy Return', 'JPM Strategy Benchmark', 'TAA', 'DAA', 'SAA', 'SS', 'Asset Class Total', 'Strategy Total']:
 
         column_name = horizon + column
         return_type = column
@@ -353,3 +355,82 @@ df_jpm_combined = df_jpm_combined.sort_values(['Date', 'Strategy', 'LGS Asset Cl
 
 df_jpm_combined.to_csv('C:/Users/merri/Dropbox/Work/LGS/CIO/#Data/output/prototype_attribution_v2_python.csv', index=False)
 
+
+# Calculates FX, Pure Active, and Style at the manager level
+df_jpm_managers_asset_class_mv_total = df_jpm_managers.groupby(['Date', 'LGS Attribution Asset Class']).sum().reset_index(drop=False)
+df_jpm_managers_asset_class_mv_total = df_jpm_managers_asset_class_mv_total[['Date', 'LGS Attribution Asset Class', 'JPM Market Value']]
+df_jpm_managers_asset_class_mv_total = df_jpm_managers_asset_class_mv_total.rename(columns={'JPM Market Value': 'LGS Asset Class Market Value'})
+
+df_jpm_managers_combined = pd.merge(
+    left=df_jpm_managers,
+    right=df_jpm_managers_asset_class_mv_total,
+    left_on=['Date', 'LGS Attribution Asset Class'],
+    right_on=['Date', 'LGS Attribution Asset Class'],
+    how='inner'
+)
+
+
+df_jpm_sectors_returns_benchmarks = df_jpm_sectors[['Date', 'LGS Attribution Asset Class', 'JPM Return', 'JPM Benchmark']]
+df_jpm_sectors_returns_benchmarks = df_jpm_sectors_returns_benchmarks.rename(columns={'JPM Return': 'JPM Asset Class Return', 'JPM Benchmark': 'JPM Asset Class Benchmark'})
+
+df_jpm_managers_combined = pd.merge(
+    left=df_jpm_managers_combined,
+    right=df_jpm_sectors_returns_benchmarks,
+    left_on=['Date', 'LGS Attribution Asset Class'],
+    right_on=['Date', 'LGS Attribution Asset Class'],
+    how='inner'
+)
+
+df_jpm_managers_combined = df_jpm_managers_combined.sort_values(['Date', 'LGS Asset Class Order', 'LGS Manager Order']).reset_index(drop=True)
+df_jpm_managers_combined['LGS Weight Manager in Asset Class'] = df_jpm_managers_combined['JPM Market Value'] / df_jpm_managers_combined['LGS Asset Class Market Value']
+
+# Calculates Style, Pure Active
+df_jpm_managers_combined['Pure Active Excess Return'] = df_jpm_managers_combined['JPM Return'] - df_jpm_managers_combined['JPM Benchmark']
+df_jpm_managers_combined['Style Excess Return'] = df_jpm_managers_combined['JPM Benchmark'] - df_jpm_managers_combined['JPM Asset Class Benchmark']
+
+# Calculates weighted style
+df_jpm_managers_combined['Weighted Asset Class Return'] = df_jpm_managers_combined['LGS Weight Manager in Asset Class'] * df_jpm_managers_combined['JPM Return']
+df_jpm_managers_combined['Weighted Asset Class Style Benchmark'] = df_jpm_managers_combined['LGS Weight Manager in Asset Class'] * df_jpm_managers_combined['JPM Benchmark']
+df_jpm_managers_combined['Weighted Asset Class Benchmark'] = df_jpm_managers_combined['LGS Weight Manager in Asset Class'] * df_jpm_managers_combined['JPM Asset Class Benchmark']
+df_jpm_managers_combined['Weighted Pure Active Excess Return'] = df_jpm_managers_combined['LGS Weight Manager in Asset Class'] * df_jpm_managers_combined['Pure Active Excess Return']
+df_jpm_managers_combined['Weighted Style Excess Return'] = df_jpm_managers_combined['LGS Weight Manager in Asset Class'] * df_jpm_managers_combined['Style Excess Return']
+df_jpm_managers_combined['Weighted Asset Class Excess Return'] = df_jpm_managers_combined['LGS Weight Manager in Asset Class'] * (df_jpm_managers_combined['JPM Return'] - df_jpm_managers_combined['JPM Asset Class Benchmark'])
+
+df_jpm_managers_style = df_jpm_managers_combined.groupby(['Date', 'LGS Attribution Asset Class', 'LGS Benchmark']).sum()
+
+df_jpm_managers_style_asset_class = df_jpm_managers_combined.groupby(['Date', 'LGS Attribution Asset Class']).sum().reset_index(drop=False)
+df_jpm_managers_style_asset_class = df_jpm_managers_style_asset_class.rename(columns={'JPM Market Value': 'Weighted Asset Class Sum Market Value'})
+df_jpm_managers_style_asset_class = df_jpm_managers_style_asset_class[
+    [
+        'Date',
+        'LGS Attribution Asset Class',
+        'Weighted Asset Class Sum Market Value',
+        'Weighted Asset Class Return',
+        'Weighted Asset Class Style Benchmark',
+        'Weighted Asset Class Benchmark',
+        'Weighted Pure Active Excess Return',
+        'Weighted Style Excess Return',
+        'Weighted Asset Class Excess Return'
+    ]
+]
+
+# FX Section
+df_jpm_managers_fx = df_jpm_managers[df_jpm_managers['LGS Name'].isin(['FX Overlay'])].reset_index(drop=True)
+df_jpm_managers_fx = df_jpm_managers_fx.rename(
+    columns={
+        'JPM Market Value': 'FX Market Value',
+        'JPM Return': 'FX Return',
+        'JPM Benchmark': 'FX Benchmark',
+    }
+)
+df_jpm_managers_fx['FX Excess Return'] = df_jpm_managers_fx['FX Return'] - df_jpm_managers_fx['FX Benchmark']
+df_jpm_managers_fx['LGS Attribution Asset Class'] = 'IE'
+df_jpm_managers_fx = df_jpm_managers_fx[['Date', 'FX Market Value', 'FX Return', 'FX Benchmark', 'FX Excess Return', 'LGS Attribution Asset Class']]
+
+df_jpm_managers_style_asset_class_fx = pd.merge(
+    left=df_jpm_managers_style_asset_class,
+    right=df_jpm_managers_fx,
+    left_on=['Date', 'LGS Attribution Asset Class'],
+    right_on=['Date', 'LGS Attribution Asset Class'],
+    how='outer'
+)
