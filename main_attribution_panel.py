@@ -169,6 +169,8 @@ df_jpm_combined['JPM Benchmark'] = df_jpm_combined['JPM Benchmark'] / 100
 # Selects sectors only
 df_jpm_sectors = df_jpm_combined[df_jpm_combined['LGS Sector Aggregate'].isin([1])].reset_index(drop=True)
 
+#df_jpm_sectors_unhedged = df_jpm_combined[df_jpm_combined['LGS Sector Aggregate Unhedged'].isin([1])].reset_index(drop=True)
+
 # Selects managers only
 df_jpm_managers = df_jpm_combined[df_jpm_combined['LGS Sector Aggregate'].isin([0])].reset_index(drop=True)
 
@@ -448,5 +450,10 @@ df_jpm_all_combined = df_jpm_all_combined.sort_values(['Date', 'Strategy', 'LGS 
 
 df_jpm_all_combined['Check Sum Asset Class Market Value Difference (Millions)'] = (df_jpm_all_combined['JPM Market Value'] - df_jpm_all_combined['Weighted Asset Class Sum Market Value'] - df_jpm_all_combined['FX Market Value'])/1000000
 df_jpm_all_combined['Check Sum Asset Class Return Difference'] = df_jpm_all_combined['JPM Return'] - df_jpm_all_combined['Weighted Asset Class Return'] - df_jpm_all_combined['FX Return']
-df_jpm_all_combined['Check Sum Asset Class Benchmark Difference'] = df_jpm_all_combined['JPM Benchmark'] - df_jpm_all_combined['Weighted Asset Class Benchmark'] - df_jpm_all_combined['FX Benchmark']
+df_jpm_all_combined['Check Sum Asset Class Benchmark Difference'] = df_jpm_all_combined['JPM Benchmark'] - df_jpm_all_combined['Weighted Asset Class Benchmark']
+
+
+
+# FIX IE Benchmark
+# Overwrite PE, OA, DA
 

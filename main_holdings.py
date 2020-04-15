@@ -5,18 +5,18 @@ import numpy as np
 # Begin User Input Data
 report_date = dt.datetime(2020, 3, 31)
 
-wscf_market_value = 147668472.10
+wscf_market_value = 147624809.00
 aqr_market_value = 180638540.40
 delaware_market_value = 147355679.10
 wellington_market_value = 134860345.84
 
-input_directory = 'C:/Users/merri/Dropbox/Work/LGS/'
-output_directory = 'C:/Users/merri/Dropbox/Work/LGS/'
+input_directory = 'U:/'
+output_directory = 'U:/'
 jpm_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/jpm/2020/03/Priced Positions - All.csv'
-wscf_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/02/wscf_holdings.xls'
-aqr_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/02/aqr_holdings.xls'
-delaware_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/02/delaware_holdings.xlsx'
-wellington_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/02/wellington_holdings.xlsx'
+wscf_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/03/wscf_holdings.xls'
+aqr_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/03/aqr_holdings.xls'
+delaware_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/03/delaware_holdings.xlsx'
+wellington_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/03/wellington_holdings.xlsx'
 tickers_filepath = input_directory + 'CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
 asx_filepath = input_directory + 'CIO/#Data/input/asx/ASX300/20191201-asx300.csv'
 
@@ -179,7 +179,7 @@ df_aqr['Date'] = report_date
 # Imports Delaware holdings data
 df_delaware = pd.read_excel(
         pd.ExcelFile(delaware_filepath),
-        sheet_name='EM UCITS holdings 1-31-2020',
+        sheet_name='EM SICAV holdings 2-29-2020',
         header=0,
         usecols=[
                 'Security SEDOL',
