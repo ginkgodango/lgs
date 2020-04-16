@@ -448,12 +448,28 @@ df_jpm_all_combined = pd.merge(
 
 df_jpm_all_combined = df_jpm_all_combined.sort_values(['Date', 'Strategy', 'LGS Asset Class Order'], ascending=[True, True, True]).reset_index(drop=True)
 
+
+
+
+# Fix Bonds
+# FIX IE Benchmark
+
+# Overwrite PE, OA, DA
+overwrite_weighted_asset_class_return = []
+overwrite_weighted_asset_class_benchmark = []
+for i in range(0, len(df_jpm_all_combined)):
+    if df_jpm_all_combined['LGS Attribution Asset Class'][i] in ['PE', 'OA', 'DA']:
+        overwrite_weighted_asset_class_return.append(df_jpm_all_combined['JPM Return'][i])
+        overwrite_weighted_asset_class_benchmark.append(df_jpm_all_combined['JPM Benchmark'][i])
+    else:
+        overwrite_weighted_asset_class_return.append(df_jpm_all_combined['Weighted Asset Class Return'][i])
+        overwrite_weighted_asset_class_benchmark.append(df_jpm_all_combined['Weighted Asset Class Benchmark'][i])
+df_jpm_all_combined['Weighted Asset Class Return'] = overwrite_weighted_asset_class_return
+df_jpm_all_combined['Weighted Asset Class Benchmark'] = overwrite_weighted_asset_class_benchmark
+
+
+# Check sums
 df_jpm_all_combined['Check Sum Asset Class Market Value Difference (Millions)'] = (df_jpm_all_combined['JPM Market Value'] - df_jpm_all_combined['Weighted Asset Class Sum Market Value'] - df_jpm_all_combined['FX Market Value'])/1000000
 df_jpm_all_combined['Check Sum Asset Class Return Difference'] = df_jpm_all_combined['JPM Return'] - df_jpm_all_combined['Weighted Asset Class Return'] - df_jpm_all_combined['FX Return']
 df_jpm_all_combined['Check Sum Asset Class Benchmark Difference'] = df_jpm_all_combined['JPM Benchmark'] - df_jpm_all_combined['Weighted Asset Class Benchmark']
-
-
-
-# FIX IE Benchmark
-# Overwrite PE, OA, DA
 
