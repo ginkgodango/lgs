@@ -6,19 +6,23 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
 # START USER INPUT DATA
-jpm_main_filepath = 'D:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
-jpm_alts_filepath = 'D:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
-jpm_mv_main_filepath = 'D:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Main Market Values.xlsx'
-jpm_mv_alts_filepath = 'D:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
-lgs_dictionary_filepath = 'D:/CIO/#Data/input/lgs/dictionary/2020/02/New Dictionary_v6.xlsx'
-FYTD = 8
-report_date = dt.datetime(2020, 2, 29)
+jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
+jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
+jpm_mv_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Main Market Values.xlsx'
+jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/02/New Dictionary_v7.xlsx'
+FYTD = 9
+report_date = dt.datetime(2020, 3, 31)
 # END USER INPUT DATA
 
-# Sets rows to ignore when importing the JPM time-series.
-use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 15]
-use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15]
+use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
+use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12]
 footnote_rows = 28
+
+# # Sets rows to ignore when importing the JPM time-series. Before March 2020
+# use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 15]
+# use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15]
+# footnote_rows = 28
 
 # Reads in the jpm main returns historical time series
 df_jpm_main = pd.read_excel(
@@ -426,7 +430,7 @@ del df_jpm_table_performance3
 df_jpm_table_performance_sector = df_jpm_table_performance[df_jpm_table_performance[('', 'LGS Sector Aggregate')].isin([1])].reset_index(drop=True)
 df_jpm_table_performance_sector = df_jpm_table_performance_sector.drop(('', 'LGS Sector Aggregate'), axis=1)
 df_jpm_table_performance_sector = df_jpm_table_performance_sector.drop(('', 'LGS Asset Class'), axis=1)
-with open('D:/CIO/#Data/output/investment/returns/Sector.tex', 'w') as tf:
+with open('U:/CIO/#Data/output/investment/returns/Sector.tex', 'w') as tf:
     latex_string_temp = df_jpm_table_performance_sector.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRRRRRRR')
     tf.write(latex_string_temp)
 
@@ -439,9 +443,9 @@ for asset_class, df_temp in asset_class_to_performance_dict.items():
     if asset_class in ['PE', 'OA', 'DA']:
         df_temp = df_temp[df_temp[('', 'Manager')].isin(['Private Equity', 'Opportunistic Alternatives', 'Defensive Alternatives'])]
 
-    df_temp.to_csv('D:/CIO/#Data/output/investment/returns/' + str(asset_class) + '.csv', index=False)
+    df_temp.to_csv('U:/CIO/#Data/output/investment/returns/' + str(asset_class) + '.csv', index=False)
 
-    with open('D:/CIO/#Data/output/investment/returns/' + str(asset_class) + '.tex', 'w') as tf:
+    with open('U:/CIO/#Data/output/investment/returns/' + str(asset_class) + '.tex', 'w') as tf:
         latex_string_temp = (
                 df_temp
                 .to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRRRRRRR')
@@ -455,20 +459,20 @@ df_jpm_table_risk = df_jpm_table[columns_lead + columns_risk + ['LGS Sector Aggr
 
 df_jpm_table_risk_sector = df_jpm_table_risk[df_jpm_table_risk['LGS Sector Aggregate'].isin([1])].reset_index(drop=True)
 df_jpm_table_risk_sector = df_jpm_table_risk_sector.drop(['LGS Sector Aggregate', 'LGS Asset Class'], axis=1)
-with open('D:/CIO/#Data/output/investment/risk/Sector.tex', 'w') as tf:
+with open('U:/CIO/#Data/output/investment/risk/Sector.tex', 'w') as tf:
     latex_string_temp = df_jpm_table_risk_sector.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRRRRRRR')
     tf.write(latex_string_temp)
 
 asset_class_to_risk_dict = dict(list(df_jpm_table_risk.groupby(['LGS Asset Class'])))
 for asset_class, df_temp in asset_class_to_risk_dict.items():
     df_temp = df_temp.drop(['LGS Sector Aggregate', 'LGS Asset Class'], axis=1)
-    df_temp.to_csv('D:/CIO/#Data/output/investment/risk/' + str(asset_class) + '.csv', index=False)
+    df_temp.to_csv('U:/CIO/#Data/output/investment/risk/' + str(asset_class) + '.csv', index=False)
 
     # Removes SRI from risk tables
     if asset_class in ['AE', 'IE']:
         df_temp = df_temp[~df_temp['Manager'].isin(['Domestic SRI', 'International SRI'])]
 
-    with open('D:/CIO/#Data/output/investment/risk/' + str(asset_class) + '.tex', 'w') as tf:
+    with open('U:/CIO/#Data/output/investment/risk/' + str(asset_class) + '.tex', 'w') as tf:
         latex_string_temp = (
                 df_temp
                 .to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRR')
@@ -491,8 +495,8 @@ df_jpm_table_active_contribution_bottom = df_jpm_table_active_contribution[-10:]
 df_jpm_table_active_contribution_bottom = df_jpm_table_active_contribution_bottom.rename(columns={'12_Active_Contribution': 'Detraction'})
 
 df_jpm_table_active_contribution_combined = pd.concat([df_jpm_table_active_contribution_top, df_jpm_table_active_contribution_bottom], axis=1, sort=False)
-df_jpm_table_active_contribution_combined.to_csv('D:/CIO/#Data/output/investment/contributors/contributors.csv', index=False)
-with open('D:/CIO/#Data/output/investment/contributors/contributors.tex', 'w') as tf:
+df_jpm_table_active_contribution_combined.to_csv('U:/CIO/#Data/output/investment/contributors/contributors.csv', index=False)
+with open('U:/CIO/#Data/output/investment/contributors/contributors.tex', 'w') as tf:
     tf.write(df_jpm_table_active_contribution_combined.to_latex(index=False, na_rep='', column_format='lRlR'))
 
 
@@ -568,7 +572,7 @@ for asset_class in asset_classes:
 
     fig.tight_layout()
     fig.subplots_adjust(top=0.9)
-    fig.savefig('D:/CIO/#Data/output/investment/charts/' + str(asset_class) + '.png', dpi=300)
+    fig.savefig('U:/CIO/#Data/output/investment/charts/' + str(asset_class) + '.png', dpi=300)
 
 
 # Creates Manager Allocations table
@@ -586,7 +590,7 @@ df_jpm_manager_allocations1 = df_jpm_manager_allocations[:25].reset_index(drop=T
 df_jpm_manager_allocations2 = df_jpm_manager_allocations[25:].reset_index(drop=True)
 df_jpm_manager_allocations3 = pd.concat([df_jpm_manager_allocations1, df_jpm_manager_allocations2], axis=1)
 
-df_jpm_manager_allocations3.to_latex('D:/CIO/#Data/output/investment/manager/manager_allocations.tex', index=False, na_rep='', column_format='lRRRlRRR')
+df_jpm_manager_allocations3.to_latex('U:/CIO/#Data/output/investment/manager/manager_allocations.tex', index=False, na_rep='', column_format='lRRRlRRR')
 
 # Creates sustainability esg table
 df_jpm_combined_esg = df_jpm_combined[
@@ -693,11 +697,11 @@ df_jpm_table_esg = pd.concat(
 )
 
 # Outputs the esg table
-df_jpm_table_esg.to_csv('D:/CIO/#Data/output/investment/sustainability/sustainability.csv', index=False)
+df_jpm_table_esg.to_csv('U:/CIO/#Data/output/investment/sustainability/sustainability.csv', index=False)
 
-with open('D:/CIO/#Data/output/investment/sustainability/sustainability.tex', 'w') as tf:
+with open('U:/CIO/#Data/output/investment/sustainability/sustainability.tex', 'w') as tf:
     tf.write(df_jpm_table_esg.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRR'))
 
 # Outputs the tables for checking
-df_jpm_table.to_csv('D:/CIO/#Data/output/investment/checker/lgs_table.csv', index=False)
-df_jpm_combined.to_csv('D:/CIO/#Data/output/investment/checker/lgs_combined.csv', index=False)
+df_jpm_table.to_csv('U:/CIO/#Data/output/investment/checker/lgs_table.csv', index=False)
+df_jpm_combined.to_csv('U:/CIO/#Data/output/investment/checker/lgs_combined.csv', index=False)

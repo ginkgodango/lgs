@@ -6,22 +6,26 @@ from dateutil.relativedelta import relativedelta
 import matplotlib.pyplot as plt
 
 # START USER INPUT DATA
-jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
-jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
-jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Main Market Values.xlsx'
-jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
-jpm_strategies_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks_GOF.xlsx'
+jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
+jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
+jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Main Market Values.xlsx'
+jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
+jpm_strategies_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks.xlsx'
+jpm_ieunhedged_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - IE Unhedged.xlsx'
 lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/02/New Dictionary_v7.xlsx'
 lgs_allocations_filepath ='U:/CIO/#Data/input/lgs/allocations/asset_allocations_2020-01-31.csv'
 
-FYTD = 8
-report_date = dt.datetime(2020, 2, 29)
+FYTD = 9
+report_date = dt.datetime(2020, 3, 31)
 # END USER INPUT DATA
 
-# Imports the JPM time-series.
-use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 15]
-use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15]
+use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
+use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12]
 footnote_rows = 28
+
+# use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 15]
+# use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15]
+# footnote_rows = 28
 
 df_jpm_main = pd.read_excel(
         pd.ExcelFile(jpm_main_filepath),
@@ -372,8 +376,17 @@ df_jpm_managers_combined = pd.merge(
 )
 
 
-df_jpm_sectors_returns_benchmarks = df_jpm_sectors[['Date', 'LGS Attribution Asset Class', 'JPM Return', 'JPM Benchmark']]
+# Creates the sector returns benchmarks unhedged
+# Import LGS time-series
+
+
+df_jpm_sectors_returns_benchmarks = df_jpm_sectors[['Date', 'LGS Asset Class', 'LGS Attribution Asset Class', 'JPM Return', 'JPM Benchmark']]
 df_jpm_sectors_returns_benchmarks = df_jpm_sectors_returns_benchmarks.rename(columns={'JPM Return': 'JPM Asset Class Return', 'JPM Benchmark': 'JPM Asset Class Benchmark'})
+
+# Filters AFI and IFI benchmarks
+df_jpm_sectors_returns_benchmarks = df_jpm_sectors_returns_benchmarks[~df_jpm_sectors_returns_benchmarks['LGS Asset Class'].isin(['AFI', 'IFI'])].reset_index(drop=True)
+
+
 
 df_jpm_managers_combined = pd.merge(
     left=df_jpm_managers_combined,
@@ -382,6 +395,7 @@ df_jpm_managers_combined = pd.merge(
     right_on=['Date', 'LGS Attribution Asset Class'],
     how='inner'
 )
+
 
 df_jpm_managers_combined = df_jpm_managers_combined.sort_values(['Date', 'LGS Asset Class Order', 'LGS Manager Order']).reset_index(drop=True)
 df_jpm_managers_combined['LGS Weight Manager in Asset Class'] = df_jpm_managers_combined['JPM Market Value'] / df_jpm_managers_combined['LGS Asset Class Market Value']
