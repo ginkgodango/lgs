@@ -10,16 +10,16 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2019, 10, 31)
-end_date = datetime.datetime(2019, 12, 31)
+start_date = datetime.datetime(2020, 1, 31)
+end_date = datetime.datetime(2020, 3, 31)
 
-input_directory = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Investment_Report/Data/input/'
-output_directory = 'C:/Users/merri/Dropbox/Work/LGS/CIO/#Attribution/tables/base/'
+input_directory = 'U:/CIO/#Investment_Report/Data/input/'
+output_directory = 'U:/CIO/#Attribution/tables/base/'
 
 table_filename = 'link_2019-12-31.csv'
-returns_filename = 'returns_2019-12-31.csv'
-market_values_filename = 'market_values_2019-12-31.csv'
-asset_allocations_filename = 'asset_allocations_2019-12-31.csv'
+returns_filename = 'returns_2020-03-31_attribution.csv'
+market_values_filename = 'market_values_2020-03-31_attribution.csv'
+asset_allocations_filename = 'asset_allocations_2020-03-31.csv'
 
 latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
@@ -103,7 +103,7 @@ df_asset_allocations['Portfolio'] = df_asset_allocations['Portfolio']/100
 df_asset_allocations['Benchmark'] = df_asset_allocations['Benchmark']/100
 
 # Forwards the asset allocations by 1 month, which lags it 1 month relative to the returns and market values.
-# df_asset_allocations['Date'] = df_asset_allocations['Date'] + pd.offsets.MonthEnd(1)
+df_asset_allocations['Date'] = df_asset_allocations['Date'] + pd.offsets.MonthEnd(1)
 """
 Test for High Growth
 April 2019
@@ -612,5 +612,5 @@ for name, tuple in name_tuple_dict.items():
         fig.tight_layout()
         plt.show()
 
-    fig.savefig('C:/Users/merri/Dropbox/Work/LGS/CIO/#Attribution/charts/' + tuple[3] + '.png')
+    fig.savefig('U:/CIO/#Attribution/charts/' + tuple[3] + '.png')
 

@@ -11,9 +11,9 @@ jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time 
 jpm_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Main Market Values.xlsx'
 jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
 jpm_strategies_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks.xlsx'
-jpm_ieunhedged_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - IE Unhedged.xlsx'
+lgs_returns_filepath = 'U:/CIO/#Investment_Report/data/input/returns/returns_2020-03-31_attribution.csv'
 lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/02/New Dictionary_v7.xlsx'
-lgs_allocations_filepath ='U:/CIO/#Data/input/lgs/allocations/asset_allocations_2020-01-31.csv'
+lgs_allocations_filepath ='U:/CIO/#Data/input/lgs/allocations/asset_allocations_2020-03-31.csv'
 
 FYTD = 9
 report_date = dt.datetime(2020, 3, 31)
@@ -377,11 +377,27 @@ df_jpm_managers_combined = pd.merge(
 
 
 # Creates the sector returns benchmarks unhedged
-# Import LGS time-series
+df_lgs_returns = pd.read_csv(
+    lgs_returns_filepath,
+    parse_dates=['Date'],
+    )
 
+# Subsets lgs returns
+jpm_min_date = df_jpm['Date'].min()
+df_lgs_returns = df_lgs_returns[df_lgs_returns['Date'] >= jpm_min_date].reset_index(drop=True)
+
+# Selects the international equity unhedged returns and benchmarks
+df_ieu_returns_benchmarks = df_lgs_returns[['Date', 'IEu', 'MSCI.ACWI.EX.AUS_Index']]
+df_ieu_returns_benchmarks = df_ieu_returns_benchmarks.rename(columns={'IEu': 'JPM Asset Class Return', 'MSCI.ACWI.EX.AUS_Index': 'JPM Asset Class Benchmark'})
+df_ieu_returns_benchmarks.insert(1, 'LGS Asset Class', 'IE')
+df_ieu_returns_benchmarks.insert(2, 'LGS Attribution Asset Class', 'IE')
 
 df_jpm_sectors_returns_benchmarks = df_jpm_sectors[['Date', 'LGS Asset Class', 'LGS Attribution Asset Class', 'JPM Return', 'JPM Benchmark']]
 df_jpm_sectors_returns_benchmarks = df_jpm_sectors_returns_benchmarks.rename(columns={'JPM Return': 'JPM Asset Class Return', 'JPM Benchmark': 'JPM Asset Class Benchmark'})
+
+# Switches IE returns and benchmarks to unhedged
+df_jpm_sectors_returns_benchmarks = df_jpm_sectors_returns_benchmarks[~df_jpm_sectors_returns_benchmarks['LGS Attribution Asset Class'].isin(['IE'])]
+df_jpm_sectors_returns_benchmarks = pd.concat([df_jpm_sectors_returns_benchmarks, df_ieu_returns_benchmarks]).reset_index(drop=True)
 
 # Filters AFI and IFI benchmarks
 df_jpm_sectors_returns_benchmarks = df_jpm_sectors_returns_benchmarks[~df_jpm_sectors_returns_benchmarks['LGS Asset Class'].isin(['AFI', 'IFI'])].reset_index(drop=True)
@@ -432,13 +448,29 @@ df_jpm_managers_style_asset_class = df_jpm_managers_style_asset_class[
 
 # FX Section
 df_jpm_managers_fx = df_jpm_managers[df_jpm_managers['LGS Name'].isin(['FX Overlay'])].reset_index(drop=True)
+
+df_lgs_benchmarks_fx = df_lgs_returns[['Date', 'IECurrencyHedge_Index']]
+
+df_jpm_managers_fx = pd.merge(
+    left=df_jpm_managers_fx,
+    right=df_lgs_benchmarks_fx,
+    left_on=['Date'],
+    right_on=['Date']
+
+)
+
+df_jpm_managers_fx = df_jpm_managers_fx.drop('JPM Benchmark', axis=1)
+
 df_jpm_managers_fx = df_jpm_managers_fx.rename(
     columns={
         'JPM Market Value': 'FX Market Value',
         'JPM Return': 'FX Return',
         'JPM Benchmark': 'FX Benchmark',
+        'IECurrencyHedge_Index': 'FX Benchmark'
     }
 )
+
+
 df_jpm_managers_fx['FX Excess Return'] = df_jpm_managers_fx['FX Return'] - df_jpm_managers_fx['FX Benchmark']
 df_jpm_managers_fx['LGS Attribution Asset Class'] = 'IE'
 df_jpm_managers_fx = df_jpm_managers_fx[['Date', 'FX Market Value', 'FX Return', 'FX Benchmark', 'FX Excess Return', 'LGS Attribution Asset Class']]
@@ -485,5 +517,5 @@ df_jpm_all_combined['Weighted Asset Class Benchmark'] = overwrite_weighted_asset
 # Check sums
 df_jpm_all_combined['Check Sum Asset Class Market Value Difference (Millions)'] = (df_jpm_all_combined['JPM Market Value'] - df_jpm_all_combined['Weighted Asset Class Sum Market Value'] - df_jpm_all_combined['FX Market Value'])/1000000
 df_jpm_all_combined['Check Sum Asset Class Return Difference'] = df_jpm_all_combined['JPM Return'] - df_jpm_all_combined['Weighted Asset Class Return'] - df_jpm_all_combined['FX Return']
-df_jpm_all_combined['Check Sum Asset Class Benchmark Difference'] = df_jpm_all_combined['JPM Benchmark'] - df_jpm_all_combined['Weighted Asset Class Benchmark']
+df_jpm_all_combined['Check Sum Asset Class Benchmark Difference'] = df_jpm_all_combined['JPM Benchmark'] - df_jpm_all_combined['Weighted Asset Class Benchmark'] - df_jpm_all_combined['FX Benchmark']
 

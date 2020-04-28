@@ -7,16 +7,16 @@ import matplotlib.pyplot as plt
 import attribution.extraction
 from dateutil.relativedelta import relativedelta
 
-start_date = datetime.datetime(2019, 12, 31)
-end_date = datetime.datetime(2020, 2, 29)
+start_date = datetime.datetime(2020, 1, 31)
+end_date = datetime.datetime(2020, 3, 31)
 
 input_directory = 'U:/CIO/#Investment_Report/Data/input/'
 output_directory = 'U:/CIO/#Attribution/tables/style/'
 
 table_filename = 'link_2019-12-31.csv'
-returns_filename = 'returns_2020-02-29.csv'
-market_values_filename = 'market_values_2020-02-29.csv'
-asset_allocations_filename = 'asset_allocations_2020-02-29.csv'
+returns_filename = 'returns_2020-03-31_attribution.csv'
+market_values_filename = 'market_values_2020-03-31_attribution.csv'
+asset_allocations_filename = 'asset_allocations_2020-03-31.csv'
 
 latex_summary1_column_names = ['Returns', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
 latex_summary2_column_names = ['Attribution', 'High Growth', "Bal' Growth", 'Balanced', 'Conservative', 'Growth', "Emp' Reserve"]
@@ -60,6 +60,9 @@ df_returns = attribution.extraction.load_returns(input_directory + 'returns/' + 
 df_returns = df_returns.transpose().reset_index(drop=False).rename(columns={'index': 'Manager'})
 df_returns = pd.melt(df_returns, id_vars=['Manager'], value_name='1_r')
 
+df_returns_removed = df_returns[((df_returns['Manager'].isin(['Attunga_AR'])) & (df_returns['Date'] > datetime.datetime(2020, 2, 29)))].reset_index(drop=True)
+df_returns = df_returns[~((df_returns['Manager'].isin(['Attunga_AR'])) & (df_returns['Date'] > datetime.datetime(2020, 2, 29)))].reset_index(drop=True)
+
 # Selects returns for this month or within a date_range
 df_returns = df_returns[(df_returns['Date'] >= start_date) & (df_returns['Date'] <= end_date)].reset_index(drop=True)
 
@@ -90,6 +93,10 @@ df_market_values = attribution.extraction.load_market_values(input_directory + '
 df_market_values = df_market_values.transpose().reset_index(drop=False).rename(columns={'index': 'Manager'})
 df_market_values = pd.melt(df_market_values, id_vars=['Manager'], value_name='Market Value')
 
+# Removes attunga
+df_market_values_removed = df_market_values[((df_market_values['Manager'].isin(['Attunga_AR'])) & (df_market_values['Date'] > datetime.datetime(2020, 2, 29)))].reset_index(drop=True)
+df_market_values = df_market_values[~((df_market_values['Manager'].isin(['Attunga_AR'])) & (df_market_values['Date'] > datetime.datetime(2020, 2, 29)))].reset_index(drop=True)
+
 # Forwards the market values by 1 month, which lags it 1 month relative to the returns.
 df_market_values['Date'] = df_market_values['Date'] + pd.offsets.MonthEnd(1)
 
@@ -115,7 +122,7 @@ df_asset_allocations['Portfolio'] = df_asset_allocations['Portfolio']/100
 df_asset_allocations['Benchmark'] = df_asset_allocations['Benchmark']/100
 
 # Forwards the asset allocations by 1 month, which lags it 1 month relative to the returns and market values.
-# df_asset_allocations['Date'] = df_asset_allocations['Date'] + pd.offsets.MonthEnd(1)
+df_asset_allocations['Date'] = df_asset_allocations['Date'] + pd.offsets.MonthEnd(1)
 
 # STYLE ATTRIBUTION BELOW HERE
 # Finds benchmark returns
