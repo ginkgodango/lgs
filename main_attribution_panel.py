@@ -335,11 +335,13 @@ df_combined['SAA'] = df_combined['TAA'] + df_combined['DAA']
 
 df_combined['SS'] = (df_combined['Benchmark Weight']) * (df_combined['JPM Return'] - df_combined['JPM Benchmark'])
 
+df_combined['In'] = (df_combined['Portfolio Weight'] - df_combined['Benchmark Weight']) * (df_combined['JPM Return'] - df_combined['JPM Benchmark'])
+
 df_combined['Asset Class Total'] = df_combined['SAA'] + df_combined['SS']
 
 df_combined_asset_class_total = df_combined.groupby(['Date', 'Strategy'])['Asset Class Total'].sum().reset_index(drop=False)
 
-df_combined_asset_class_total = df_combined_asset_class_total.rename(columns={'Asset Class Total': 'Strategy Total'})
+df_combined_asset_class_total = df_combined_asset_class_total.rename(columns={'Asset Class Total': 'Strategy Total by Asset Class Sum'})
 
 df_combined = pd.merge(
         left=df_combined,
@@ -489,15 +491,19 @@ df_combined_all = df_combined_all.sort_values(['Date', 'Strategy', 'LGS Asset Cl
 
 # Overwrite PE, OA, DA
 overwrite_weighted_asset_class_return = []
+overwrite_weighted_asset_class_style_benchmark = []
 overwrite_weighted_asset_class_benchmark = []
 for i in range(0, len(df_combined_all)):
     if df_combined_all['LGS Asset Class Level 1'][i] in ['PE', 'OA', 'DA']:
         overwrite_weighted_asset_class_return.append(df_combined_all['JPM Return'][i])
+        overwrite_weighted_asset_class_style_benchmark.append(df_combined_all['JPM Benchmark'][i])
         overwrite_weighted_asset_class_benchmark.append(df_combined_all['JPM Benchmark'][i])
     else:
         overwrite_weighted_asset_class_return.append(df_combined_all['Weighted Asset Class Return'][i])
+        overwrite_weighted_asset_class_style_benchmark.append(df_combined_all['Weighted Asset Class Style Benchmark'][i])
         overwrite_weighted_asset_class_benchmark.append(df_combined_all['Weighted Asset Class Benchmark'][i])
 df_combined_all['Weighted Asset Class Return'] = overwrite_weighted_asset_class_return
+df_combined_all['Weighted Asset Class Style Benchmark'] = overwrite_weighted_asset_class_style_benchmark
 df_combined_all['Weighted Asset Class Benchmark'] = overwrite_weighted_asset_class_benchmark
 
 
@@ -517,76 +523,77 @@ horizon_to_period_dict = {
 }
 
 
-# Direct Geometric Link
-df_multiperiod1 = df_combined_all.sort_values(['Strategy', 'Asset Class', 'Date'], ascending=[True, True, True]).reset_index(drop=True)
-
-for horizon, period in horizon_to_period_dict.items():
-
-    for column in [
-        'JPM Strategy Return',
-        'JPM Strategy Benchmark',
-        'TAA',
-        'DAA',
-        'SAA',
-        'SS',
-        'Weighted Pure Active Excess Return',
-        'Weighted Style Excess Return',
-        'FX Excess Return',
-        'Asset Class Total',
-        'Strategy Total'
-    ]:
-
-        column_name = horizon + column
-        return_type = column
-
-        if period <= 12:
-            df_multiperiod1[column_name] = (
-                df_multiperiod1
-                .groupby(['Strategy', 'Asset Class'])[return_type]
-                .rolling(period)
-                .apply(lambda r: np.prod(1+r)-1, raw=False)
-                .reset_index(drop=False)[return_type]
-            )
-
-        elif period > 12:
-            df_multiperiod1[column_name] = (
-                df_multiperiod1
-                .groupby(['Strategy', 'Asset Class'])[return_type]
-                .rolling(period)
-                .apply(lambda r: (np.prod(1+r)**(12/period))-1, raw=False)
-                .reset_index(drop=False)[return_type]
-            )
-
-    df_multiperiod_asset_class_total_horizon = df_multiperiod1.groupby(['Date', 'Strategy'])[horizon + 'Asset Class Total'].sum().reset_index(drop=False)
-
-    df_multiperiod_asset_class_total_horizon = df_multiperiod_asset_class_total_horizon.rename(columns={horizon + 'Asset Class Total': horizon + 'Strategy Total by Asset Class Sum'})
-
-    df_multiperiod1 = pd.merge(
-            left=df_multiperiod1,
-            right=df_multiperiod_asset_class_total_horizon,
-            left_on=['Date', 'Strategy'],
-            right_on=['Date', 'Strategy'],
-            how='inner'
-    )
-
-    df_multiperiod1[horizon + 'Strategy Excess'] = df_multiperiod1[horizon + 'JPM Strategy Return'] - df_multiperiod1[horizon + 'JPM Strategy Benchmark']
-
-    df_multiperiod1[horizon + 'Residual_SAA'] = df_multiperiod1[horizon + 'SAA'] - (df_multiperiod1[horizon + 'TAA'] + df_multiperiod1[horizon + 'DAA'])
-
-    df_multiperiod1[horizon + 'Residual_SS'] = df_multiperiod1[horizon + 'SS'] - (df_multiperiod1[horizon + 'FX Excess Return'] + df_multiperiod1[horizon + 'Weighted Pure Active Excess Return'] + df_multiperiod1[horizon + 'Weighted Style Excess Return'])
-
-    df_multiperiod1[horizon + 'Residual_Asset_Class_Total'] = df_multiperiod1[horizon + 'Asset Class Total'] - (df_multiperiod1[horizon + 'SAA'] + df_multiperiod1[horizon + 'SS'])
-
-    df_multiperiod1[horizon + 'Residual_Strategy'] = df_multiperiod1[horizon + 'Strategy Total'] - df_multiperiod1[horizon + 'Strategy Total by Asset Class Sum']
-
-    df_multiperiod1[horizon + 'Residual_Actual'] = df_multiperiod1[horizon + 'Strategy Excess'] - df_multiperiod1[horizon + 'Strategy Total']
-
-    df_multiperiod1 = df_multiperiod1.sort_values(['Strategy', 'Asset Class', 'Date'], ascending=[True, True, True]).reset_index(drop=True)
-
-
-df_multiperiod1 = df_multiperiod1.sort_values(['Date', 'Strategy', 'LGS Asset Class Order'], ascending=[True, True, True]).reset_index(drop=True)
-
-df_multiperiod1.to_csv('U:/CIO/#Data/output/prototype_attribution_v3_python_1.csv', index=False)
+# # Direct Geometric Link
+# df_multiperiod1 = df_combined_all.sort_values(['Strategy', 'Asset Class', 'Date'], ascending=[True, True, True]).reset_index(drop=True)
+#
+# for horizon, period in horizon_to_period_dict.items():
+#
+#     for column in [
+#         'JPM Strategy Return',
+#         'JPM Strategy Benchmark',
+#         'TAA',
+#         'DAA',
+#         'SAA',
+#         'SS',
+#         'In',
+#         'Weighted Pure Active Excess Return',
+#         'Weighted Style Excess Return',
+#         'FX Excess Return',
+#         'Asset Class Total',
+#         'Strategy Total by Asset Class Sum'
+#     ]:
+#
+#         column_name = horizon + column
+#         return_type = column
+#
+#         if period <= 12:
+#             df_multiperiod1[column_name] = (
+#                 df_multiperiod1
+#                 .groupby(['Strategy', 'Asset Class'])[return_type]
+#                 .rolling(period)
+#                 .apply(lambda r: np.prod(1+r)-1, raw=False)
+#                 .reset_index(drop=False)[return_type]
+#             )
+#
+#         elif period > 12:
+#             df_multiperiod1[column_name] = (
+#                 df_multiperiod1
+#                 .groupby(['Strategy', 'Asset Class'])[return_type]
+#                 .rolling(period)
+#                 .apply(lambda r: (np.prod(1+r)**(12/period))-1, raw=False)
+#                 .reset_index(drop=False)[return_type]
+#             )
+#
+#     # df_multiperiod_asset_class_total_horizon = df_multiperiod1.groupby(['Date', 'Strategy'])[horizon + 'Asset Class Total'].sum().reset_index(drop=False)
+#     #
+#     # df_multiperiod_asset_class_total_horizon = df_multiperiod_asset_class_total_horizon.rename(columns={horizon + 'Asset Class Total': horizon + 'Strategy Total by Asset Class Sum'})
+#     #
+#     # df_multiperiod1 = pd.merge(
+#     #         left=df_multiperiod1,
+#     #         right=df_multiperiod_asset_class_total_horizon,
+#     #         left_on=['Date', 'Strategy'],
+#     #         right_on=['Date', 'Strategy'],
+#     #         how='inner'
+#     # )
+#
+#     df_multiperiod1[horizon + 'JPM Strategy Excess'] = df_multiperiod1[horizon + 'JPM Strategy Return'] - df_multiperiod1[horizon + 'JPM Strategy Benchmark']
+#
+#     df_multiperiod1[horizon + 'Residual_SAA'] = df_multiperiod1[horizon + 'SAA'] - (df_multiperiod1[horizon + 'TAA'] + df_multiperiod1[horizon + 'DAA'])
+#
+#     df_multiperiod1[horizon + 'Residual_SS'] = df_multiperiod1[horizon + 'SS'] - (df_multiperiod1[horizon + 'FX Excess Return'] + df_multiperiod1[horizon + 'Weighted Pure Active Excess Return'] + df_multiperiod1[horizon + 'Weighted Style Excess Return'])
+#
+#     df_multiperiod1[horizon + 'Residual_Asset_Class_Total'] = df_multiperiod1[horizon + 'Asset Class Total'] - (df_multiperiod1[horizon + 'SAA'] + df_multiperiod1[horizon + 'SS'] + df_multiperiod1[horizon + 'In'])
+#
+#     # df_multiperiod1[horizon + 'Residual_Strategy'] = df_multiperiod1[horizon + 'Strategy Total'] - df_multiperiod1[horizon + 'Strategy Total by Asset Class Sum']
+#
+#     df_multiperiod1[horizon + 'Residual_Actual'] = df_multiperiod1[horizon + 'JPM Strategy Excess'] - df_multiperiod1[horizon + 'Strategy Total by Asset Class Sum']
+#
+#     df_multiperiod1 = df_multiperiod1.sort_values(['Strategy', 'Asset Class', 'Date'], ascending=[True, True, True]).reset_index(drop=True)
+#
+#
+# df_multiperiod1 = df_multiperiod1.sort_values(['Date', 'Strategy', 'LGS Asset Class Order'], ascending=[True, True, True]).reset_index(drop=True)
+#
+# df_multiperiod1.to_csv('U:/CIO/#Data/output/prototype_attribution_v3_python_1.csv', index=False)
 
 
 # Recalculated Geometric Link
@@ -595,11 +602,16 @@ df_multiperiod2 = df_combined_all.sort_values(['Strategy', 'Asset Class', 'Date'
 for horizon, period in horizon_to_period_dict.items():
 
     for column in [
-        'JPM Strategy Return',
-        'JPM Strategy Benchmark',
         'Portfolio Weight',
         'Dynamic Weight',
         'Benchmark Weight',
+    ]:
+
+        df_multiperiod2[horizon + column] = df_multiperiod2[column].rolling(period).mean().reset_index(drop=False)[column]
+
+    for column in [
+        'JPM Strategy Return',
+        'JPM Strategy Benchmark',
         'JPM Return',
         'JPM Benchmark',
         'Weighted Asset Class Return',
@@ -607,8 +619,7 @@ for horizon, period in horizon_to_period_dict.items():
         'Weighted Asset Class Benchmark',
         'FX Return',
         'FX Benchmark',
-        'Asset Class Total',
-        'Strategy Total'
+        'Asset Class Total'
     ]:
 
         column_name = horizon + column
@@ -631,6 +642,8 @@ for horizon, period in horizon_to_period_dict.items():
                 .apply(lambda r: (np.prod(1+r)**(12/period))-1, raw=False)
                 .reset_index(drop=False)[return_type]
             )
+
+    df_multiperiod2[horizon + 'JPM Excess'] = df_multiperiod2[horizon + 'JPM Return'] - df_multiperiod2[horizon + 'JPM Benchmark']
 
     df_multiperiod2[horizon + 'TAA'] = (df_multiperiod2[horizon + 'Portfolio Weight'] - df_multiperiod2[horizon + 'Dynamic Weight']) * df_multiperiod2[horizon + 'JPM Benchmark']
 
@@ -640,7 +653,9 @@ for horizon, period in horizon_to_period_dict.items():
 
     df_multiperiod2[horizon + 'SS'] = (df_multiperiod2[horizon + 'Benchmark Weight']) * (df_multiperiod2[horizon + 'JPM Return'] - df_multiperiod2[horizon + 'JPM Benchmark'])
 
-    df_multiperiod2[horizon + 'Asset Class Total'] = df_multiperiod2[horizon + 'SAA'] + df_multiperiod2[horizon + 'SS']
+    df_multiperiod2[horizon + 'In'] = (df_multiperiod2[horizon + 'Portfolio Weight'] - df_multiperiod2[horizon + 'Benchmark Weight']) * (df_multiperiod2[horizon + 'JPM Return'] - df_multiperiod2[horizon + 'JPM Benchmark'])
+
+    df_multiperiod2[horizon + 'Asset Class Total'] = df_multiperiod2[horizon + 'SAA'] + df_multiperiod2[horizon + 'SS'] + df_multiperiod2[horizon + 'In']
 
     df_combined_asset_class_total = df_multiperiod2.groupby(['Date', 'Strategy'])[horizon + 'Asset Class Total'].sum().reset_index(drop=False)
 
@@ -659,23 +674,23 @@ for horizon, period in horizon_to_period_dict.items():
     )
 
     # Calculates Pure Active, Style, FX
-    df_multiperiod2[horizon + 'Weighted Pure Active Excess Return'] = df_multiperiod2[horizon + 'Benchmark Weight'] * (df_multiperiod2[horizon + 'Weighted Asset Class Return'] - df_multiperiod2[horizon + 'Weighted Asset Class Style Benchmark'])
+    df_multiperiod2[horizon + 'Pure Active'] = df_multiperiod2[horizon + 'Benchmark Weight'] * (df_multiperiod2[horizon + 'Weighted Asset Class Return'] - df_multiperiod2[horizon + 'Weighted Asset Class Style Benchmark'])
 
-    df_multiperiod2[horizon + 'Weighted Style Excess Return'] = df_multiperiod2[horizon + 'Benchmark Weight'] * (df_multiperiod2[horizon + 'Weighted Asset Class Style Benchmark'] - df_multiperiod2[horizon + 'Weighted Asset Class Benchmark'])
+    df_multiperiod2[horizon + 'Style'] = df_multiperiod2[horizon + 'Benchmark Weight'] * (df_multiperiod2[horizon + 'Weighted Asset Class Style Benchmark'] - df_multiperiod2[horizon + 'Weighted Asset Class Benchmark'])
 
-    df_multiperiod2[horizon + 'FX Excess Return'] = df_multiperiod2[horizon + 'Benchmark Weight'] * (df_multiperiod2[horizon + 'FX Return'] - df_multiperiod2[horizon + 'FX Benchmark'])
+    df_multiperiod2[horizon + 'FX'] = df_multiperiod2[horizon + 'Benchmark Weight'] * (df_multiperiod2[horizon + 'FX Return'] - df_multiperiod2[horizon + 'FX Benchmark'])
 
-    df_multiperiod2[horizon + 'Strategy Excess'] = df_multiperiod2[horizon + 'JPM Strategy Return'] - df_multiperiod2[horizon + 'JPM Strategy Benchmark']
+    df_multiperiod2[horizon + 'JPM Strategy Excess'] = df_multiperiod2[horizon + 'JPM Strategy Return'] - df_multiperiod2[horizon + 'JPM Strategy Benchmark']
 
     df_multiperiod2[horizon + 'Residual_SAA'] = df_multiperiod2[horizon + 'SAA'] - (df_multiperiod2[horizon + 'TAA'] + df_multiperiod2[horizon + 'DAA'])
 
-    df_multiperiod2[horizon + 'Residual_SS'] = df_multiperiod2[horizon + 'SS'] - (df_multiperiod2[horizon + 'FX Excess Return'] + df_multiperiod2[horizon + 'Weighted Pure Active Excess Return'] + df_multiperiod2[horizon + 'Weighted Style Excess Return'])
+    df_multiperiod2[horizon + 'Residual_SS'] = df_multiperiod2[horizon + 'SS'] - (df_multiperiod2[horizon + 'FX'] + df_multiperiod2[horizon + 'Pure Active'] + df_multiperiod2[horizon + 'Style'])
 
-    df_multiperiod2[horizon + 'Residual_Asset_Class_Total'] = df_multiperiod2[horizon + 'Asset Class Total'] - (df_multiperiod2[horizon + 'SAA'] + df_multiperiod2[horizon + 'SS'])
+    df_multiperiod2[horizon + 'Residual_Asset_Class_Total'] = df_multiperiod2[horizon + 'Asset Class Total'] - (df_multiperiod2[horizon + 'SAA'] + df_multiperiod2[horizon + 'SS'] + df_multiperiod2[horizon + 'In'])
 
-    df_multiperiod2[horizon + 'Residual_Strategy'] = df_multiperiod2[horizon + 'Strategy Total'] - df_multiperiod2[horizon + 'Strategy Total by Asset Class Sum']
+    # df_multiperiod2[horizon + 'Residual_Strategy'] = df_multiperiod2[horizon + 'Strategy Total'] - df_multiperiod2[horizon + 'Strategy Total by Asset Class Sum']
 
-    df_multiperiod2[horizon + 'Residual_Actual'] = df_multiperiod2[horizon + 'Strategy Excess'] - df_multiperiod2[horizon + 'Strategy Total']
+    df_multiperiod2[horizon + 'Residual_Actual'] = df_multiperiod2[horizon + 'JPM Strategy Excess'] - df_multiperiod2[horizon + 'Strategy Total by Asset Class Sum']
 
     df_multiperiod2 = df_multiperiod2.sort_values(['Strategy', 'Asset Class', 'Date'], ascending=[True, True, True]).reset_index(drop=True)
 
@@ -683,4 +698,226 @@ for horizon, period in horizon_to_period_dict.items():
 df_multiperiod2 = df_multiperiod2.sort_values(['Date', 'Strategy', 'LGS Asset Class Order'], ascending=[True, True, True]).reset_index(drop=True)
 
 df_multiperiod2.to_csv('U:/CIO/#Data/output/prototype_attribution_v3_python_2.csv', index=False)
+
+# Fix Strategy Total
+
+
+# Creates Tables
+strategy_list = ['High Growth', 'Balanced Growth', 'Balanced', 'Conservative', 'Growth', 'Employer Reserve']
+df_asset_class_sort = df_lgs[df_lgs['LGS Sector Aggregate'].isin([1])][['LGS Name', 'LGS Asset Class Order']].reset_index(drop=True)
+asset_class_sort_dict = {df_asset_class_sort['LGS Name'][i]: df_asset_class_sort['LGS Asset Class Order'][i] for i in range(0, len(df_asset_class_sort))}
+
+
+# Makes the pivot tables
+def pivot_table(df, var):
+    columns_list = ['Strategy', 'LGS Name', var]
+    df = df[columns_list]
+    df = df.pivot(index='LGS Name', columns='Strategy', values=var)
+    df = df[strategy_list]
+    df = df.reset_index(drop=False)
+    df['asset_class_sort'] = df['LGS Name'].map(asset_class_sort_dict)
+    df = df.sort_values(['asset_class_sort'])
+    df = df.drop('asset_class_sort', axis=1)
+    df = df.reset_index(drop=True)
+    df = df.rename(columns={'LGS Name': 'Attribution'})
+    #df['Manager'] = [modelcode_to_name_dict[df['Manager'][i]] for i in range(0, len(df))]
+    #df.columns = latex_column_names
+    return df
+
+
+def sum_pivot_table(df, output_variable_name, drop_column='Attribution'):
+    df = df.drop(drop_column, axis=1)
+    df = df.sum().reset_index(drop=False).transpose()
+    df.columns = df.iloc[0]
+    df = df[1:]
+    df.insert(0, 'Attribution', output_variable_name)
+    return df
+
+
+# Take current month
+df_current2 = df_multiperiod2[df_multiperiod2['Date'].isin([report_date])]
+
+
+# Table 1
+df_current2_table1a = pivot_table(df_current2, '3_JPM Strategy Return')
+df_current2_table1b = pivot_table(df_current2, '3_JPM Strategy Benchmark')
+df_current2_table1c = pivot_table(df_current2, '3_JPM Strategy Excess')
+
+df_current2_table1a = df_current2_table1a.drop('Attribution', axis=1)
+df_current2_table1b = df_current2_table1b.drop('Attribution', axis=1)
+df_current2_table1c = df_current2_table1c.drop('Attribution', axis=1)
+
+df_current2_table1a.insert(0, 'Attribution', 'Portfolio')
+df_current2_table1b.insert(0, 'Attribution', 'Benchmark')
+df_current2_table1c.insert(0, 'Attribution', 'Active')
+
+df_current2_table1a = df_current2_table1a.drop_duplicates(keep='first')
+df_current2_table1b = df_current2_table1b.drop_duplicates(keep='first')
+df_current2_table1c = df_current2_table1c.drop_duplicates(keep='first')
+
+df_current2_table1 = pd.concat([df_current2_table1a, df_current2_table1b, df_current2_table1c], axis=0).reset_index(drop=True)
+df_current2_table1[strategy_list] = (df_current2_table1[strategy_list].astype(float).round(4)*100)
+
+
+# Table 2
+df_current2_table2a_aa = pivot_table(df_current2, '3_SAA')
+df_current2_table2a_aa = sum_pivot_table(df_current2_table2a_aa, 'AA')
+
+df_current2_table2b_ss = pivot_table(df_current2, '3_SS')
+df_current2_table2b_ss = sum_pivot_table(df_current2_table2b_ss, 'SS')
+
+df_current2_table2c_in = pivot_table(df_current2, '3_In')
+df_current2_table2c_in = sum_pivot_table(df_current2_table2c_in, 'In')
+
+df_current2_table2d_residual = (
+        df_current2_table1c.loc[0].drop('Attribution') -
+        df_current2_table2a_aa.loc[0].drop('Attribution') -
+        df_current2_table2b_ss.loc[0].drop('Attribution') -
+        df_current2_table2c_in.loc[0].drop('Attribution')
+)
+
+df_current2_table2d_residual = df_current2_table2d_residual.reset_index(drop=False).transpose()
+df_current2_table2d_residual.columns = df_current2_table2d_residual.iloc[0]
+df_current2_table2d_residual = df_current2_table2d_residual[1:]
+df_current2_table2d_residual.insert(0, 'Attribution', 'Residual Actual')
+
+df_current2_table2 = pd.concat(
+    [
+        df_current2_table2a_aa,
+        df_current2_table2b_ss,
+        df_current2_table2c_in,
+        df_current2_table2d_residual,
+        df_current2_table1c
+    ]
+    , axis=0
+).reset_index(drop=True)
+df_current2_table2[strategy_list] = (df_current2_table2[strategy_list].astype(float).round(4)*100)
+
+
+# Table 3
+df_current2_table3a_taa = pivot_table(df_current2, '3_TAA')
+df_current2_table3a_taa = sum_pivot_table(df_current2_table3a_taa, 'TAA')
+
+df_current2_table3b_daa = pivot_table(df_current2, '3_DAA')
+df_current2_table3b_daa = sum_pivot_table(df_current2_table3b_daa, 'DAA')
+
+df_current2_table3c_residual_aa = (
+    df_current2_table2a_aa.loc[0].drop('Attribution') -
+    df_current2_table3a_taa.loc[0].drop('Attribution') -
+    df_current2_table3b_daa.loc[0].drop('Attribution')
+)
+
+df_current2_table3c_residual_aa = df_current2_table3c_residual_aa.reset_index(drop=False).transpose()
+df_current2_table3c_residual_aa.columns = df_current2_table3c_residual_aa.iloc[0]
+df_current2_table3c_residual_aa = df_current2_table3c_residual_aa[1:]
+df_current2_table3c_residual_aa.insert(0, 'Attribution', 'Residual AA')
+
+df_current2_table3d_fx = pivot_table(df_current2, '3_FX')
+df_current2_table3d_fx = sum_pivot_table(df_current2_table3d_fx, 'FX')
+
+df_current2_table3e_pure_active = pivot_table(df_current2, '3_Pure Active')
+df_current2_table3e_pure_active = sum_pivot_table(df_current2_table3e_pure_active, 'Pure Active')
+
+df_current2_table3f_style = pivot_table(df_current2, '3_Style')
+df_current2_table3f_style = sum_pivot_table(df_current2_table3f_style, 'Style')
+
+
+df_current2_table3g_residual_ss = (
+    df_current2_table2b_ss.loc[0].drop('Attribution') -
+    df_current2_table3d_fx.loc[0].drop('Attribution') -
+    df_current2_table3e_pure_active.loc[0].drop('Attribution') -
+    df_current2_table3f_style.loc[0].drop('Attribution')
+)
+
+df_current2_table3g_residual_ss = df_current2_table3g_residual_ss.reset_index(drop=False).transpose()
+df_current2_table3g_residual_ss.columns = df_current2_table3g_residual_ss.iloc[0]
+df_current2_table3g_residual_ss = df_current2_table3g_residual_ss[1:]
+df_current2_table3g_residual_ss.insert(0, 'Attribution', 'Residual SS')
+
+df_current2_table3h_residual_aa_ss = (
+        df_current2_table3c_residual_aa.loc[0].drop('Attribution') +
+        df_current2_table3g_residual_ss.loc[0].drop('Attribution')
+)
+
+df_current2_table3h_residual_aa_ss = df_current2_table3h_residual_aa_ss.reset_index(drop=False).transpose()
+df_current2_table3h_residual_aa_ss.columns = df_current2_table3h_residual_aa_ss.iloc[0]
+df_current2_table3h_residual_aa_ss = df_current2_table3h_residual_aa_ss[1:]
+df_current2_table3h_residual_aa_ss.insert(0, 'Attribution', 'Residual AA + SS')
+
+df_current2_table3 = pd.concat(
+    [
+        df_current2_table3a_taa,
+        df_current2_table3b_daa,
+        df_current2_table3c_residual_aa,
+        df_current2_table3d_fx,
+        df_current2_table3e_pure_active,
+        df_current2_table3f_style,
+        df_current2_table3g_residual_ss,
+        df_current2_table2c_in,
+        df_current2_table2d_residual
+    ]
+)
+
+df_current2_table3i_sum = sum_pivot_table(df_current2_table3, 'Active', drop_column='Attribution')
+
+df_current2_table3 = pd.concat([df_current2_table3, df_current2_table3i_sum], axis=0)
+
+df_current2_table3[strategy_list] = (df_current2_table3[strategy_list].astype(float).round(4)*100)
+
+
+# Table 4
+# Merges Table 2 and Table 3
+
+
+# Table 5
+df_current2_table5a_aa = pivot_table(df_current2, '3_SAA')
+df_current2_table5 = pd.concat([df_current2_table5a_aa, df_current2_table2a_aa])
+df_current2_table5[strategy_list] = (df_current2_table5[strategy_list].astype(float).round(4)*100)
+
+
+# Table 6
+df_current2_table6a_taa = pivot_table(df_current2, '3_TAA')
+df_current2_table6 = pd.concat([df_current2_table6a_taa, df_current2_table3a_taa])
+df_current2_table6[strategy_list] = (df_current2_table6[strategy_list].astype(float).round(4)*100)
+
+
+# Table 7
+df_current2_table7a_daa = pivot_table(df_current2, '3_DAA')
+df_current2_table7 = pd.concat([df_current2_table7a_daa, df_current2_table3b_daa])
+df_current2_table7[strategy_list] = (df_current2_table7[strategy_list].astype(float).round(4)*100)
+
+# Table 8
+df_current2_table8a_residual_aa = pivot_table(df_current2, '3_Residual_SAA')
+df_current2_table8 = pd.concat([df_current2_table8a_residual_aa, df_current2_table3c_residual_aa])
+df_current2_table8[strategy_list] = (df_current2_table8[strategy_list].astype(float).round(4)*100)
+
+
+# Table 9
+df_current2_table9a_ss = pivot_table(df_current2, '3_SS')
+df_current2_table9 = pd.concat([df_current2_table9a_ss, df_current2_table2b_ss])
+df_current2_table9[strategy_list] = (df_current2_table9[strategy_list].astype(float).round(4)*100)
+
+
+# Table 10
+df_current2_table10a_fx = pivot_table(df_current2, '3_FX')
+df_current2_table10 = pd.concat([df_current2_table10a_fx, df_current2_table3d_fx])
+df_current2_table10[strategy_list] = (df_current2_table10[strategy_list].astype(float).round(4)*100)
+
+
+# Table 11
+df_current2_table11a_pure_active = pivot_table(df_current2, '3_Pure Active')
+df_current2_table11 = pd.concat([df_current2_table11a_pure_active, df_current2_table3e_pure_active])
+df_current2_table11[strategy_list] = (df_current2_table11[strategy_list].astype(float).round(4)*100)
+
+
+# Table 12
+df_current2_table12a_style = pivot_table(df_current2, '3_Style')
+df_current2_table12 = pd.concat([df_current2_table12a_style, df_current2_table3f_style])
+df_current2_table12[strategy_list] = (df_current2_table12[strategy_list].astype(float).round(4)*100)
+
+
+# Table 13
+df_current2_table13a_residual_ss = pivot_table(df_current2, '3_Residual_SS')
+df_current2_table13 = pd.concat([df_current2_table13a_residual_ss, df_current2_table3g_residual_ss])
+df_current2_table13[strategy_list] = (df_current2_table13[strategy_list].astype(float).round(4)*100)
 
