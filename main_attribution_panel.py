@@ -21,6 +21,8 @@ lgs_returns_benchmarks_filepath = 'U:/CIO/#Investment_Report/data/input/returns/
 lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/03/New Dictionary_v8.xlsx'
 lgs_allocations_filepath ='U:/CIO/#Data/input/lgs/allocations/asset_allocations_2020-03-31.csv'
 
+output_directory = 'U:/CIO/#Data/output/attribution/tables/'
+
 FYTD = 9
 report_date = dt.datetime(2020, 3, 31)
 # END USER INPUT DATA
@@ -390,7 +392,7 @@ df_sectors_returns_benchmarks = df_sectors_returns_benchmarks[~df_sectors_return
 df_sectors_returns_benchmarks = pd.concat([df_sectors_returns_benchmarks, df_lgs_returns_benchmarks_ieu]).reset_index(drop=True)
 
 # Filters AFI and IFI benchmarks
-df_sectors_returns_benchmarks = df_sectors_returns_benchmarks[~df_sectors_returns_benchmarks['LGS Asset Class Level 2'].isin(['AFI', 'IFI'])].reset_index(drop=True)
+df_sectors_returns_benchmarks = df_sectors_returns_benchmarks[~df_sectors_returns_benchmarks['LGS Asset Class Level 2'].isin(['AFI', 'IFI', 'ILB'])].reset_index(drop=True)
 
 
 
@@ -479,11 +481,13 @@ df_combined_all = pd.merge(
     left=df_combined,
     right=df_managers_style_asset_class_fx,
     left_on=['Date', 'LGS Asset Class Level 1'],
-    right_on=['Date', 'LGS Asset Class Level 1']
+    right_on=['Date', 'LGS Asset Class Level 1'],
+    how='outer'
 )
 
-df_combined_all = df_combined_all.sort_values(['Date', 'Strategy', 'LGS Asset Class Order'], ascending=[True, True, True]).reset_index(drop=True)
+df_combined_all = df_combined_all[df_combined_all['LGS Sector Aggregate'].isin([1])].reset_index(drop=True)
 
+df_combined_all = df_combined_all.sort_values(['Date', 'Strategy', 'LGS Asset Class Order'], ascending=[True, True, True]).reset_index(drop=True)
 
 
 
@@ -743,6 +747,10 @@ df_current2_table1a = pivot_table(df_current2, '3_JPM Strategy Return')
 df_current2_table1b = pivot_table(df_current2, '3_JPM Strategy Benchmark')
 df_current2_table1c = pivot_table(df_current2, '3_JPM Strategy Excess')
 
+df_current2_table1a = df_current2_table1a[~df_current2_table1a['Attribution'].isin(['LPE', 'Legacy Private Equity'])].reset_index(drop=True)
+df_current2_table1b = df_current2_table1b[~df_current2_table1b['Attribution'].isin(['LPE', 'Legacy Private Equity'])].reset_index(drop=True)
+df_current2_table1c = df_current2_table1c[~df_current2_table1c['Attribution'].isin(['LPE', 'Legacy Private Equity'])].reset_index(drop=True)
+
 df_current2_table1a = df_current2_table1a.drop('Attribution', axis=1)
 df_current2_table1b = df_current2_table1b.drop('Attribution', axis=1)
 df_current2_table1c = df_current2_table1c.drop('Attribution', axis=1)
@@ -756,18 +764,18 @@ df_current2_table1b = df_current2_table1b.drop_duplicates(keep='first')
 df_current2_table1c = df_current2_table1c.drop_duplicates(keep='first')
 
 df_current2_table1 = pd.concat([df_current2_table1a, df_current2_table1b, df_current2_table1c], axis=0).reset_index(drop=True)
-df_current2_table1[strategy_list] = (df_current2_table1[strategy_list].astype(float).round(4)*100)
+df_current2_table1[strategy_list] = (df_current2_table1[strategy_list].fillna(0).astype(float).round(4)*100)
 
 
 # Table 2
 df_current2_table2a_aa = pivot_table(df_current2, '3_SAA')
-df_current2_table2a_aa = sum_pivot_table(df_current2_table2a_aa, 'AA')
+df_current2_table2a_aa = sum_pivot_table(df_current2_table2a_aa, 'Allocation')
 
 df_current2_table2b_ss = pivot_table(df_current2, '3_SS')
-df_current2_table2b_ss = sum_pivot_table(df_current2_table2b_ss, 'SS')
+df_current2_table2b_ss = sum_pivot_table(df_current2_table2b_ss, 'Selection')
 
 df_current2_table2c_in = pivot_table(df_current2, '3_In')
-df_current2_table2c_in = sum_pivot_table(df_current2_table2c_in, 'In')
+df_current2_table2c_in = sum_pivot_table(df_current2_table2c_in, 'Interaction')
 
 df_current2_table2d_residual = (
         df_current2_table1c.loc[0].drop('Attribution') -
@@ -779,7 +787,7 @@ df_current2_table2d_residual = (
 df_current2_table2d_residual = df_current2_table2d_residual.reset_index(drop=False).transpose()
 df_current2_table2d_residual.columns = df_current2_table2d_residual.iloc[0]
 df_current2_table2d_residual = df_current2_table2d_residual[1:]
-df_current2_table2d_residual.insert(0, 'Attribution', 'Residual Actual')
+df_current2_table2d_residual.insert(0, 'Attribution', 'Residual')
 
 df_current2_table2 = pd.concat(
     [
@@ -791,15 +799,15 @@ df_current2_table2 = pd.concat(
     ]
     , axis=0
 ).reset_index(drop=True)
-df_current2_table2[strategy_list] = (df_current2_table2[strategy_list].astype(float).round(4)*100)
+df_current2_table2[strategy_list] = (df_current2_table2[strategy_list].fillna(0).astype(float).round(4)*100)
 
 
 # Table 3
 df_current2_table3a_taa = pivot_table(df_current2, '3_TAA')
-df_current2_table3a_taa = sum_pivot_table(df_current2_table3a_taa, 'TAA')
+df_current2_table3a_taa = sum_pivot_table(df_current2_table3a_taa, 'Tactical Allocation')
 
 df_current2_table3b_daa = pivot_table(df_current2, '3_DAA')
-df_current2_table3b_daa = sum_pivot_table(df_current2_table3b_daa, 'DAA')
+df_current2_table3b_daa = sum_pivot_table(df_current2_table3b_daa, 'Dynamic Allocation')
 
 df_current2_table3c_residual_aa = (
     df_current2_table2a_aa.loc[0].drop('Attribution') -
@@ -810,16 +818,16 @@ df_current2_table3c_residual_aa = (
 df_current2_table3c_residual_aa = df_current2_table3c_residual_aa.reset_index(drop=False).transpose()
 df_current2_table3c_residual_aa.columns = df_current2_table3c_residual_aa.iloc[0]
 df_current2_table3c_residual_aa = df_current2_table3c_residual_aa[1:]
-df_current2_table3c_residual_aa.insert(0, 'Attribution', 'Residual AA')
+df_current2_table3c_residual_aa.insert(0, 'Attribution', 'Residual Allocation')
 
 df_current2_table3d_fx = pivot_table(df_current2, '3_FX')
-df_current2_table3d_fx = sum_pivot_table(df_current2_table3d_fx, 'FX')
+df_current2_table3d_fx = sum_pivot_table(df_current2_table3d_fx, 'FX Selection')
 
 df_current2_table3e_pure_active = pivot_table(df_current2, '3_Pure Active')
-df_current2_table3e_pure_active = sum_pivot_table(df_current2_table3e_pure_active, 'Pure Active')
+df_current2_table3e_pure_active = sum_pivot_table(df_current2_table3e_pure_active, 'Pure Active Selection')
 
 df_current2_table3f_style = pivot_table(df_current2, '3_Style')
-df_current2_table3f_style = sum_pivot_table(df_current2_table3f_style, 'Style')
+df_current2_table3f_style = sum_pivot_table(df_current2_table3f_style, 'Style Selection')
 
 
 df_current2_table3g_residual_ss = (
@@ -832,7 +840,7 @@ df_current2_table3g_residual_ss = (
 df_current2_table3g_residual_ss = df_current2_table3g_residual_ss.reset_index(drop=False).transpose()
 df_current2_table3g_residual_ss.columns = df_current2_table3g_residual_ss.iloc[0]
 df_current2_table3g_residual_ss = df_current2_table3g_residual_ss[1:]
-df_current2_table3g_residual_ss.insert(0, 'Attribution', 'Residual SS')
+df_current2_table3g_residual_ss.insert(0, 'Attribution', 'Residual Selection')
 
 df_current2_table3h_residual_aa_ss = (
         df_current2_table3c_residual_aa.loc[0].drop('Attribution') +
@@ -862,7 +870,7 @@ df_current2_table3i_sum = sum_pivot_table(df_current2_table3, 'Active', drop_col
 
 df_current2_table3 = pd.concat([df_current2_table3, df_current2_table3i_sum], axis=0)
 
-df_current2_table3[strategy_list] = (df_current2_table3[strategy_list].astype(float).round(4)*100)
+df_current2_table3[strategy_list] = (df_current2_table3[strategy_list].fillna(0).astype(float).round(4)*100)
 
 
 # Table 4
@@ -872,52 +880,97 @@ df_current2_table3[strategy_list] = (df_current2_table3[strategy_list].astype(fl
 # Table 5
 df_current2_table5a_aa = pivot_table(df_current2, '3_SAA')
 df_current2_table5 = pd.concat([df_current2_table5a_aa, df_current2_table2a_aa])
-df_current2_table5[strategy_list] = (df_current2_table5[strategy_list].astype(float).round(4)*100)
+df_current2_table5[strategy_list] = (df_current2_table5[strategy_list].fillna(0).astype(float).round(4)*100)
 
 
 # Table 6
 df_current2_table6a_taa = pivot_table(df_current2, '3_TAA')
 df_current2_table6 = pd.concat([df_current2_table6a_taa, df_current2_table3a_taa])
-df_current2_table6[strategy_list] = (df_current2_table6[strategy_list].astype(float).round(4)*100)
+df_current2_table6[strategy_list] = (df_current2_table6[strategy_list].fillna(0).astype(float).round(4)*100)
 
 
 # Table 7
 df_current2_table7a_daa = pivot_table(df_current2, '3_DAA')
 df_current2_table7 = pd.concat([df_current2_table7a_daa, df_current2_table3b_daa])
-df_current2_table7[strategy_list] = (df_current2_table7[strategy_list].astype(float).round(4)*100)
+df_current2_table7[strategy_list] = (df_current2_table7[strategy_list].fillna(0).astype(float).round(4)*100)
 
 # Table 8
 df_current2_table8a_residual_aa = pivot_table(df_current2, '3_Residual_SAA')
 df_current2_table8 = pd.concat([df_current2_table8a_residual_aa, df_current2_table3c_residual_aa])
-df_current2_table8[strategy_list] = (df_current2_table8[strategy_list].astype(float).round(4)*100)
+df_current2_table8[strategy_list] = (df_current2_table8[strategy_list].fillna(0).astype(float).round(4)*100)
 
 
 # Table 9
 df_current2_table9a_ss = pivot_table(df_current2, '3_SS')
 df_current2_table9 = pd.concat([df_current2_table9a_ss, df_current2_table2b_ss])
-df_current2_table9[strategy_list] = (df_current2_table9[strategy_list].astype(float).round(4)*100)
+df_current2_table9[strategy_list] = (df_current2_table9[strategy_list].fillna(0).astype(float).round(4)*100)
 
 
 # Table 10
 df_current2_table10a_fx = pivot_table(df_current2, '3_FX')
 df_current2_table10 = pd.concat([df_current2_table10a_fx, df_current2_table3d_fx])
-df_current2_table10[strategy_list] = (df_current2_table10[strategy_list].astype(float).round(4)*100)
+df_current2_table10[strategy_list] = (df_current2_table10[strategy_list].fillna(0).astype(float).round(4)*100)
 
 
 # Table 11
 df_current2_table11a_pure_active = pivot_table(df_current2, '3_Pure Active')
 df_current2_table11 = pd.concat([df_current2_table11a_pure_active, df_current2_table3e_pure_active])
-df_current2_table11[strategy_list] = (df_current2_table11[strategy_list].astype(float).round(4)*100)
+df_current2_table11[strategy_list] = (df_current2_table11[strategy_list].fillna(0).astype(float).round(4)*100)
 
 
 # Table 12
 df_current2_table12a_style = pivot_table(df_current2, '3_Style')
 df_current2_table12 = pd.concat([df_current2_table12a_style, df_current2_table3f_style])
-df_current2_table12[strategy_list] = (df_current2_table12[strategy_list].astype(float).round(4)*100)
+df_current2_table12[strategy_list] = (df_current2_table12[strategy_list].fillna(0).astype(float).round(4)*100)
 
 
 # Table 13
 df_current2_table13a_residual_ss = pivot_table(df_current2, '3_Residual_SS')
 df_current2_table13 = pd.concat([df_current2_table13a_residual_ss, df_current2_table3g_residual_ss])
-df_current2_table13[strategy_list] = (df_current2_table13[strategy_list].astype(float).round(4)*100)
+df_current2_table13[strategy_list] = (df_current2_table13[strategy_list].fillna(0).astype(float).round(4)*100)
 
+# Table 14
+df_current2_table14a_in = pivot_table(df_current2, '3_In')
+df_current2_table14 = pd.concat([df_current2_table14a_in, df_current2_table2c_in])
+df_current2_table14[strategy_list] = (df_current2_table14[strategy_list].fillna(0).astype(float).round(4)*100)
+
+
+# Writes dataframes into latex
+with open(output_directory + 'summary_actual.tex', 'w') as tf:
+    tf.write(df_current2_table1.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'summary_attribution.tex', 'w') as tf:
+    tf.write(df_current2_table2.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'summary_attribution_components.tex', 'w') as tf:
+    tf.write(df_current2_table3.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'allocation.tex', 'w') as tf:
+    tf.write(df_current2_table5.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'allocation_tactical.tex', 'w') as tf:
+    tf.write(df_current2_table6.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'allocation_dynamic.tex', 'w') as tf:
+    tf.write(df_current2_table7.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'allocation_residual.tex', 'w') as tf:
+    tf.write(df_current2_table8.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'selection.tex', 'w') as tf:
+    tf.write(df_current2_table9.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'selection_foreign_exchange.tex', 'w') as tf:
+    tf.write(df_current2_table10.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'selection_pure_active.tex', 'w') as tf:
+    tf.write(df_current2_table11.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'selection_style.tex', 'w') as tf:
+    tf.write(df_current2_table12.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'selection_residual.tex', 'w') as tf:
+    tf.write(df_current2_table13.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+with open(output_directory + 'interaction.tex', 'w') as tf:
+    tf.write(df_current2_table14.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
