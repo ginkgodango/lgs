@@ -6,7 +6,7 @@ import daymove.format
 
 password = "lgsinvestops@LGS"
 input_directory = 'U:/'
-filepath = 'CIO/#Data/input/jpm/report/daymove/2020/04/'
+filepath = 'CIO/#Data/input/jpm/report/daymove/2020/05/'
 filenames = sorted(os.listdir(input_directory + filepath))
 output_directory = 'U:/CIO/#Daymove/tables/'
 

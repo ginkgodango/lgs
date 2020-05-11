@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 # Begin User Input Data
-report_date = dt.datetime(2020, 3, 31)
+report_date = dt.datetime(2020, 4, 30)
 
 wscf_market_value = 147624809.00
 aqr_market_value = 180638540.40
@@ -12,7 +12,7 @@ wellington_market_value = 134860345.84
 
 input_directory = 'U:/'
 output_directory = 'U:/'
-jpm_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/jpm/2020/03/Priced Positions - All.csv'
+jpm_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/jpm/2020/04/Priced Positions - All.csv'
 wscf_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/03/wscf_holdings.xls'
 aqr_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/03/aqr_holdings.xls'
 delaware_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/03/delaware_holdings.xlsx'
@@ -360,7 +360,8 @@ sedol_to_common_name_dict = {
         '7123870': 'Nestle',
         '2588173': 'Microsoft',
         'B4MGBG6': 'HCA',
-        'BMMV2K8': 'Tencent'
+        'BMMV2K8': 'Tencent',
+        '2046251': 'Apple'
 }
 # Selects top 10 holdings for AE and IE
 df_main_aeq_top10 = df_main_aeq.head(10)[['SEDOL', 'Market Value AUD', '(%) of Portfolio']]

@@ -23,8 +23,8 @@ lgs_allocations_filepath ='U:/CIO/#Data/input/lgs/allocations/asset_allocations_
 
 output_directory = 'U:/CIO/#Data/output/attribution/tables/'
 
-FYTD = 9
-report_date = dt.datetime(2020, 3, 31)
+FYTD = 0
+report_date = dt.datetime(2019, 6, 31)
 # END USER INPUT DATA
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
@@ -974,3 +974,5 @@ with open(output_directory + 'selection_residual.tex', 'w') as tf:
 
 with open(output_directory + 'interaction.tex', 'w') as tf:
     tf.write(df_current2_table14.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
+
+

@@ -3,15 +3,22 @@ import numpy as np
 import datetime as dt
 import matplotlib
 import matplotlib.pyplot as plt
-FYTD = 8
-report_date = dt.datetime(2020, 2, 28)
+FYTD = 9
+report_date = dt.datetime(2020, 3, 31)
 darkgreen = (75/256, 120/256, 56/256)
 middlegreen = (141/256, 177/256, 66/256)
 lightgreen = (175/256, 215/256, 145/256)
 
+lgs_unit_prices_filepath = 'U:/CIO/#Data/input/lgs/unitprices/20200430 Unit Prices.csv'
+rba_cpi_filepath = 'U:/CIO/#Data/input/rba/inflation/20190930 g1-data.csv'
+
+use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
+use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12]
+footnote_rows = 28
+
 # UNIT PRICES
 # Imports unit price panel
-df_up = pd.read_csv('U:/CIO/#Data/input/lgs/unitprices/20200228 Unit Prices.csv', parse_dates=['Date'])
+df_up = pd.read_csv(lgs_unit_prices_filepath, parse_dates=['Date'])
 df_up_unique = df_up[df_up['Date'] == report_date]
 # df_up_unique.to_csv('U:/CIO/#Research/product_unique.csv', index=False)
 
@@ -23,16 +30,16 @@ df_up = df_up.rename(
     }
 )
 
-# Selects unit prices of strategies that are Accumulation Scheme or Defined Benefit
 df_up = (
     df_up[
         (df_up['Component'].isin(['Accumulation Scheme', 'Defined Benefit Scheme'])) |
-        ((df_up['Component'].isin(['Contributor Financed Benefit'])) & (df_up['OptionType'].isin(['Growth'])))
+        ((df_up['Component'].isin(['Deferred Benefit'])) & (df_up['OptionType'].isin(['Growth'])))
     ]
     .drop(columns=['Component'], axis=1)
     .sort_values(['OptionType', 'Date'])
     .reset_index(drop=True)
 )
+
 
 # Removes SAS which is a closed account
 df_up_SAS = df_up[df_up['OptionType'] == 'Sustainable Australian Shares']
@@ -70,7 +77,7 @@ df_up_monthly['Return'] = (df_up_monthly['Unit Price'] - df_up_monthly['Unit Pri
 
 # STRATEGY BENCHMARKS
 df_cpi = pd.read_csv(
-    'U:/CIO/#Data/input/rba/inflation/20190930 g1-data.csv',
+    rba_cpi_filepath,
     header=10,
     usecols=['Series ID', 'GCPIAGQP'],
     parse_dates=['Series ID'],
@@ -97,14 +104,6 @@ df_up_monthly = pd.merge(
     right_on=['Date']
 ).reset_index(drop=True)
 
-non_leap_dates = []
-for i in range(0, len(df_up_monthly)):
-    if df_up_monthly['Date'][i].month == 2 and df_up_monthly['Date'][i].day == 29:
-        non_leap_dates.append(df_up_monthly['Date'][i] - pd.Timedelta(days=1))
-    else:
-        non_leap_dates.append(df_up_monthly['Date'][i])
-df_up_monthly['Date'] = non_leap_dates
-
 # Creates core_benchmark. For High Growth, Balanced Growth, Balanced, Conservative, and Growth is inflation.
 # core_benchmark for employer reserve is a constant 5.75% pa.
 employer_reserve_benchmark_monthly = ((1 + 0.0575)**(1/12) - 1)
@@ -116,6 +115,16 @@ for i in range(0, len(df_up_monthly)):
         core_benchmark.append(df_up_monthly['Inflation'][i])
 df_up_monthly['Core'] = core_benchmark
 
+# Changes leap years to normal years for merging on month-end
+non_leap_dates = []
+for i in range(0, len(df_up_monthly)):
+    if df_up_monthly['Date'][i].month == 2 and df_up_monthly['Date'][i].day == 29:
+        non_leap_dates.append(df_up_monthly['Date'][i] - pd.Timedelta(days=1))
+    else:
+        non_leap_dates.append(df_up_monthly['Date'][i])
+df_up_monthly['Date'] = non_leap_dates
+
+# Sorts dataframe for calculation
 df_up_monthly = df_up_monthly.sort_values(['OptionType', 'Date']).reset_index(drop=True)
 
 # Sets the dictionary for the holding period returns.
@@ -127,20 +136,11 @@ horizon_to_period_dict = {
         '24_': 24,
         '36_': 36,
         '60_': 60,
-        '84_': 84
+        '84_': 84,
+        '120_': 120,
 }
 
-# product_to_hurdle_dict = {
-#     'High Growth': 0.035,
-#     'Growth': 0.03,
-#     'Balanced Growth': 0.03,
-#     'Balanced': 0.02,
-#     'Conservative': 0.015,
-#     'Managed Cash': 0.0025,
-#     'Defined Benefit Strategy': 0
-# }
-
-# Sets product to hurdle dictionary
+# Sets product to hurdle dictionary for MySuper Chart
 product_to_hurdle_dict = {
     'High Growth': 0.03,
     'Growth': 0.03,
@@ -151,16 +151,6 @@ product_to_hurdle_dict = {
     'Defined Benefit Strategy': 0
 }
 
-
-# product_to_tax_dict = {
-#     'High Growth': 0.08,
-#     'Growth': 0.08,
-#     'Balanced Growth': 0.085,
-#     'Balanced': 0.10,
-#     'Conservative': 0.115,
-#     'Managed Cash': 0.15,
-#     'Defined Benefit Strategy': 0.08
-# }
 
 # Sets product to tax dictionary
 product_to_tax_dict = {
@@ -212,92 +202,7 @@ for horizon, period in horizon_to_period_dict.items():
     df_up_monthly[objective_name] = (df_up_monthly[core_name] + df_up_monthly[hurdle_name]) * (1 - df_up_monthly[tax_name])
     df_up_monthly[excess_name] = df_up_monthly[return_name] - df_up_monthly[objective_name]
 
-df_up_monthly.to_csv('U:/CIO/#Investment_Report/Data/output/testing/mysuper/df_up_monthly.csv', index=False)
-
-# Creates Risk of Loss Years table
-df_risk_of_loss_years_F = df_up_monthly[df_up_monthly['Date'] == max(df_up_monthly['Date'])]
-df_risk_of_loss_years_F = df_risk_of_loss_years_F[['OptionType', 'Date', str(FYTD) + '_Return']].dropna()
-df_risk_of_loss_years_F = (df_risk_of_loss_years_F.pivot_table(index='Date', columns='OptionType', values=str(FYTD) + '_Return').sort_index(ascending=False)).round(4)*100
-
-df_risk_of_loss_years_12 = df_up_monthly[df_up_monthly['Month'] == 6]
-df_risk_of_loss_years_12 = df_risk_of_loss_years_12[['OptionType', 'Date', '12_Return']].dropna()
-df_risk_of_loss_years_12 = (df_risk_of_loss_years_12.pivot_table(index='Date', columns='OptionType', values='12_Return').sort_index(ascending=False)).round(4)*100
-
-df_risk_of_loss_years = pd.concat([df_risk_of_loss_years_F, df_risk_of_loss_years_12], axis=0)
-del df_risk_of_loss_years_F
-del df_risk_of_loss_years_12
-
-df_risk_of_loss_years = df_risk_of_loss_years[
-    [
-        'High Growth',
-        'Growth',
-        'Balanced Growth',
-        'Balanced',
-        'Conservative',
-        'Managed Cash',
-        'Defined Benefit Strategy'
-    ]
-]
-
-
-# Creates Product Performance table
-df_product = df_up_monthly[df_up_monthly['Date'] == report_date]
-df_product = df_product.set_index('OptionType')
-
-product_to_horizon_dict = {
-    'High Growth': 84,
-    'Growth': 60,
-    'Balanced Growth': 60,
-    'Balanced': 36,
-    'Conservative': 24,
-    'Managed Cash': 24,
-    'Defined Benefit Strategy': 60
-}
-
-product_name = list()
-product_performance = list()
-product_objective = list()
-product_excess = list()
-for product, horizon in product_to_horizon_dict.items():
-    product_name.append(product)
-    product_performance.append(df_product[str(horizon) + '_Return'][product])
-    product_objective.append(df_product[str(horizon) + '_Objective'][product])
-    product_excess.append(df_product[str(horizon) + '_Excess'][product])
-
-product_zipped = list(zip(product_performance, product_objective, product_excess))
-df_product = pd.DataFrame(product_zipped, index=product_name, columns=['Performance', 'Objective', 'Active']).round(4).T*100
-df_product_chart = df_product[:-1].T
-fig = df_product_chart.plot(kind='bar', color=[darkgreen, lightgreen])
-fig.set_title('LGS Annualised Product Performance')
-fig.set_ylabel('Performance %')
-fig.set_xlabel('')
-plt.tight_layout()
-
-
-# Charting
-# for horizon, period in horizon_to_period_dict.items():
-#
-#     for column in ['Excess']:
-#
-#         column_name = horizon + column
-#         return_type = column
-#
-#         df_chart_temp = df_up_monthly[['OptionType', 'Date', column_name]]
-#         df_chart_temp[column_name] = df_chart_temp[column_name]*100
-#         df_chart_temp = df_chart_temp.pivot_table(index='Date', columns='OptionType', values=column_name)
-#         if period >= 12:
-#             period = int(period/12)
-#             time_category = 'Year'
-#         else:
-#             time_category = 'Month'
-#
-#         chart_title = str(period) + ' ' + str(time_category) + ' Rolling Return for Each Strategy Since Inception'
-#         ax = df_chart_temp.plot(title=chart_title, figsize=(16.8, 7.2))
-#         ax.set_ylabel('Return %')
-#         ax.axhline(y=0, linestyle=':', linewidth=1, color='k')
-#         ax.legend(loc='lower left', title='')
-#         fig = ax.get_figure()
-#         fig.savefig('U:/CIO/#Investment_Report/Data/output/testing/product/' + horizon + 'chart.png')
+df_up_monthly.to_csv('U:/CIO/#Investment_Report/Data/output/testing/mysuper/df_up_monthly_mysuper.csv', index=False)
 
 
 
@@ -482,19 +387,3 @@ for lifecycle, df_cross_section in lifecycle_to_cross_section_dict.items():
     fig.subplots_adjust(top=0.9)
     fig.savefig('U:/CIO/#Investment_Report/Data/output/testing/mysuper/' + str(lifecycle) + '.png', dpi=300)
 
-
-
-# CASH BENCHMARK
-# df_r = pd.read_csv(
-#         'U:/CIO/#Investment_Report/Data/input/returns/returns_2019-06-30.csv',
-#         index_col='Date',
-#         parse_dates=['Date'],
-#         infer_datetime_format=True,
-#         float_precision='round_trip',
-#         usecols=['Date', 'AUBI_Index']
-#         )
-#
-# df_r['2_Year'] = df_r['AUBI_Index'].rolling(24).apply(lambda r: (np.prod(1+r)**(1/2))-1, raw=True)
-# df_benchmark['Cash'] = (df_r['2_Year'] + 0.0025) * (1 - 0.15)
-
-# df_benchmark.to_csv('U:/CIO/#Investment_Report/Data/input/product/strategy_benchmarks_201905.csv')
