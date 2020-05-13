@@ -3,15 +3,15 @@ import numpy as np
 import datetime as dt
 
 # START USER INPUT DATA
-jpm_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks_GOF.xlsx'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/02/New Dictionary_v6.xlsx'
-FYTD = 8
-report_date = dt.datetime(2020, 2, 29)
+jpm_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks_GOF.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/03/New Dictionary_v8.xlsx'
+FYTD = 9
+report_date = dt.datetime(2020, 3, 31)
 # END USER INPUT DATA
 
 # Imports the JPM time-series.
-use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 15]
-use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15]
+use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
+use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12]
 footnote_rows = 28
 
 df_jpm = pd.read_excel(

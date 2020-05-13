@@ -68,12 +68,11 @@ df_up_monthly_check['Month'] = [df_up_monthly_check['Date'][i].month for i in ra
 df_up_monthly_check['Day'] = [df_up_monthly_check['Date'][i].day for i in range(0, len(df_up_monthly_check))]
 df_up_monthly_check = df_up_monthly_check.groupby(['OptionType', 'Year', 'Month']).tail(1).reset_index(drop=True)
 df_up_monthly_check = df_up_monthly_check[df_up_monthly_check['Day'] < 28]
-df_up_monthly_check = df_up_monthly_check.to_csv('U:/CIO/#Investment_Report/Data/output/testing/mysuper/df_up_monthly_check.csv', index=False)
+df_up_monthly_check = df_up_monthly_check.to_csv('U:/CIO/#Data/output/investment/mysuper/df_up_monthly_check.csv', index=False)
 
 # Calculates 1 month return
 df_up_monthly['Unit Price Lag 1'] = df_up_monthly.groupby('OptionType')['Unit Price'].shift(1)
 df_up_monthly['Return'] = (df_up_monthly['Unit Price'] - df_up_monthly['Unit Price Lag 1']) / df_up_monthly['Unit Price Lag 1']
-
 
 # STRATEGY BENCHMARKS
 df_cpi = pd.read_csv(
@@ -202,9 +201,7 @@ for horizon, period in horizon_to_period_dict.items():
     df_up_monthly[objective_name] = (df_up_monthly[core_name] + df_up_monthly[hurdle_name]) * (1 - df_up_monthly[tax_name])
     df_up_monthly[excess_name] = df_up_monthly[return_name] - df_up_monthly[objective_name]
 
-df_up_monthly.to_csv('U:/CIO/#Investment_Report/Data/output/testing/mysuper/df_up_monthly_mysuper.csv', index=False)
-
-
+df_up_monthly.to_csv('U:/CIO/#Data/output/investment/mysuper/df_up_monthly_mysuper.csv', index=False)
 
 # LIFECYCLES
 df_lc = pd.read_excel(pd.ExcelFile('U:/CIO/#Data/input/jana/lifecycles/20200131 Lifecycles.xlsx'), sheet_name='Sheet2')
@@ -262,7 +259,7 @@ for horizon, period in member_horizon_period_dict.items():
 
 df_age_final = df_age_final.sort_values(['Lifecycle', 'Age', 'Date'])
 
-df_age_final.to_csv('U:/CIO/#Investment_Report/Data/output/testing/mysuper/MySuper Lifecycles.csv', index=False)
+df_age_final.to_csv('U:/CIO/#Data/output/investment/mysuper/MySuper Lifecycles.csv', index=False)
 
 df_age_final['Year'] = [df_age_final['Date'][i].year for i in range(0, len(df_age_final))]
 df_age_final['Month'] = [df_age_final['Date'][i].month for i in range(0, len(df_age_final))]
@@ -338,7 +335,7 @@ for return_type in ['12_Weighted_Return', '12_Weighted_Objective']:
 
 df_simulate['Age Lag'] = df_simulate['Age'] - df_simulate['Lag']
 
-df_simulate.to_csv('U:/CIO/#Investment_Report/Data/output/testing/mysuper/lifecycle_simulation_5years_panel.csv', index=False)
+df_simulate.to_csv('U:/CIO/#Data/output/investment/mysuper/lifecycle_simulation_5years_panel.csv', index=False)
 
 df_simulate_chart_bar_summary = df_simulate[(df_simulate['Date'] == report_date) & (df_simulate['Lag'] == 0)]
 df_simulate_chart_bar_summary = df_simulate_chart_bar_summary[df_simulate_chart_bar_summary['Age'].isin([50, 55, 60, 65])]
@@ -350,7 +347,7 @@ fig_simulate_chart_bar_summary.set_ylabel('Return (%)')
 fig_simulate_chart_bar_summary.set_xlabel('Age Cohort (Year)')
 plt.tight_layout()
 fig_bar = fig_simulate_chart_bar_summary.get_figure()
-fig_bar.savefig('U:/CIO/#Investment_Report/Data/output/mysuper/monitor.PNG', dpi=300)
+fig_bar.savefig('U:/CIO/#Data/output/investment/mysuper/monitor.PNG', dpi=300)
 
 df_simulate_chart_cross_section = df_simulate[df_simulate['Date'] == report_date]
 df_simulate_chart_cross_section = df_simulate_chart_cross_section.drop(columns=['Date', 'Lag', '120_Lifecycle_Return', '120_Lifecycle_Objective'], axis=1)
@@ -385,5 +382,5 @@ for lifecycle, df_cross_section in lifecycle_to_cross_section_dict.items():
     fig.suptitle(lifecycle)
     fig.tight_layout()
     fig.subplots_adjust(top=0.9)
-    fig.savefig('U:/CIO/#Investment_Report/Data/output/testing/mysuper/' + str(lifecycle) + '.png', dpi=300)
+    fig.savefig('U:/CIO/#Data/output/investment/mysuper/' + str(lifecycle) + '.png', dpi=300)
 

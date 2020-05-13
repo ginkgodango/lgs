@@ -12,16 +12,24 @@ lightgreen = (175/256, 215/256, 145/256)
 lgs_unit_prices_filepath = 'U:/CIO/#Data/input/lgs/unitprices/20200430 Unit Prices.csv'
 jpm_main_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Main Benchmarks_v4.xlsx'
 rba_cpi_filepath = 'U:/CIO/#Data/input/rba/inflation/20190930 g1-data.csv'
+lgs_website_return_acc_filepath = 'U:/CIO/#Data/input/lgs/website/investment_returns/2020/03/InvestmentReturns_Accumulation.csv'
+lgs_website_return_dbg_filepath = 'U:/CIO/#Data/input/lgs/website/investment_returns/2020/03/InvestmentReturns_DBG.csv'
+lgs_website_return_dbs_filepath = 'U:/CIO/#Data/input/lgs/website/investment_returns/2020/03/InvestmentReturns_DBS.csv'
+lgs_website_yearly_acc_filepath = 'U:/CIO/#Data/input/lgs/website/investment_yearly/2020/03/'
+lgs_website_yearly_dbg_filepath = 'U:/CIO/#Data/input/lgs/website/investment_yearly/2020/03/'
+lgs_website_yearly_dbs_filepath = 'U:/CIO/#Data/input/lgs/website/investment_yearly/2020/03/'
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
 use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12]
 footnote_rows = 28
 
+
+
 # UNIT PRICES
 # Imports unit price panel
 df_up = pd.read_csv(lgs_unit_prices_filepath, parse_dates=['Date'])
 df_up_unique = df_up[df_up['Date'] == report_date]
-# df_up_unique.to_csv('U:/CIO/#Research/product_unique.csv', index=False)
+# df_up_unique.to_csv('U:/CIO/#Data/output/investment/product/product_unique.csv', index=False)
 
 # Renames columns
 df_up = df_up.rename(
@@ -69,7 +77,7 @@ df_up_monthly_check['Month'] = [df_up_monthly_check['Date'][i].month for i in ra
 df_up_monthly_check['Day'] = [df_up_monthly_check['Date'][i].day for i in range(0, len(df_up_monthly_check))]
 df_up_monthly_check = df_up_monthly_check.groupby(['OptionType', 'Year', 'Month']).tail(1).reset_index(drop=True)
 df_up_monthly_check = df_up_monthly_check[df_up_monthly_check['Day'] < 28]
-df_up_monthly_check = df_up_monthly_check.to_csv('U:/CIO/#Investment_Report/Data/output/testing/product/df_up_monthly_check_product.csv', index=False)
+df_up_monthly_check = df_up_monthly_check.to_csv('U:/CIO/#Data/output/investment/product/df_up_monthly_check_product.csv', index=False)
 
 # Calculates 1 month return
 df_up_monthly['Unit Price Lag 1'] = df_up_monthly.groupby('OptionType')['Unit Price'].shift(1)
@@ -95,7 +103,7 @@ df_cpi['Inflation'] = df_cpi['Inflation'].shift(-2).ffill()
 df_cpi = df_cpi.reset_index(drop=False)
 df_cpi = df_cpi.rename(columns={'Series ID': 'Date'})
 
-df_cpi.to_csv('U:/CIO/#Research/inflation_output.csv', index=False)
+df_cpi.to_csv('U:/CIO/#Data/output/investment/product/inflation_output.csv', index=False)
 
 # Merges monthly unit price returns with inflation
 df_up_monthly = pd.merge(
@@ -251,7 +259,7 @@ for horizon, period in horizon_to_period_dict.items():
     df_up_monthly[objective_name] = (df_up_monthly[core_name] + df_up_monthly[hurdle_name]) * (1 - df_up_monthly[tax_name])
     df_up_monthly[excess_name] = df_up_monthly[return_name] - df_up_monthly[objective_name]
 
-df_up_monthly.to_csv('U:/CIO/#Investment_Report/Data/output/testing/product/df_up_monthly_product.csv', index=False)
+df_up_monthly.to_csv('U:/CIO/#Data/output/investment/product/df_up_monthly_product.csv', index=False)
 
 # Creates Risk of Loss Years table
 df_risk_of_loss_years_FYTD = df_up_monthly[df_up_monthly['Date'] == max(df_up_monthly['Date'])]
@@ -278,7 +286,7 @@ df_risk_of_loss_years = df_risk_of_loss_years[
     ]
 ]
 
-df_risk_of_loss_years.to_latex('U:/CIO/#Investment_Report/Data/output/testing/product/product_risk_years.tex')
+df_risk_of_loss_years.to_latex('U:/CIO/#Data/output/investment/product/product_risk_years.tex')
 
 # Creates Product Performance table
 df_product = df_up_monthly[df_up_monthly['Date'] == report_date]
@@ -312,7 +320,127 @@ fig.set_title('LGS Annualised Product Performance')
 fig.set_ylabel('Performance %')
 fig.set_xlabel('')
 plt.tight_layout()
-fig.get_figure().savefig('U:/CIO/#Investment_Report/Data/output/testing/product/product_performance.png', dpi=300)
+fig.get_figure().savefig('U:/CIO/#Data/output/investment/product/product_performance.png', dpi=300)
+
+
+# Create Risk Table and Risk Chart
+loss_years = df_risk_of_loss_years.lt(0).sum()
+gain_years = df_risk_of_loss_years.gt(0).sum()
+
+df_loss_years_percentage = pd.DataFrame((loss_years/(loss_years+gain_years))).T.rename(index={0: 'Actual loss years (%)'})
+df_loss_years = pd.DataFrame(loss_years).T.rename(index={0: 'No. loss years'})
+df_expected_loss_years = pd.DataFrame((loss_years/(loss_years+gain_years))*20).T.rename(index={0: 'No. Expected loss years per 20 years'})
+df_total_years = pd.DataFrame(loss_years+gain_years).T.rename(index={0: 'No. years'})
+
+df_product_risk = pd.concat(
+    [
+        df_loss_years_percentage,
+        df_loss_years,
+        df_expected_loss_years,
+        df_total_years
+    ],
+    axis=0
+).round(2)
+
+
+# Creates Checker
+df_lgs_website_return_acc = pd.read_csv(lgs_website_return_acc_filepath, skiprows=[0, 1, 2, 3, 4, 5, 6])
+df_lgs_website_return_dbg = pd.read_csv(lgs_website_return_dbg_filepath, skiprows=[0, 1, 2, 3, 4, 5, 6])
+df_lgs_website_return_dbs = pd.read_csv(lgs_website_return_dbs_filepath, skiprows=[0, 1, 2, 3, 4, 5, 6])
+
+# Removes SAS from Accumulation and Selects only Growth from Deferred Benefits
+df_lgs_website_return_acc = df_lgs_website_return_acc[~df_lgs_website_return_acc['Investment Option'].isin(['Sustainable Australian Shares'])].reset_index(drop=True)
+df_lgs_website_return_dbg = df_lgs_website_return_dbg[df_lgs_website_return_dbg['Investment Option'].isin(['Growth'])].reset_index(drop=True)
+
+# Concatenates the website returns into a single dataframe
+df_lgs_website_return = pd\
+    .concat(
+    [
+        df_lgs_website_return_acc,
+        df_lgs_website_return_dbg,
+        df_lgs_website_return_dbs
+    ], axis=0)\
+    .sort_values('Investment Option')\
+    .reset_index(drop=True)
+
+website_return_to_internal_return_dictionary = {
+    '1mth': '1_Return',
+    '3mths': '3_Return',
+    'FYTD': str(FYTD) + '_Return',
+    '12mts': '12_Return',
+    '3yrs': '36_Return',
+    '5yrs': '60_Return',
+    '7yrs': '84_Return',
+    '10yrs': '120_Return'
+}
+
+website_return_column_list = list(website_return_to_internal_return_dictionary.keys())
+internal_return_column_list = list(website_return_to_internal_return_dictionary.values())
+
+df_up_monthly_current = df_up_monthly[df_up_monthly['Date'].isin([report_date])].reset_index(drop=True)
+df_up_monthly_current = df_up_monthly_current[
+    [
+        'OptionType',
+        '1_Return',
+        '3_Return',
+        str(FYTD) + '_Return',
+        '12_Return',
+        '36_Return',
+        '60_Return',
+        '84_Return',
+        '120_Return'
+    ]
+].sort_values('OptionType').round(4)
+
+# df_lgs_website_return[website_return_column_list] = df_lgs_website_return[website_return_column_list]/100
+df_up_monthly_current[internal_return_column_list] = df_up_monthly_current[internal_return_column_list]*100
+
+df_check_returns1 = pd.merge(
+    left=df_up_monthly_current,
+    right=df_lgs_website_return,
+    left_on=['OptionType'],
+    right_on=['Investment Option']
+)
+
+df_check_returns2 = pd.DataFrame()
+strategy_deviation_list = []
+month_deviation_list = []
+value_deviation_list = []
+
+for website_return, internal_return in website_return_to_internal_return_dictionary.items():
+    deviation_column_name = internal_return[:-7] + '_Deviation'
+    df_check_returns1[deviation_column_name] = (df_check_returns1[internal_return] - df_check_returns1[website_return]).round(2)
+
+    for i in range(0, len(df_check_returns1)):
+        if abs(df_check_returns1[deviation_column_name][i]) >= 0.01:
+            strategy_deviation_list.append(df_check_returns1['OptionType'][i])
+            month_deviation_list.append(deviation_column_name)
+            value_deviation_list.append(df_check_returns1[deviation_column_name][i])
+
+df_check_returns2['Strategy'] = strategy_deviation_list
+df_check_returns2['Month'] = month_deviation_list
+df_check_returns2['Value'] = value_deviation_list
+
+print('This Impacts Table 3.1 at:\n')
+df_check_returns3 = pd.DataFrame()
+for i in range(0, len(df_check_returns2)):
+    if (
+            (df_check_returns2['Strategy'][i] == 'High Growth' and df_check_returns2['Month'][i][:2] == '84') or
+            (df_check_returns2['Strategy'][i] == 'Balanced Growth' and df_check_returns2['Month'][i][:2] == '60') or
+            (df_check_returns2['Strategy'][i] == 'Balanced' and df_check_returns2['Month'][i][:2] == '36') or
+            (df_check_returns2['Strategy'][i] == 'Growth' and df_check_returns2['Month'][i][:2] == '60') or
+            (df_check_returns2['Strategy'][i] == 'Defined Benefit Strategy' and df_check_returns2['Month'][i][:2] == '60')
+    ):
+        df_check_returns3 = df_check_returns3.append(df_check_returns2.loc[i])
+        print(df_check_returns2.loc[i], '\n')
+
+
+writer = pd.ExcelWriter('U:/CIO/#Data/output/investment/product/product_checker.xlsx', engine='xlsxwriter')
+df_check_returns1.to_excel(writer, sheet_name='Check Details', index=False)
+df_check_returns2.to_excel(writer, sheet_name='Check Deviants', index=False)
+df_check_returns3.to_excel(writer, sheet_name='Check Deviants Table 3.1', index=False)
+writer.save()
+
 
 # Charting
 # for horizon, period in horizon_to_period_dict.items():
