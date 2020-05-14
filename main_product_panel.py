@@ -3,6 +3,9 @@ import numpy as np
 import datetime as dt
 import matplotlib
 import matplotlib.pyplot as plt
+import requests
+from pandas import pandas as pd
+from bs4 import BeautifulSoup
 FYTD = 9
 report_date = dt.datetime(2020, 3, 31)
 darkgreen = (75/256, 120/256, 56/256)
@@ -15,9 +18,6 @@ rba_cpi_filepath = 'U:/CIO/#Data/input/rba/inflation/20190930 g1-data.csv'
 lgs_website_return_acc_filepath = 'U:/CIO/#Data/input/lgs/website/investment_returns/2020/03/InvestmentReturns_Accumulation.csv'
 lgs_website_return_dbg_filepath = 'U:/CIO/#Data/input/lgs/website/investment_returns/2020/03/InvestmentReturns_DBG.csv'
 lgs_website_return_dbs_filepath = 'U:/CIO/#Data/input/lgs/website/investment_returns/2020/03/InvestmentReturns_DBS.csv'
-lgs_website_yearly_acc_filepath = 'U:/CIO/#Data/input/lgs/website/investment_yearly/2020/03/'
-lgs_website_yearly_dbg_filepath = 'U:/CIO/#Data/input/lgs/website/investment_yearly/2020/03/'
-lgs_website_yearly_dbs_filepath = 'U:/CIO/#Data/input/lgs/website/investment_yearly/2020/03/'
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
 use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12]
@@ -140,16 +140,16 @@ df_jpm_rf = df_jpm_main_benchmarks[df_jpm_main_benchmarks['Manager'].isin(['CLFA
 df_jpm_rf = df_jpm_rf.rename(columns={'Values': 'JPM_Rf'})
 df_jpm_rf['JPM_Rf'] = df_jpm_rf['JPM_Rf']/100
 
-# Infers the risk-free rate from the Cash +0.2% benchmark, the +0.2% benchmark started November 2019.
-rf_values = []
-new_cash_benchmark_date = dt.datetime(2019, 11, 30)
-for i in range(0, len(df_jpm_rf)):
-    if df_jpm_rf['Date'][i] >= new_cash_benchmark_date:
-        rf_values.append(df_jpm_rf['JPM_Rf'][i] - (((1+0.002)**(1/12))-1))
-    else:
-        rf_values.append(df_jpm_rf['JPM_Rf'][i])
-df_jpm_rf['JPM_Rf'] = rf_values
-df_jpm_rf = df_jpm_rf.drop(columns=['Manager'], axis=1)
+# # Infers the risk-free rate from the Cash +0.2% benchmark, the +0.2% benchmark started November 2019.
+# rf_values = []
+# new_cash_benchmark_date = dt.datetime(2019, 11, 30)
+# for i in range(0, len(df_jpm_rf)):
+#     if df_jpm_rf['Date'][i] >= new_cash_benchmark_date:
+#         rf_values.append(df_jpm_rf['JPM_Rf'][i] - (((1+0.002)**(1/12))-1))
+#     else:
+#         rf_values.append(df_jpm_rf['JPM_Rf'][i])
+# df_jpm_rf['JPM_Rf'] = rf_values
+# df_jpm_rf = df_jpm_rf.drop(columns=['Manager'], axis=1)
 
 df_up_monthly = pd.merge(
     left=df_up_monthly,
@@ -205,7 +205,7 @@ product_to_hurdle_dict = {
     'Balanced Growth': 0.03,
     'Balanced': 0.02,
     'Conservative': 0.015,
-    'Managed Cash': 0.0025,
+    'Managed Cash': 0,
     'Defined Benefit Strategy': 0
 }
 
@@ -277,16 +277,23 @@ del df_risk_of_loss_years_12
 df_risk_of_loss_years = df_risk_of_loss_years[
     [
         'High Growth',
-        'Growth',
         'Balanced Growth',
         'Balanced',
         'Conservative',
         'Managed Cash',
+        'Growth',
         'Defined Benefit Strategy'
     ]
 ]
 
-df_risk_of_loss_years.to_latex('U:/CIO/#Data/output/investment/product/product_risk_years.tex')
+df_risk_of_loss_years = df_risk_of_loss_years.reset_index(drop=False)
+df_risk_of_loss_years['Year'] = [int(df_risk_of_loss_years['Date'][i].year) for i in range(0, len(df_risk_of_loss_years))]
+df_risk_of_loss_years = df_risk_of_loss_years.set_index('Year')
+df_risk_of_loss_years = df_risk_of_loss_years.rename(index={2020: 'FYTD'})
+df_risk_of_loss_years = df_risk_of_loss_years.reset_index(drop=False)
+df_risk_of_loss_years = df_risk_of_loss_years.drop(columns=('Date'), axis=1)
+
+# df_risk_of_loss_years.to_latex('U:/CIO/#Data/output/investment/product/product_risk_years.tex')
 
 # Creates Product Performance table
 df_product = df_up_monthly[df_up_monthly['Date'] == report_date]
@@ -294,11 +301,11 @@ df_product = df_product.set_index('OptionType')
 
 product_to_horizon_dict = {
     'High Growth': 84,
-    'Growth': 60,
     'Balanced Growth': 60,
     'Balanced': 36,
     'Conservative': 24,
     'Managed Cash': 24,
+    'Growth': 60,
     'Defined Benefit Strategy': 60
 }
 
@@ -324,23 +331,23 @@ fig.get_figure().savefig('U:/CIO/#Data/output/investment/product/product_perform
 
 
 # Create Risk Table and Risk Chart
-loss_years = df_risk_of_loss_years.lt(0).sum()
-gain_years = df_risk_of_loss_years.gt(0).sum()
-
-df_loss_years_percentage = pd.DataFrame((loss_years/(loss_years+gain_years))).T.rename(index={0: 'Actual loss years (%)'})
-df_loss_years = pd.DataFrame(loss_years).T.rename(index={0: 'No. loss years'})
-df_expected_loss_years = pd.DataFrame((loss_years/(loss_years+gain_years))*20).T.rename(index={0: 'No. Expected loss years per 20 years'})
-df_total_years = pd.DataFrame(loss_years+gain_years).T.rename(index={0: 'No. years'})
-
-df_product_risk = pd.concat(
-    [
-        df_loss_years_percentage,
-        df_loss_years,
-        df_expected_loss_years,
-        df_total_years
-    ],
-    axis=0
-).round(2)
+# loss_years = df_risk_of_loss_years.lt(0).sum()
+# gain_years = df_risk_of_loss_years.gt(0).sum()
+#
+# df_loss_years_percentage = pd.DataFrame((loss_years/(loss_years+gain_years))).T.rename(index={0: 'Actual loss years (%)'})
+# df_loss_years = pd.DataFrame(loss_years).T.rename(index={0: 'No. loss years'})
+# df_expected_loss_years = pd.DataFrame((loss_years/(loss_years+gain_years))*20).T.rename(index={0: 'No. Expected loss years per 20 years'})
+# df_total_years = pd.DataFrame(loss_years+gain_years).T.rename(index={0: 'No. years'})
+#
+# df_product_risk = pd.concat(
+#     [
+#         df_loss_years_percentage,
+#         df_loss_years,
+#         df_expected_loss_years,
+#         df_total_years
+#     ],
+#     axis=0
+# ).round(2)
 
 
 # Creates Checker
@@ -435,11 +442,108 @@ for i in range(0, len(df_check_returns2)):
         print(df_check_returns2.loc[i], '\n')
 
 
+# Creates checker for yearly returns
+# Request Allocation Table High Growth and creates a dataframe - as at 19/8/2019 Table number is 20
+res = requests.get('https://www.lgsuper.com.au/investments/performance/accumulation-scheme/')
+soup = BeautifulSoup(res.content, 'lxml')
+table = soup.find_all('table')
+df_lgs_website_yearly_return_acc = pd.read_html(str(table))[2]
+df_lgs_website_yearly_return_acc = df_lgs_website_yearly_return_acc.set_index('Year')
+df_lgs_website_yearly_return_acc = df_lgs_website_yearly_return_acc.drop(columns=['Sustainable Australian Shares (%)'], axis=1)
+
+# Request Allocation Table Deferred benefit growth  - as at 19/8/2019 Table number is 20
+res = requests.get('https://www.lgsuper.com.au/investments/performance/retirement-scheme/deferred-benefit/')
+soup = BeautifulSoup(res.content, 'lxml')
+table = soup.find_all('table')
+df_lgs_website_yearly_return_dbg = pd.read_html(str(table))[2]
+df_lgs_website_yearly_return_dbg = df_lgs_website_yearly_return_dbg.set_index('Year')
+df_lgs_website_yearly_return_dbg = df_lgs_website_yearly_return_dbg.drop(columns=['High Growth (%)', 'Balanced (%)', 'Conservative (%)' , 'Managed Cash (%)', 'Balanced Growth (%)'], axis=1)
+
+# Request Allocation Table Defined benefit  - as at 19/8/2019 Table number is 20
+res = requests.get('https://www.lgsuper.com.au/investments/performance/defined-benefit-scheme/')
+soup = BeautifulSoup(res.content, 'lxml')
+table = soup.find_all('table')
+df_lgs_website_yearly_return_dbs = pd.read_html(str(table))[2]
+df_lgs_website_yearly_return_dbs = df_lgs_website_yearly_return_dbs.set_index('Year')
+
+df_lgs_website_yearly_return = pd.concat(
+    [
+        df_lgs_website_yearly_return_acc,
+        df_lgs_website_yearly_return_dbg,
+        df_lgs_website_yearly_return_dbs
+    ],
+    axis=1
+)
+
+df_lgs_website_yearly_return = df_lgs_website_yearly_return.sort_index(ascending=False).reset_index(drop=False)
+df_lgs_website_yearly_return['Year'] = [int(df_lgs_website_yearly_return['Year'][i]) for i in range(0, len(df_lgs_website_yearly_return))]
+df_lgs_website_yearly_return = df_lgs_website_yearly_return.set_index('Year', drop=True)
+
+# Adds the FYTD to Risk of Loss Years
+df_lgs_website_return_FYTD = df_lgs_website_return[['Investment Option', 'FYTD']]
+strategy_column_list = [df_lgs_website_return_FYTD['Investment Option'][i] + ' (%)' for i in range(0, len(df_lgs_website_return_FYTD))]
+df_lgs_website_return_FYTD = df_lgs_website_return_FYTD.drop(columns=['Investment Option'], axis=1)
+df_lgs_website_return_FYTD['Investment Option'] = strategy_column_list
+df_lgs_website_return_FYTD = df_lgs_website_return_FYTD.set_index('Investment Option')
+df_lgs_website_return_FYTD = df_lgs_website_return_FYTD.T
+df_lgs_website_return_FYTD = df_lgs_website_return_FYTD.rename(index={'FYTD': 2020})
+df_lgs_website_return_FYTD = df_lgs_website_return_FYTD.reset_index(drop=False)
+df_lgs_website_return_FYTD = df_lgs_website_return_FYTD.rename(columns={'index': 'Year'})
+df_lgs_website_return_FYTD = df_lgs_website_return_FYTD.set_index('Year')
+
+df_lgs_website_yearly_return = pd.concat([df_lgs_website_yearly_return, df_lgs_website_return_FYTD], axis=0).sort_index(ascending=False)
+df_lgs_website_yearly_return = df_lgs_website_yearly_return.rename(index={2020: 'FYTD'})
+df_lgs_website_yearly_return = df_lgs_website_yearly_return.reset_index(drop=False)
+
+with open('U:/CIO/#Data/output/investment/product/product_risk_years.tex', 'w') as tf:
+    tf.write(df_lgs_website_yearly_return.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRR'))
+
+
+df_check_yearly_returns1 = pd.merge(
+    left=df_risk_of_loss_years,
+    right=df_lgs_website_yearly_return,
+    left_on=['Year'],
+    right_on=['Year'],
+    how='outer'
+)
+df_check_yearly_returns1 = df_check_yearly_returns1.reset_index(drop=False)
+
+website_yearly_return_column_to_internal_yearly_return_column_dictionary = {
+    'High Growth (%)': 'High Growth',
+    'Balanced Growth (%)': 'Balanced Growth',
+    'Balanced (%)': 'Balanced',
+    'Conservative (%)': 'Conservative',
+    'Managed Cash (%)': 'Managed Cash',
+    'Defined Benefit Strategy (%)': 'Defined Benefit Strategy'
+}
+
+strategy_deviation_yearly_list = []
+year_deviation_yearly_list = []
+value_deviation_yearly_list = []
+for website_column, internal_column in website_yearly_return_column_to_internal_yearly_return_column_dictionary.items():
+    deviation_column = internal_column + '_Deviation'
+    df_check_yearly_returns1[deviation_column] = df_check_yearly_returns1[internal_column] - df_check_yearly_returns1[website_column]
+
+    for i in range(0, len(df_check_yearly_returns1)):
+        if abs(df_check_yearly_returns1[deviation_column][i]) >= 0.01:
+            strategy_deviation_yearly_list.append(internal_column)
+            year_deviation_yearly_list.append(df_check_yearly_returns1['Year'][i])
+            value_deviation_yearly_list.append(df_check_yearly_returns1[deviation_column][i])
+
+df_check_yearly_returns2 = pd.DataFrame()
+df_check_yearly_returns2['Strategy'] = strategy_deviation_yearly_list
+df_check_yearly_returns2['Year'] = year_deviation_yearly_list
+df_check_yearly_returns2['Value'] = value_deviation_yearly_list
+
 writer = pd.ExcelWriter('U:/CIO/#Data/output/investment/product/product_checker.xlsx', engine='xlsxwriter')
-df_check_returns1.to_excel(writer, sheet_name='Check Details', index=False)
-df_check_returns2.to_excel(writer, sheet_name='Check Deviants', index=False)
-df_check_returns3.to_excel(writer, sheet_name='Check Deviants Table 3.1', index=False)
+df_check_returns1.to_excel(writer, sheet_name='Returns Details', index=False)
+df_check_returns2.to_excel(writer, sheet_name='Returns Deviants', index=False)
+df_check_returns3.to_excel(writer, sheet_name='Returns Deviants Table 3.1', index=False)
+df_check_yearly_returns1.to_excel(writer, sheet_name='Yearly Details', index=False)
+df_check_yearly_returns2.to_excel(writer, sheet_name='Yearly Deviants', index=False)
 writer.save()
+
+
 
 
 # Charting
