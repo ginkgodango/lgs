@@ -6,18 +6,18 @@ import matplotlib.pyplot as plt
 import requests
 from pandas import pandas as pd
 from bs4 import BeautifulSoup
-FYTD = 9
-report_date = dt.datetime(2020, 3, 31)
+FYTD = 10
+report_date = dt.datetime(2020, 4, 30)
 darkgreen = (75/256, 120/256, 56/256)
 middlegreen = (141/256, 177/256, 66/256)
 lightgreen = (175/256, 215/256, 145/256)
 
 lgs_unit_prices_filepath = 'U:/CIO/#Data/input/lgs/unitprices/20200430 Unit Prices.csv'
-jpm_main_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Main Benchmarks_v4.xlsx'
-rba_cpi_filepath = 'U:/CIO/#Data/input/rba/inflation/20190930 g1-data.csv'
-lgs_website_return_acc_filepath = 'U:/CIO/#Data/input/lgs/website/investment_returns/2020/03/InvestmentReturns_Accumulation.csv'
-lgs_website_return_dbg_filepath = 'U:/CIO/#Data/input/lgs/website/investment_returns/2020/03/InvestmentReturns_DBG.csv'
-lgs_website_return_dbs_filepath = 'U:/CIO/#Data/input/lgs/website/investment_returns/2020/03/InvestmentReturns_DBS.csv'
+jpm_main_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Main Benchmarks.xlsx'
+rba_cpi_filepath = 'U:/CIO/#Data/input/rba/inflation/20200430 g1-data.csv'
+lgs_website_return_acc_filepath = 'U:/CIO/#Data/input/lgs/website/investment_returns/2020/04/InvestmentReturns_acc.csv'
+lgs_website_return_dbg_filepath = 'U:/CIO/#Data/input/lgs/website/investment_returns/2020/04/InvestmentReturns_dbg.csv'
+lgs_website_return_dbs_filepath = 'U:/CIO/#Data/input/lgs/website/investment_returns/2020/04/InvestmentReturns_dbs.csv'
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
 use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12]
