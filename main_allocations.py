@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 input_directory = 'U:/CIO/#Investment_Report/Data/input/allocations/'
 output_directory = 'U:/CIO/#Data/output/investment/allocations/'
 
-allocations_filename = 'asset_allocations_2020-02-29.csv'
+allocations_filename = 'asset_allocations_2020-04-30.csv'
 dictionary_filename = 'allocations_dictionary_2019-11-30.csv'
 
 df_allocations = pd.read_csv(
@@ -65,10 +65,10 @@ df_allocation = pd.concat([df_allocation, df_add_LPE], axis=0).reset_index(drop=
 
 strategy_to_order_dict = {
     'High Growth': 1,
-    'Growth': 2,
-    'Balanced Growth': 3,
-    'Balanced': 4,
-    'Conservative': 5,
+    'Balanced Growth': 2,
+    'Balanced': 3,
+    'Conservative': 4,
+    'Growth': 5,
     'Employer Reserve': 6
 }
 
@@ -117,10 +117,10 @@ fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True, figsize=(12
 
 strategy_to_axes_dict = {
     'High Growth': axes[0, 0],
-    'Growth': axes[0, 1],
-    'Balanced Growth': axes[0, 2],
-    'Balanced': axes[1, 0],
-    'Conservative': axes[1, 1],
+    'Balanced Growth': axes[0, 1],
+    'Balanced': axes[0, 2],
+    'Conservative': axes[1, 0],
+    'Growth': axes[1, 1],
     'Employer Reserve': axes[1, 2]
 }
 
@@ -163,9 +163,9 @@ for strategy, axes in strategy_to_axes_dict.items():
     strategy_to_dataframe_dict[strategy] = df
 
 df_aa1 = pd.concat(
-    [strategy_to_dataframe_dict['High Growth'], strategy_to_dataframe_dict['Growth'], strategy_to_dataframe_dict['Balanced Growth']],
+    [strategy_to_dataframe_dict['High Growth'], strategy_to_dataframe_dict['Balanced Growth'], strategy_to_dataframe_dict['Balanced']],
     axis=1,
-    keys=['High Growth', 'Growth', 'Balanced Growth'],
+    keys=['High Growth', 'Balanced Growth', 'Balanced'],
     sort=False
 )
 
@@ -174,9 +174,9 @@ df_aa1 = df_aa1.reset_index(drop=False)
 df_aa1 = df_aa1.rename(columns={'index': 'Asset Class'})
 
 df_aa2 = pd.concat(
-    [strategy_to_dataframe_dict['Balanced'], strategy_to_dataframe_dict['Conservative'], strategy_to_dataframe_dict['Employer Reserve']],
+    [strategy_to_dataframe_dict['Conservative'], strategy_to_dataframe_dict['Growth'], strategy_to_dataframe_dict['Employer Reserve']],
     axis=1,
-    keys=['Balanced', 'Conservative', 'Employer Reserve'],
+    keys=['Conservative', 'Growth', 'Employer Reserve'],
     sort=False
 )
 

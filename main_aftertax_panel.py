@@ -3,15 +3,15 @@ import numpy as np
 import datetime as dt
 
 # START USER INPUT DATA
-jpm_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/02/Historical Time Series - Monthly - Australian Equities After Tax.xlsx'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/02/New Dictionary_v6.xlsx'
-FYTD = 8
-report_date = dt.datetime(2020, 2, 29)
+jpm_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Australian Equities After Tax_GOF.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/04/New Dictionary_v9.xlsx'
+FYTD = 10
+report_date = dt.datetime(2020, 4, 30)
 # END USER INPUT DATA
 
 # Imports the JPM time-series.
-use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 15]
-use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15]
+use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
+use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12]
 footnote_rows = 28
 
 df_jpm = pd.read_excel(
@@ -36,16 +36,26 @@ df_jpm = df_jpm.replace('-', np.NaN)
 # Filters nan values
 df_jpm = df_jpm[~df_jpm['Values'].isin([np.nan])].reset_index(drop=True)
 
-# Splits df_jpm into a returns and benchmarks
-df_jpm_market_values = df_jpm[~df_jpm.Manager.str.endswith(('.1', '.2'))].reset_index(drop=True)
-df_jpm_returns = df_jpm[df_jpm.Manager.str.endswith('.1')].reset_index(drop=True)
-df_jpm_benchmarks = df_jpm[df_jpm.Manager.str.endswith('.2')].reset_index(drop=True)
+# NOF Splits df_jpm into a returns and benchmarks
+# df_jpm_market_values = df_jpm[~df_jpm.Manager.str.endswith(('.1', '.2'))].reset_index(drop=True)
+# df_jpm_returns = df_jpm[df_jpm.Manager.str.endswith('.1')].reset_index(drop=True)
+# df_jpm_benchmarks = df_jpm[df_jpm.Manager.str.endswith('.2')].reset_index(drop=True)
+# df_jpm_returns['Manager'] = [df_jpm_returns['Manager'][i][:-2] for i in range(0, len(df_jpm_returns))]
+# df_jpm_benchmarks['Manager'] = [df_jpm_benchmarks['Manager'][i][:-2] for i in range(0, len(df_jpm_benchmarks))]
+# df_jpm_benchmarks = df_jpm_benchmarks[df_jpm_benchmarks['Manager'].isin(['CLFAEPTC'])]
+# df_jpm_benchmarks = df_jpm_benchmarks.drop(['Manager'], axis=1)
 
-df_jpm_returns['Manager'] = [df_jpm_benchmarks['Manager'][i][:-2] for i in range(0, len(df_jpm_benchmarks))]
+# GOF Splits df_jpm into a returns and benchmarks
+df_jpm_market_values = df_jpm[df_jpm.Manager.str.endswith('.3')].reset_index(drop=True)
+df_jpm_returns = df_jpm[df_jpm.Manager.str.endswith('.4')].reset_index(drop=True)
+df_jpm_benchmarks = df_jpm[df_jpm.Manager.str.endswith('.2')].reset_index(drop=True)
+df_jpm_market_values['Manager'] = [df_jpm_market_values['Manager'][i][:-2] for i in range(0, len(df_jpm_market_values))]
+df_jpm_returns['Manager'] = [df_jpm_returns['Manager'][i][:-2] for i in range(0, len(df_jpm_returns))]
 df_jpm_benchmarks['Manager'] = [df_jpm_benchmarks['Manager'][i][:-2] for i in range(0, len(df_jpm_benchmarks))]
 df_jpm_benchmarks = df_jpm_benchmarks[df_jpm_benchmarks['Manager'].isin(['CLFAEPTC'])]
 df_jpm_benchmarks = df_jpm_benchmarks.drop(['Manager'], axis=1)
 
+# Renames columns
 df_jpm_market_values = df_jpm_market_values.rename(columns={'Values': 'JPM_Market_Value'})
 df_jpm_returns = df_jpm_returns.rename(columns={'Values': 'JPM_Return'})
 df_jpm_benchmarks = df_jpm_benchmarks.rename(columns={'Values': 'JPM_Benchmark'})

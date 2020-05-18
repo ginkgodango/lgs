@@ -6,13 +6,15 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
 # START USER INPUT DATA
-jpm_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Main Returns and Benchmarks.xlsx'
-jpm_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Alternatives Returns and Benchmarks.xlsx'
-jpm_mv_main_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Main Market Values.xlsx'
-jpm_mv_alts_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Alternatives Market Values.xlsx'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/02/New Dictionary_v7.xlsx'
-FYTD = 9
-report_date = dt.datetime(2020, 3, 31)
+jpm_main_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Main Returns.xlsx'
+jpm_alts_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Alts Returns.xlsx'
+jpm_main_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Main Benchmarks_Fix.xlsx'
+jpm_alts_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Alts Benchmarks.xlsx'
+jpm_main_market_values_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Main Market Values_Fix.xlsx'
+jpm_alts_market_values_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Alts Market Values.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/04/New Dictionary_v9.xlsx'
+FYTD = 10
+report_date = dt.datetime(2020, 4, 30)
 # END USER INPUT DATA
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
@@ -24,67 +26,120 @@ footnote_rows = 28
 # use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15]
 # footnote_rows = 28
 
+
+def ts_to_panel(df_ts, date, set_index_column_name, set_value_column_name):
+    df_panel = df_ts.rename(columns={date: 'Date'})
+    df_panel = df_panel.set_index('Date')
+    df_panel = df_panel.transpose()
+    df_panel = df_panel.reset_index(drop=False)
+    df_panel = df_panel.rename(columns={'index': set_index_column_name})
+    df_panel = pd.melt(df_panel, id_vars=[set_index_column_name], value_name=set_value_column_name)
+    df_panel = df_panel.sort_values([set_index_column_name, 'Date'])
+    df_panel = df_panel.reset_index(drop=True)
+    df_panel = df_panel.replace('-', np.NaN)
+
+    return df_panel
+
+
 # Reads in the jpm main returns historical time series
-df_jpm_main = pd.read_excel(
-        pd.ExcelFile(jpm_main_filepath),
-        sheet_name='Sheet1',
-        skiprows=use_accountid,
-        skipfooter=footnote_rows,
-        header=1
-        )
+df_jpm_main_returns = pd.read_excel(
+    pd.ExcelFile(jpm_main_returns_filepath),
+    sheet_name='Sheet1',
+    skiprows=use_accountid,
+    skipfooter=footnote_rows,
+    header=1
+)
 
 # Reshapes the time-series into a panel.
-df_jpm_main = df_jpm_main.rename(columns={'Unnamed: 0': 'Date'})
-df_jpm_main = df_jpm_main.set_index('Date')
-df_jpm_main = df_jpm_main.transpose()
-df_jpm_main = df_jpm_main.reset_index(drop=False)
-df_jpm_main = df_jpm_main.rename(columns={'index': 'Manager'})
-df_jpm_main = pd.melt(df_jpm_main, id_vars=['Manager'], value_name='JPM_Return')
-df_jpm_main = df_jpm_main.sort_values(['Manager', 'Date'])
-df_jpm_main = df_jpm_main.reset_index(drop=True)
-df_jpm_main = df_jpm_main.replace('-', np.NaN)
+df_jpm_main_returns = ts_to_panel(
+    df_ts=df_jpm_main_returns,
+    date='Unnamed: 0',
+    set_index_column_name='Manager',
+    set_value_column_name='JPM_Return'
+)
 
 # Reads in the jpm alts returns historical time series
-df_jpm_alts = pd.read_excel(
-        pd.ExcelFile(jpm_alts_filepath),
-        sheet_name='Sheet1',
-        skiprows=use_accountid,
-        skipfooter=footnote_rows,
-        header=1
-        )
+df_jpm_alts_returns = pd.read_excel(
+    pd.ExcelFile(jpm_alts_returns_filepath),
+    sheet_name='Sheet1',
+    skiprows=use_accountid,
+    skipfooter=footnote_rows,
+    header=1
+)
 
 # Reshapes the time-series into a panel.
-df_jpm_alts = df_jpm_alts.rename(columns={'Unnamed: 0': 'Date'})
-df_jpm_alts = df_jpm_alts.set_index('Date')
-df_jpm_alts = df_jpm_alts.transpose()
-df_jpm_alts = df_jpm_alts.reset_index(drop=False)
-df_jpm_alts = df_jpm_alts.rename(columns={'index': 'Manager'})
-df_jpm_alts = pd.melt(df_jpm_alts, id_vars=['Manager'], value_name='JPM_Return')
-df_jpm_alts = df_jpm_alts.sort_values(['Manager', 'Date'])
-df_jpm_alts = df_jpm_alts.reset_index(drop=True)
-df_jpm_alts = df_jpm_alts.replace('-', np.NaN)
+df_jpm_alts_returns = ts_to_panel(
+    df_ts=df_jpm_alts_returns,
+    date='Unnamed: 0',
+    set_index_column_name='Manager',
+    set_value_column_name='JPM_Return'
+)
 
 # Joins the jpm main returns and jpm alts returns together
-df_jpm = pd.concat([df_jpm_alts, df_jpm_main], axis=0).reset_index(drop=True)
+df_jpm_returns = pd.concat([df_jpm_alts_returns, df_jpm_main_returns], axis=0).reset_index(drop=True)
+
+# Reads in the jpm main benchmarks historical time series
+df_jpm_main_benchmarks = pd.read_excel(
+    pd.ExcelFile(jpm_main_benchmarks_filepath),
+    sheet_name='Sheet1',
+    skiprows=use_accountid,
+    skipfooter=footnote_rows,
+    header=1
+)
+
+# Reshapes the time-series into a panel.
+df_jpm_main_benchmarks = ts_to_panel(
+    df_ts=df_jpm_main_benchmarks,
+    date='Unnamed: 0',
+    set_index_column_name='Manager',
+    set_value_column_name='JPM_Benchmark'
+)
+
+# Reads in the jpm alts benchmarks historical time series
+df_jpm_alts_benchmarks = pd.read_excel(
+    pd.ExcelFile(jpm_alts_benchmarks_filepath),
+    sheet_name='Sheet1',
+    skiprows=use_accountid,
+    skipfooter=footnote_rows,
+    header=1
+)
+
+# Reshapes the time-series into a panel.
+df_jpm_alts_benchmarks = ts_to_panel(
+    df_ts=df_jpm_alts_benchmarks,
+    date='Unnamed: 0',
+    set_index_column_name='Manager',
+    set_value_column_name='JPM_Benchmark'
+)
+
+# Joins the jpm main benchmarks and jpm alts benchmarks together
+df_jpm_benchmarks = pd.concat([df_jpm_alts_benchmarks, df_jpm_main_benchmarks], axis=0).reset_index(drop=True)
+
+
+
+
+
+
 
 # Checks for str/int errors before converting returns to percentages.
 string_error_list = []
-for i in range(0, len(df_jpm)):
-    if isinstance(df_jpm['JPM_Return'][i], str):
-        string_error_list.append(df_jpm['Manager'][i])
+for i in range(0, len(df_jpm_returns)):
+    if isinstance(df_jpm_returns['JPM_Return'][i], str):
+        string_error_list.append(df_jpm_returns['Manager'][i])
 
 # Converts the returns to percentage.
-df_jpm['JPM_Return'] = df_jpm['JPM_Return']/100
-
-df_jpm = df_jpm[~df_jpm['JPM_Return'].isin([np.nan])].reset_index(drop=True)
+df_jpm_returns['JPM_Return'] = df_jpm_returns['JPM_Return']/100
+df_jpm_benchmarks['JPM_Benchmark'] = df_jpm_benchmarks['JPM_Benchmark']/100
+df_jpm_returns = df_jpm_returns[~df_jpm_returns['JPM_Return'].isin([np.nan])].reset_index(drop=True)
+df_jpm_benchmarks = df_jpm_benchmarks[~df_jpm_benchmarks['JPM_Benchmark'].isin([np.nan])].reset_index(drop=True)
 
 # df_jpm = df_jpm[~df_jpm.Manager.str.endswith('.2')].reset_index(drop=True)
 
 # Splits df_jpm into a returns and benchmarks
-df_jpm_returns = df_jpm[~df_jpm.Manager.str.endswith('.1')].reset_index(drop=True)
-df_jpm_benchmarks = df_jpm[df_jpm.Manager.str.endswith('.1')].reset_index(drop=True)
-df_jpm_benchmarks['Manager'] = [df_jpm_benchmarks['Manager'][i][:-2] for i in range(0, len(df_jpm_benchmarks))]
-df_jpm_benchmarks = df_jpm_benchmarks.rename(columns={'JPM_Return': 'JPM_Benchmark'})
+# df_jpm_returns = df_jpm[~df_jpm.Manager.str.endswith('.1')].reset_index(drop=True)
+# df_jpm_benchmarks = df_jpm[df_jpm.Manager.str.endswith('.1')].reset_index(drop=True)
+# df_jpm_benchmarks['Manager'] = [df_jpm_benchmarks['Manager'][i][:-2] for i in range(0, len(df_jpm_benchmarks))]
+# df_jpm_benchmarks = df_jpm_benchmarks.rename(columns={'JPM_Return': 'JPM_Benchmark'})
 
 # Creates Rf from Cash Aggregate Benchmark
 df_jpm_rf = df_jpm_benchmarks[df_jpm_benchmarks['Manager'].isin(['CLFACASH', 'Cash Aggregate'])].reset_index(drop=True)
@@ -108,35 +163,31 @@ df_jpm_asx300 = df_jpm_asx300.drop(columns=['Manager'], axis=1)
 
 # Merges returns and benchmarks
 df_jpm = pd.merge(
-        left=df_jpm_returns,
-        right=df_jpm_benchmarks,
-        left_on=['Manager', 'Date'],
-        right_on=['Manager', 'Date'],
-        how='inner'
+    left=df_jpm_returns,
+    right=df_jpm_benchmarks,
+    left_on=['Manager', 'Date'],
+    right_on=['Manager', 'Date'],
+    how='inner'
 )
 
 
 # Merges returns, benchmarks, Rf, ASX300
 df_jpm = pd.merge(
-        left=df_jpm,
-        right=df_jpm_rf,
-        left_on=['Date'],
-        right_on=['Date'],
-        how='inner'
+    left=df_jpm,
+    right=df_jpm_rf,
+    left_on=['Date'],
+    right_on=['Date'],
+    how='inner'
 )
 
 
 df_jpm = pd.merge(
-        left=df_jpm,
-        right=df_jpm_asx300,
-        left_on=['Date'],
-        right_on=['Date'],
-        how='inner'
+    left=df_jpm,
+    right=df_jpm_asx300,
+    left_on=['Date'],
+    right_on=['Date'],
+    how='inner'
 )
-
-# Deletes the redundant dataframes.
-# del df_jpm_returns
-# del df_jpm_benchmarks
 
 
 # Reads LGS's dictionary
@@ -261,45 +312,39 @@ df_jpm['36_Beta'] = pd.Series(kwargs["result"])
 
 # Imports the JPM main market values time-series.
 df_jpm_main_mv = pd.read_excel(
-        pd.ExcelFile(jpm_mv_main_filepath),
-        sheet_name='Sheet1',
-        skiprows=use_accountid,
-        skipfooter=footnote_rows,
-        header=1
-        )
+    pd.ExcelFile(jpm_main_market_values_filepath),
+    sheet_name='Sheet1',
+    skiprows=use_accountid,
+    skipfooter=footnote_rows,
+    header=1
+)
 
 # Reshapes the time-series into a panel.
-df_jpm_main_mv = df_jpm_main_mv.rename(columns={'Unnamed: 0': 'Date'})
-df_jpm_main_mv = df_jpm_main_mv.set_index('Date')
-df_jpm_main_mv = df_jpm_main_mv.transpose()
-df_jpm_main_mv = df_jpm_main_mv.reset_index(drop=False)
-df_jpm_main_mv = df_jpm_main_mv.rename(columns={'index': 'Manager'})
-df_jpm_main_mv = pd.melt(df_jpm_main_mv, id_vars=['Manager'], value_name='Market Value')
-df_jpm_main_mv = df_jpm_main_mv.sort_values(['Manager', 'Date'])
-df_jpm_main_mv = df_jpm_main_mv.reset_index(drop=True)
-df_jpm_main_mv = df_jpm_main_mv.replace('-', np.NaN)
+df_jpm_main_mv = ts_to_panel(
+    df_ts=df_jpm_main_mv,
+    date='Unnamed: 0',
+    set_index_column_name='Manager',
+    set_value_column_name='Market Value'
+)
 
 # Imports the JPM alternatives market values time-series.
-df_jpm_mv_alts = pd.read_excel(
-        pd.ExcelFile(jpm_mv_alts_filepath),
-        sheet_name='Sheet1',
-        skiprows=use_accountid,
-        skipfooter=footnote_rows,
-        header=1
-        )
+df_jpm_alts_mv = pd.read_excel(
+    pd.ExcelFile(jpm_alts_market_values_filepath),
+    sheet_name='Sheet1',
+    skiprows=use_accountid,
+    skipfooter=footnote_rows,
+    header=1
+)
 
 # Reshapes the time-series into a panel.
-df_jpm_mv_alts = df_jpm_mv_alts.rename(columns={'Unnamed: 0': 'Date'})
-df_jpm_mv_alts = df_jpm_mv_alts.set_index('Date')
-df_jpm_mv_alts = df_jpm_mv_alts.transpose()
-df_jpm_mv_alts = df_jpm_mv_alts.reset_index(drop=False)
-df_jpm_mv_alts = df_jpm_mv_alts.rename(columns={'index': 'Manager'})
-df_jpm_mv_alts = pd.melt(df_jpm_mv_alts, id_vars=['Manager'], value_name='Market Value')
-df_jpm_mv_alts = df_jpm_mv_alts.sort_values(['Manager', 'Date'])
-df_jpm_mv_alts = df_jpm_mv_alts.reset_index(drop=True)
-df_jpm_mv_alts = df_jpm_mv_alts.replace('-', np.NaN)
+df_jpm_alts_mv = ts_to_panel(
+    df_ts=df_jpm_alts_mv,
+    date='Unnamed: 0',
+    set_index_column_name='Manager',
+    set_value_column_name='Market Value'
+)
 
-df_jpm_mv = pd.concat([df_jpm_main_mv, df_jpm_mv_alts]).reset_index(drop=True)
+df_jpm_mv = pd.concat([df_jpm_main_mv, df_jpm_alts_mv]).reset_index(drop=True)
 
 # Merges
 df_jpm_combined = pd\
@@ -377,7 +422,7 @@ df_jpm_table = df_jpm_combined[(df_jpm_combined['Date'] == report_date) & (df_jp
 
 # Sets list of columns for each table
 columns_lead = ['Manager', 'Market Value']
-columns_indicators = ['LGS Asset Class', 'LGS Sector Aggregate', 'JPM ReportName']
+columns_indicators = ['LGS Asset Class Level 2', 'LGS Sector Aggregate', 'JPM ReportName']
 columns_performance = []
 for horizon, period in horizon_to_period_dict.items():
     for column in ['Return', 'Excess']:
@@ -403,12 +448,12 @@ df_jpm_table[columns_decimal] = df_jpm_table[columns_decimal] * 100
 df_jpm_table[columns_round] = df_jpm_table[columns_round].round(2)
 
 # Creates column hierarchy for performance table
-columns_performance_multilevel1 = pd.MultiIndex.from_product([[''], ['Manager', 'LGS Sector Aggregate', 'LGS Asset Class']])
+columns_performance_multilevel1 = pd.MultiIndex.from_product([[''], ['Manager', 'LGS Sector Aggregate', 'LGS Asset Class Level 2']])
 columns_performance_multilevel2 = pd.MultiIndex.from_product([['Market Value'], ['$Mills']])
 columns_performance_multilevel3 = pd.MultiIndex.from_product([['1 Month', '3 Month', 'FYTD', '1 Year', '3 Year', '5 Year', '7 Year'], ['LGS', 'Active']])
 
 # Creates performance tables
-df_jpm_table_performance1 = df_jpm_table[['Manager', 'LGS Sector Aggregate', 'LGS Asset Class']]
+df_jpm_table_performance1 = df_jpm_table[['Manager', 'LGS Sector Aggregate', 'LGS Asset Class Level 2']]
 df_jpm_table_performance2 = df_jpm_table[['Market Value']]
 df_jpm_table_performance3 = df_jpm_table[columns_performance]
 df_jpm_table_performance1.columns = columns_performance_multilevel1
@@ -429,14 +474,14 @@ del df_jpm_table_performance3
 
 df_jpm_table_performance_sector = df_jpm_table_performance[df_jpm_table_performance[('', 'LGS Sector Aggregate')].isin([1])].reset_index(drop=True)
 df_jpm_table_performance_sector = df_jpm_table_performance_sector.drop(('', 'LGS Sector Aggregate'), axis=1)
-df_jpm_table_performance_sector = df_jpm_table_performance_sector.drop(('', 'LGS Asset Class'), axis=1)
+df_jpm_table_performance_sector = df_jpm_table_performance_sector.drop(('', 'LGS Asset Class Level 2'), axis=1)
 with open('U:/CIO/#Data/output/investment/returns/Sector.tex', 'w') as tf:
     latex_string_temp = df_jpm_table_performance_sector.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRRRRRRR')
     tf.write(latex_string_temp)
 
-asset_class_to_performance_dict = dict(list(df_jpm_table_performance.groupby([('', 'LGS Asset Class')])))
+asset_class_to_performance_dict = dict(list(df_jpm_table_performance.groupby([('', 'LGS Asset Class Level 2')])))
 for asset_class, df_temp in asset_class_to_performance_dict.items():
-    df_temp = df_temp.drop(('', 'LGS Asset Class'), axis=1)
+    df_temp = df_temp.drop(('', 'LGS Asset Class Level 2'), axis=1)
     df_temp = df_temp.drop(('', 'LGS Sector Aggregate'), axis=1)
 
     # Removes managers from PE, OA, and DA tables
@@ -455,17 +500,17 @@ for asset_class, df_temp in asset_class_to_performance_dict.items():
 
 
 # Creates risk table
-df_jpm_table_risk = df_jpm_table[columns_lead + columns_risk + ['LGS Sector Aggregate', 'LGS Asset Class']]
+df_jpm_table_risk = df_jpm_table[columns_lead + columns_risk + ['LGS Sector Aggregate', 'LGS Asset Class Level 2']]
 
 df_jpm_table_risk_sector = df_jpm_table_risk[df_jpm_table_risk['LGS Sector Aggregate'].isin([1])].reset_index(drop=True)
-df_jpm_table_risk_sector = df_jpm_table_risk_sector.drop(['LGS Sector Aggregate', 'LGS Asset Class'], axis=1)
+df_jpm_table_risk_sector = df_jpm_table_risk_sector.drop(['LGS Sector Aggregate', 'LGS Asset Class Level 2'], axis=1)
 with open('U:/CIO/#Data/output/investment/risk/Sector.tex', 'w') as tf:
     latex_string_temp = df_jpm_table_risk_sector.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRRRRRRR')
     tf.write(latex_string_temp)
 
-asset_class_to_risk_dict = dict(list(df_jpm_table_risk.groupby(['LGS Asset Class'])))
+asset_class_to_risk_dict = dict(list(df_jpm_table_risk.groupby(['LGS Asset Class Level 2'])))
 for asset_class, df_temp in asset_class_to_risk_dict.items():
-    df_temp = df_temp.drop(['LGS Sector Aggregate', 'LGS Asset Class'], axis=1)
+    df_temp = df_temp.drop(['LGS Sector Aggregate', 'LGS Asset Class Level 2'], axis=1)
     df_temp.to_csv('U:/CIO/#Data/output/investment/risk/' + str(asset_class) + '.csv', index=False)
 
     # Removes SRI from risk tables
@@ -501,25 +546,25 @@ with open('U:/CIO/#Data/output/investment/contributors/contributors.tex', 'w') a
 
 
 # Creates charts
-df_jpm_chart_12_excess = df_jpm_combined[['Manager', 'Date', '12_Excess', 'LGS Sector Aggregate', 'LGS Asset Class', 'LGS Liquidity']]
+df_jpm_chart_12_excess = df_jpm_combined[['Manager', 'Date', '12_Excess', 'LGS Sector Aggregate', 'LGS Asset Class Level 2', 'LGS Liquidity']]
 df_jpm_chart_12_excess = df_jpm_chart_12_excess[df_jpm_chart_12_excess['LGS Sector Aggregate'] == 0].reset_index(drop=True)
 df_jpm_chart_12_excess = df_jpm_chart_12_excess[df_jpm_chart_12_excess['LGS Liquidity'] == 0].reset_index(drop=True)
 df_jpm_chart_12_excess = df_jpm_chart_12_excess.drop(columns=['LGS Sector Aggregate'], axis=1)
 df_jpm_chart_12_excess['12_Excess'] = df_jpm_chart_12_excess['12_Excess']*100
-asset_class_to_chart_12_dict = dict(list(df_jpm_chart_12_excess.groupby(['LGS Asset Class'])))
+asset_class_to_chart_12_dict = dict(list(df_jpm_chart_12_excess.groupby(['LGS Asset Class Level 2'])))
 
-df_jpm_chart_60_excess = df_jpm_combined[['Manager', 'Date', '60_Excess', 'LGS Sector Aggregate', 'LGS Asset Class', 'LGS Liquidity']]
+df_jpm_chart_60_excess = df_jpm_combined[['Manager', 'Date', '60_Excess', 'LGS Sector Aggregate', 'LGS Asset Class Level 2', 'LGS Liquidity']]
 df_jpm_chart_60_excess = df_jpm_chart_60_excess[(df_jpm_chart_60_excess['LGS Sector Aggregate'] == 1) | (df_jpm_chart_60_excess['Manager'] == 'FX Overlay')].reset_index(drop=True)
 df_jpm_chart_60_excess = df_jpm_chart_60_excess.drop(columns=['LGS Sector Aggregate'], axis=1)
 df_jpm_chart_60_excess['60_Excess'] = df_jpm_chart_60_excess['60_Excess']*100
-asset_class_to_chart_60_dict = dict(list(df_jpm_chart_60_excess.groupby(['LGS Asset Class'])))
+asset_class_to_chart_60_dict = dict(list(df_jpm_chart_60_excess.groupby(['LGS Asset Class Level 2'])))
 
-df_jpm_chart_mv = df_jpm_combined[['Manager', 'Date', 'Market Value', 'LGS Sector Aggregate', 'LGS Asset Class', 'LGS Liquidity']]
+df_jpm_chart_mv = df_jpm_combined[['Manager', 'Date', 'Market Value', 'LGS Sector Aggregate', 'LGS Asset Class Level 2', 'LGS Liquidity']]
 df_jpm_chart_mv = df_jpm_chart_mv[df_jpm_chart_mv['Date'] == report_date].reset_index(drop=True)
 df_jpm_chart_mv = df_jpm_chart_mv[df_jpm_chart_mv['LGS Sector Aggregate'] == 0].reset_index(drop=True)
 df_jpm_chart_mv = df_jpm_chart_mv[df_jpm_chart_mv['LGS Liquidity'] == 0].reset_index(drop=True)
 df_jpm_chart_mv = df_jpm_chart_mv.drop(columns=['LGS Sector Aggregate'], axis=1)
-asset_class_to_chart_mv_dict = dict(list(df_jpm_chart_mv.groupby(['LGS Asset Class'])))
+asset_class_to_chart_mv_dict = dict(list(df_jpm_chart_mv.groupby(['LGS Asset Class Level 2'])))
 
 asset_classes1 = list(asset_class_to_chart_12_dict.keys())
 asset_classes2 = list(asset_class_to_chart_60_dict.keys())
@@ -577,10 +622,10 @@ for asset_class in asset_classes:
 
 # Creates Manager Allocations table
 df_jpm_manager_allocations = df_jpm_combined[df_jpm_combined['Date'] == report_date].reset_index(drop=True)
-df_jpm_manager_allocations = df_jpm_manager_allocations[['Manager', 'Market Value', 'LGS Target Weight', 'LGS Asset Class']]
+df_jpm_manager_allocations = df_jpm_manager_allocations[['Manager', 'Market Value', 'LGS Target Weight', 'LGS Asset Class Level 1']]
 df_jpm_manager_allocations = df_jpm_manager_allocations[~df_jpm_manager_allocations['LGS Target Weight'].isin([np.nan])].reset_index(drop=True)
 
-df_jpm_manager_allocations['Asset Class Market Value'] = df_jpm_manager_allocations.groupby(['LGS Asset Class'])['Market Value'].transform('sum').reset_index(drop=True)
+df_jpm_manager_allocations['Asset Class Market Value'] = df_jpm_manager_allocations.groupby(['LGS Asset Class Level 1'])['Market Value'].transform('sum').reset_index(drop=True)
 df_jpm_manager_allocations['Weight'] = df_jpm_manager_allocations['Market Value']/df_jpm_manager_allocations['Asset Class Market Value']
 df_jpm_manager_allocations['Deviation'] = df_jpm_manager_allocations['Weight'] - df_jpm_manager_allocations['LGS Target Weight']
 df_jpm_manager_allocations = df_jpm_manager_allocations[['Manager', 'Weight', 'LGS Target Weight', 'Deviation']]

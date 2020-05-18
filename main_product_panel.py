@@ -321,6 +321,9 @@ for product, horizon in product_to_horizon_dict.items():
 
 product_zipped = list(zip(product_performance, product_objective, product_excess))
 df_product = pd.DataFrame(product_zipped, index=product_name, columns=['Performance', 'Objective', 'Active']).round(4).T*100
+with open('U:/CIO/#Data/output/investment/product/product_performance.tex', 'w') as tf:
+    tf.write(df_product.to_latex(index=True, na_rep='', multicolumn_format='c', column_format='lRRRRRRR'))
+
 df_product_chart = df_product[:-1].T
 fig = df_product_chart.plot(kind='bar', color=[darkgreen, lightgreen])
 fig.set_title('LGS Annualised Product Performance')
@@ -331,23 +334,26 @@ fig.get_figure().savefig('U:/CIO/#Data/output/investment/product/product_perform
 
 
 # Create Risk Table and Risk Chart
+# df_risk_of_loss_years = df_risk_of_loss_years.set_index('Year')
 # loss_years = df_risk_of_loss_years.lt(0).sum()
 # gain_years = df_risk_of_loss_years.gt(0).sum()
 #
 # df_loss_years_percentage = pd.DataFrame((loss_years/(loss_years+gain_years))).T.rename(index={0: 'Actual loss years (%)'})
 # df_loss_years = pd.DataFrame(loss_years).T.rename(index={0: 'No. loss years'})
-# df_expected_loss_years = pd.DataFrame((loss_years/(loss_years+gain_years))*20).T.rename(index={0: 'No. Expected loss years per 20 years'})
+# # df_expected_loss_years = pd.DataFrame((loss_years/(loss_years+gain_years))*20).T.rename(index={0: 'No. Expected loss years per 20 years'})
 # df_total_years = pd.DataFrame(loss_years+gain_years).T.rename(index={0: 'No. years'})
 #
 # df_product_risk = pd.concat(
 #     [
 #         df_loss_years_percentage,
 #         df_loss_years,
-#         df_expected_loss_years,
+#         # df_expected_loss_years,
 #         df_total_years
 #     ],
 #     axis=0
 # ).round(2)
+#
+# df_risk_of_loss_years = df_risk_of_loss_years.reset_index(drop=False)
 
 
 # Creates Checker
@@ -493,6 +499,28 @@ df_lgs_website_return_FYTD = df_lgs_website_return_FYTD.set_index('Year')
 
 df_lgs_website_yearly_return = pd.concat([df_lgs_website_yearly_return, df_lgs_website_return_FYTD], axis=0).sort_index(ascending=False)
 df_lgs_website_yearly_return = df_lgs_website_yearly_return.rename(index={2020: 'FYTD'})
+df_lgs_website_yearly_return = df_lgs_website_yearly_return.reset_index(drop=False)
+
+# Create Risk Table and Risk Chart using website calculated data
+df_lgs_website_yearly_return = df_lgs_website_yearly_return.set_index('Year')
+loss_years = df_lgs_website_yearly_return.lt(0).sum()
+gain_years = df_lgs_website_yearly_return.gt(0).sum()
+
+df_loss_years_percentage = pd.DataFrame((loss_years/(loss_years+gain_years))).T.rename(index={0: 'Actual loss years (%)'})
+df_loss_years = pd.DataFrame(loss_years).T.rename(index={0: 'No. loss years'})
+# df_expected_loss_years = pd.DataFrame((loss_years/(loss_years+gain_years))*20).T.rename(index={0: 'No. Expected loss years per 20 years'})
+df_total_years = pd.DataFrame(loss_years+gain_years).T.rename(index={0: 'No. years'})
+
+df_product_risk = pd.concat(
+    [
+        df_loss_years_percentage,
+        df_loss_years,
+        # df_expected_loss_years,
+        df_total_years
+    ],
+    axis=0
+).round(2)
+
 df_lgs_website_yearly_return = df_lgs_website_yearly_return.reset_index(drop=False)
 
 with open('U:/CIO/#Data/output/investment/product/product_risk_years.tex', 'w') as tf:

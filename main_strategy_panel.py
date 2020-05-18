@@ -3,10 +3,10 @@ import numpy as np
 import datetime as dt
 
 # START USER INPUT DATA
-jpm_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks_GOF.xlsx'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/03/New Dictionary_v8.xlsx'
-FYTD = 9
-report_date = dt.datetime(2020, 3, 31)
+jpm_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/04/New Dictionary_v9.xlsx'
+FYTD = 10
+report_date = dt.datetime(2020, 4, 30)
 # END USER INPUT DATA
 
 # Imports the JPM time-series.
