@@ -28,6 +28,14 @@ footnote_rows = 28
 
 
 def ts_to_panel(df_ts, date, set_index_column_name, set_value_column_name):
+    """
+    Converts JPM time series from time-series shape to panel shape.
+    :param df_ts: JPM time series
+    :param date: Name of date column in JPM time series
+    :param set_index_column_name: Name you give the index column
+    :param set_value_column_name: Name you give the values column
+    :return: dataframe in panel form of JPM time series
+    """
     df_panel = df_ts.rename(columns={date: 'Date'})
     df_panel = df_panel.set_index('Date')
     df_panel = df_panel.transpose()
@@ -194,13 +202,12 @@ df_jpm = pd.merge(
 )
 
 # Merges market value, and returns and benchmarks
-df_jpm = pd\
-    .merge(
-        left=df_jpm_mv,
-        right=df_jpm,
-        left_on=['Manager', 'Date'],
-        right_on=['Manager', 'Date'],
-        how='right'
+df_jpm = pd.merge(
+    left=df_jpm_mv,
+    right=df_jpm,
+    left_on=['Manager', 'Date'],
+    right_on=['Manager', 'Date'],
+    how='right'
     )
 
 # Merges returns, benchmarks, Rf, ASX300

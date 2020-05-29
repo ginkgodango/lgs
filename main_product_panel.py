@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import requests
 from pandas import pandas as pd
 from bs4 import BeautifulSoup
+
+# Start User Input
 FYTD = 10
 report_date = dt.datetime(2020, 4, 30)
 darkgreen = (75/256, 120/256, 56/256)
@@ -22,14 +24,13 @@ lgs_website_return_dbs_filepath = 'U:/CIO/#Data/input/lgs/website/investment_ret
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
 use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12]
 footnote_rows = 28
-
+# End User Input
 
 
 # UNIT PRICES
 # Imports unit price panel
 df_up = pd.read_csv(lgs_unit_prices_filepath, parse_dates=['Date'])
-df_up_unique = df_up[df_up['Date'] == report_date]
-# df_up_unique.to_csv('U:/CIO/#Data/output/investment/product/product_unique.csv', index=False)
+
 
 # Renames columns
 df_up = df_up.rename(
@@ -65,7 +66,7 @@ df_up = df_up[df_up['Unit Price'] != 0].reset_index(drop=True)
 # Down-samples the data using hypothetical month end
 df_up_monthly = df_up.set_index('Date').groupby('OptionType').resample('M').pad().drop(columns='OptionType', axis=1).reset_index(drop=False)
 
-# Creates month and day indicators
+# Creates year, month, and day indicators
 df_up_monthly['Year'] = [df_up_monthly['Date'][i].year for i in range(0, len(df_up_monthly))]
 df_up_monthly['Month'] = [df_up_monthly['Date'][i].month for i in range(0, len(df_up_monthly))]
 df_up_monthly['Day'] = [df_up_monthly['Date'][i].day for i in range(0, len(df_up_monthly))]
@@ -77,7 +78,7 @@ df_up_monthly_check['Month'] = [df_up_monthly_check['Date'][i].month for i in ra
 df_up_monthly_check['Day'] = [df_up_monthly_check['Date'][i].day for i in range(0, len(df_up_monthly_check))]
 df_up_monthly_check = df_up_monthly_check.groupby(['OptionType', 'Year', 'Month']).tail(1).reset_index(drop=True)
 df_up_monthly_check = df_up_monthly_check[df_up_monthly_check['Day'] < 28]
-df_up_monthly_check = df_up_monthly_check.to_csv('U:/CIO/#Data/output/investment/product/df_up_monthly_check_product.csv', index=False)
+df_up_monthly_check.to_csv('U:/CIO/#Data/output/investment/product/df_up_monthly_check_product.csv', index=False)
 
 # Calculates 1 month return
 df_up_monthly['Unit Price Lag 1'] = df_up_monthly.groupby('OptionType')['Unit Price'].shift(1)
@@ -116,12 +117,12 @@ df_up_monthly = pd.merge(
 
 # Creates core_benchmark for managed cash
 df_jpm_main_benchmarks = pd.read_excel(
-        pd.ExcelFile(jpm_main_benchmarks_filepath),
-        sheet_name='Sheet1',
-        skiprows=use_accountid,
-        skipfooter=footnote_rows,
-        header=1
-        )
+    pd.ExcelFile(jpm_main_benchmarks_filepath),
+    sheet_name='Sheet1',
+    skiprows=use_accountid,
+    skipfooter=footnote_rows,
+    header=1
+)
 
 
 # Reshapes the time-series into a panel.
@@ -324,6 +325,7 @@ df_product = pd.DataFrame(product_zipped, index=product_name, columns=['Performa
 with open('U:/CIO/#Data/output/investment/product/product_performance.tex', 'w') as tf:
     tf.write(df_product.to_latex(index=True, na_rep='', multicolumn_format='c', column_format='lRRRRRRR'))
 
+# Create product performance chart
 df_product_chart = df_product[:-1].T
 fig = df_product_chart.plot(kind='bar', color=[darkgreen, lightgreen])
 fig.set_title('LGS Annualised Product Performance')
@@ -340,6 +342,8 @@ fig.get_figure().savefig('U:/CIO/#Data/output/investment/product/product_perform
 #
 # df_loss_years_percentage = pd.DataFrame((loss_years/(loss_years+gain_years))).T.rename(index={0: 'Actual loss years (%)'})
 # df_loss_years = pd.DataFrame(loss_years).T.rename(index={0: 'No. loss years'})
+# df_target_loss_years = pd.DataFrame()
+# df_forecast_loss_years = pd.DataFrame()
 # # df_expected_loss_years = pd.DataFrame((loss_years/(loss_years+gain_years))*20).T.rename(index={0: 'No. Expected loss years per 20 years'})
 # df_total_years = pd.DataFrame(loss_years+gain_years).T.rename(index={0: 'No. years'})
 #
@@ -347,6 +351,8 @@ fig.get_figure().savefig('U:/CIO/#Data/output/investment/product/product_perform
 #     [
 #         df_loss_years_percentage,
 #         df_loss_years,
+#         df_target_loss_years,
+#         df_forecast_loss_years,
 #         # df_expected_loss_years,
 #         df_total_years
 #     ],
@@ -508,6 +514,8 @@ gain_years = df_lgs_website_yearly_return.gt(0).sum()
 
 df_loss_years_percentage = pd.DataFrame((loss_years/(loss_years+gain_years))).T.rename(index={0: 'Actual loss years (%)'})
 df_loss_years = pd.DataFrame(loss_years).T.rename(index={0: 'No. loss years'})
+# df_target_loss_years = pd.DataFrame()
+# df_forecast_loss_years = pd.DataFrame()
 # df_expected_loss_years = pd.DataFrame((loss_years/(loss_years+gain_years))*20).T.rename(index={0: 'No. Expected loss years per 20 years'})
 df_total_years = pd.DataFrame(loss_years+gain_years).T.rename(index={0: 'No. years'})
 
@@ -515,14 +523,16 @@ df_product_risk = pd.concat(
     [
         df_loss_years_percentage,
         df_loss_years,
+        # df_target_loss_years,
+        # df_forecast_loss_years,
         # df_expected_loss_years,
         df_total_years
     ],
     axis=0
 ).round(2)
-
 df_lgs_website_yearly_return = df_lgs_website_yearly_return.reset_index(drop=False)
 
+# Outputs the risk of loss years table
 with open('U:/CIO/#Data/output/investment/product/product_risk_years.tex', 'w') as tf:
     tf.write(df_lgs_website_yearly_return.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRR'))
 
