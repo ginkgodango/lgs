@@ -365,6 +365,7 @@ df_jpm_combined['12_Average_Market_Value'] = (
     .reset_index(drop=True)
 )
 
+
 # df_jpm_main['Total Market_Value'] = (
 #     df_jpm_main[~df_jpm_main['LGS Sector Aggregate'].isin([1])]
 #     .groupby(['Date'])['Market Value']
@@ -372,6 +373,16 @@ df_jpm_combined['12_Average_Market_Value'] = (
 #     .reset_index(drop=True)
 # )
 
+
+# # Counts only fund managers
+# df_jpm_combined_total_market_value_fund_managers = (
+#     df_jpm_combined[df_jpm_combined['LGS Sector Aggregate'].isin([0])]
+#     .groupby(['Date'])['Market Value']
+#     .sum()
+# )
+
+
+# Calculates total market value as average of total asset class market value and fund manager market value
 df_jpm_combined['Total Market_Value'] = (
     df_jpm_combined
     .groupby(['Date'])['Market Value']
@@ -382,6 +393,7 @@ df_jpm_combined['Total Market_Value'] = (
 df_jpm_combined['12_Active_Contribution'] = (
         (df_jpm_combined['12_Average_Market_Value'] / df_jpm_combined['Total Market_Value']) * (df_jpm_combined['12_Excess'])
 )
+
 
 # SUSTAINABILITY
 df_jpm_combined['Sustainability Value'] = df_jpm_combined['LGS Sustainability Weight'] * df_jpm_combined['Market Value']
@@ -463,9 +475,9 @@ df_jpm_table_performance = pd.concat(
     axis=1
 )
 
-del df_jpm_table_performance1
-del df_jpm_table_performance2
-del df_jpm_table_performance3
+# del df_jpm_table_performance1
+# del df_jpm_table_performance2
+# del df_jpm_table_performance3
 
 df_jpm_table_performance_sector = df_jpm_table_performance[df_jpm_table_performance[('', 'LGS Sector Aggregate')].isin([1])].reset_index(drop=True)
 df_jpm_table_performance_sector = df_jpm_table_performance_sector.drop(('', 'LGS Sector Aggregate'), axis=1)
@@ -670,7 +682,7 @@ df_jpm_combined_esg = df_jpm_combined[
 
 df_jpm_combined_esg = df_jpm_combined_esg[(df_jpm_combined_esg['LGS Sustainability Weight'] != 0) & (df_jpm_combined_esg['Date'] == report_date)].reset_index(drop=True)
 
-# Create Totals row in sustainability table
+# Create function to create totals row in sustainability table
 def esg_total_row(data):
     d = dict()
     d['Date'] = np.max(data['Date'])
@@ -690,8 +702,10 @@ def esg_total_row(data):
     return pd.Series(d)
 
 
+# Calculate the total row by applying the esg_total_row function
 df_jpm_combined_esg_total = df_jpm_combined_esg.groupby('Date').apply(esg_total_row).reset_index(drop=True)
 
+# Sorts by manager name
 df_jpm_combined_esg = df_jpm_combined_esg.sort_values(['Manager'])
 
 # Joins the total row to the esg table
@@ -740,6 +754,8 @@ df_jpm_table_esg3.columns = columns_esg_multilevel3
 df_jpm_table_esg4.columns = columns_esg_multilevel4
 df_jpm_table_esg5.columns = columns_esg_multilevel5
 df_jpm_table_esg6.columns = columns_esg_multilevel6
+
+# Joins the 6 tables together to create the esg table
 df_jpm_table_esg = pd.concat(
     [
         df_jpm_table_esg1,

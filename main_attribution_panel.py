@@ -23,8 +23,8 @@ lgs_allocations_filepath ='U:/CIO/#Data/input/lgs/allocations/asset_allocations_
 
 output_directory = 'U:/CIO/#Data/output/attribution/tables/'
 
-FYTD = 0
-report_date = dt.datetime(2019, 6, 31)
+FYTD = 9
+report_date = dt.datetime(2019, 3, 31)
 # END USER INPUT DATA
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
@@ -233,7 +233,7 @@ df_sectors = df_combined[df_combined['LGS Sector Aggregate'].isin([1])].reset_in
 
 # Selects managers only
 df_managers = df_combined[df_combined['LGS Sector Aggregate'].isin([0])].reset_index(drop=True)
-
+df_managers = df_combined[df_combined['LGS Sector Aggregate'].isin([0]) | df_combined['LGS Name'].isin(['Legacy Private Equity'])].reset_index(drop=True)
 
 # Imports strategy returns and market values
 df_jpm_strategies = pd.read_excel(

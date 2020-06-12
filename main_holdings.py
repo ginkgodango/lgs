@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 # Begin User Input Data
-report_date = dt.datetime(2020, 4, 30)
+report_date = dt.datetime(2020, 5, 31)
 
 wscf_market_value = 159306765.00
 aqr_market_value = 175377643.20
@@ -13,7 +13,7 @@ wellington_market_value = 139988808.83
 
 input_directory = 'U:/'
 output_directory = 'U:/'
-jpm_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/jpm/2020/04/Priced Positions - All.csv'
+jpm_filepath = input_directory + 'CIO/#Data/input/jpm/holdings/2020/05/Priced Positions - All.csv'
 wscf_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/04/wscf_holdings.xls'
 aqr_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/04/aqr_holdings.xls'
 delaware_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/04/delaware_holdings.xlsx'
@@ -263,11 +263,11 @@ df_main = pd.concat([df_jpm, df_wscf, df_aqr, df_delaware, df_wellington], axis=
 # Outputs all of the holdings
 df_main_all = df_main.copy()
 df_main_all = df_main_all.drop(['Date'], axis=1)
-df_main_all.to_csv(output_directory + 'CIO/#Holdings/Data/output/holdings/all_holdings.csv', index=False)
+df_main_all.to_csv(output_directory + 'CIO/#Data/output/holdings/all_holdings.csv', index=False)
 
 # Craig Pete Spreadsheet
 df_cp = df_main_all[['Account Name', 'Security Name', 'Market Value AUD']]
-df_cp.to_csv(output_directory + 'CIO/#Holdings/Data/output/holdings/craigpete.csv', index=False)
+df_cp.to_csv(output_directory + 'CIO/#Data/output/holdings/craigpete.csv', index=False)
 
 # Selects Australian Equity and International Equity managers only JANA
 df_main_all_aeq = df_main_all[df_main_all['Account Name'].isin(australian_equity_managers_dict)].reset_index(drop=True)
@@ -362,7 +362,8 @@ sedol_to_common_name_dict = {
         '2588173': 'Microsoft',
         'B4MGBG6': 'HCA',
         'BMMV2K8': 'Tencent',
-        '2046251': 'Apple'
+        '2046251': 'Apple',
+        '6066608': 'Amcor'
 }
 # Selects top 10 holdings for AE and IE
 df_main_aeq_top10 = df_main_aeq.head(10)[['SEDOL', 'Market Value AUD', '(%) of Portfolio']]
@@ -381,14 +382,14 @@ df_main_aeq_top10 = df_main_aeq_top10[['Company', 'Market Value', '(%) of Portfo
 df_main_ieq_top10 = df_main_ieq_top10[['Company', 'Market Value', '(%) of Portfolio']].round(2)
 
 # Outputs the tables into latex
-with open(output_directory + 'CIO/#Investment_Report/Data/output/holdings/top10_local.tex', 'w') as tf:
+with open(output_directory + 'CIO/#Data/output/investment/holdings/top10_local.tex', 'w') as tf:
     tf.write(df_main_aeq_top10.to_latex(index=False))
 
-with open(output_directory + 'CIO/#Investment_Report/Data/output/holdings/top10_foreign.tex', 'w') as tf:
+with open(output_directory + 'CIO/#Data/output/investment/holdings/top10_foreign.tex', 'w') as tf:
     tf.write(df_main_ieq_top10.to_latex(index=False))
 
 # Writes to excel
-writer = pd.ExcelWriter(output_directory + 'CIO/#Holdings/Data/output/holdings/top_holdings.xlsx', engine='xlsxwriter')
+writer = pd.ExcelWriter(output_directory + 'CIO/#Data/output/holdings/top_holdings.xlsx', engine='xlsxwriter')
 df_main_aeq.to_excel(writer, sheet_name='local', index=False)
 df_main_ieq.to_excel(writer, sheet_name='foreign', index=False)
 writer.save()
@@ -521,7 +522,7 @@ df_main_eq_ticker_left = (
         .reset_index(drop=True)
 )
 
-df_main_eq_ticker_left.to_csv(output_directory + 'CIO/#Holdings/Data/output/missing/missing.csv', index=False)
+df_main_eq_ticker_left.to_csv(output_directory + 'CIO/#Data/output/holdings/missing/missing.csv', index=False)
 
 # Creates Yahoo Upload File
 df_main_eq_ticker_both = df_main_eq_ticker[df_main_eq_ticker['_merge'].isin(['both'])].sort_values(['Account Name']).reset_index(drop=True)
@@ -631,7 +632,7 @@ account_to_df_dict = dict(list(df_yahoo.groupby(['Account Name'])))
 
 for account, df in account_to_df_dict.items():
     df = df[columns_yahoo]
-    df.to_csv(output_directory + 'CIO/#Holdings/Data/output/yahoo/' + account + '.csv', index=False)
+    df.to_csv(output_directory + 'CIO/#Data/output/holdings/yahoo/' + account + '.csv', index=False)
 
 
 # Renames columns
@@ -667,4 +668,4 @@ df_main_relative_aeq = pd.merge(
 )
 
 df_main_relative_aeq['Relative Weight'] = df_main_relative_aeq['Portfolio Weight'] - df_main_relative_aeq['Benchmark Weight']
-df_main_relative_aeq.to_csv(output_directory + 'CIO/#Holdings/Data/output/relative_holdings_aeq.csv', index=False)
+df_main_relative_aeq.to_csv(output_directory + 'CIO/#Data/output/holdings/relative_holdings_aeq.csv', index=False)

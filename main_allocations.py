@@ -49,6 +49,7 @@ select_columns = [
     'Max AA'
 ]
 
+# Add Legacy Private Equity
 df_allocation = df_allocation[select_columns]
 
 df_add_LPE = pd.DataFrame(
@@ -63,6 +64,7 @@ df_add_LPE = pd.DataFrame(
 
 df_allocation = pd.concat([df_allocation, df_add_LPE], axis=0).reset_index(drop=True)
 
+# Sort Asset Class Order
 strategy_to_order_dict = {
     'High Growth': 1,
     'Balanced Growth': 2,
@@ -88,8 +90,8 @@ asset_class_to_order_dict = {
 }
 
 jpm_to_lgs_dict = {
-    'Australian Equity': 'Australian Equities',
-    'International Equity': 'International Equities',
+    'Australian Equity': 'Australian Equity',
+    'International Equity': 'International Equity',
     'Property': 'Australian Property',
     'Global Property': 'International Property',
     'Bonds': 'Bonds',
