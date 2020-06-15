@@ -5,19 +5,19 @@ import numpy as np
 # Begin User Input Data
 report_date = dt.datetime(2020, 5, 31)
 
-wscf_market_value = 159306765.00
-aqr_market_value = 175377643.20
-delaware_market_value = 150036877.10
-wellington_market_value = 139988808.83
+wscf_market_value = 178980587.10
+aqr_market_value = 177579773.30
+delaware_market_value = 149294044.60
+wellington_market_value = 141076226.90
 
 
 input_directory = 'U:/'
 output_directory = 'U:/'
 jpm_filepath = input_directory + 'CIO/#Data/input/jpm/holdings/2020/05/Priced Positions - All.csv'
-wscf_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/04/wscf_holdings.xls'
-aqr_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/04/aqr_holdings.xls'
-delaware_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/04/delaware_holdings.xlsx'
-wellington_filepath = input_directory + 'CIO/#Holdings/Data/input/holdings/unitprices/2020/04/wellington_holdings.xlsx'
+wscf_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/05/wscf_holdings.xlsx'
+aqr_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/05/aqr_holdings.xls'
+delaware_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/05/delaware_holdings.xlsx'
+wellington_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/05/wellington_holdings.xlsx'
 tickers_filepath = input_directory + 'CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
 asx_filepath = input_directory + 'CIO/#Data/input/asx/ASX300/20191201-asx300.csv'
 
@@ -180,7 +180,7 @@ df_aqr['Date'] = report_date
 # Imports Delaware holdings data
 df_delaware = pd.read_excel(
         pd.ExcelFile(delaware_filepath),
-        sheet_name='EM SICAV holdings 3-31-2020',
+        sheet_name='EM SICAV holdings 4-30-2020',
         header=0,
         usecols=[
                 'Security SEDOL',
@@ -497,7 +497,7 @@ equity_managers_list = [
         'LGS INTERNATIONAL EQUITIES - LONGVI EW',
         'LGS INTERNATIONAL EQUITIES - LSV',
         'LGS INTERNATIONAL EQUITIES - MFS',
-        'LGS INTERNATIONAL EQUITIES - DELAWARE',
+        'LGS INTERNATIONAL EQUITIES - MACQUARIE',
         'LGS INTERNATIONAL EQUITIES - WELLINGTON',
         'LGS GLOBAL LISTED PROPERTY - RESOLUTION',
 ]
@@ -577,7 +577,8 @@ exchange_yahoo_suffix_dict = {
         'Warsaw': '',
         'Xetra': '.DE',
         'nan': '',
-        np.nan: ''
+        np.nan: '',
+        'Nth SZ-SEHK': 'SZ'
         }
 
 df_main_eq_ticker_both['Suffix'] = [
