@@ -148,5 +148,7 @@ df_final_today = df_final_today[df_final_today['In Tolerance'].isin([0])]
 
 # Ask Merrill before touching below this line..................................
 # Outputs to csv file
-#df_final.to_csv('U:/CIO/#Investment_Report/Data/output/verification/verification_mv.csv', index=False)
+df_final.to_csv('U:/CIO/#Investment_Report/Data/output/verification/verification_mv_202004_history.csv', index=False)
+df_final_today.to_csv('U:/CIO/#Investment_Report/Data/output/verification/verification_mv_202004_today.csv', index=False)
+
 
