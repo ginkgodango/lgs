@@ -202,3 +202,4 @@ df_final_deviants_not_filtered.to_csv('U:/CIO/#Investment_Report/Data/output/ver
 df_final_deviants_filtered.to_csv('U:/CIO/#Investment_Report/Data/output/verification/verification_benchmarks_202004_history_filtered.csv', index=False)
 df_final_today_not_filtered.to_csv('U:/CIO/#Investment_Report/Data/output/verification/verification_benchmarks_202004_today_not_filtered.csv', index=False)
 df_final_today_filtered.to_csv('U:/CIO/#Investment_Report/Data/output/verification/verification_benchmarks_202004_today_filtered.csv', index=False)
+ 
