@@ -6,15 +6,15 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
 # START USER INPUT DATA
-jpm_main_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Main Returns.xlsx'
-jpm_alts_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Alts Returns.xlsx'
-jpm_main_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Main Benchmarks_Fix.xlsx'
-jpm_alts_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Alts Benchmarks.xlsx'
-jpm_main_market_values_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Main Market Values_Fix.xlsx'
-jpm_alts_market_values_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Alts Market Values.xlsx'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/04/New Dictionary_v9.xlsx'
-FYTD = 10
-report_date = dt.datetime(2020, 4, 30)
+jpm_main_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Main Returns.xlsx'
+jpm_alts_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Alts Returns.xlsx'
+jpm_main_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Main Benchmarks.xlsx'
+jpm_alts_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Alts Benchmarks.xlsx'
+jpm_main_market_values_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Main Market Values.xlsx'
+jpm_alts_market_values_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Alts Market Values.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/04/New Dictionary_v10.xlsx'
+FYTD = 11
+report_date = dt.datetime(2020, 5, 31)
 # END USER INPUT DATA
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
@@ -496,7 +496,7 @@ for asset_class, df_temp in asset_class_to_performance_dict.items():
 
     # Removes managers from PE, OA, and DA tables
     if asset_class in ['PE', 'OA', 'DA']:
-        df_temp = df_temp[df_temp[('', 'Manager')].isin(['Private Equity', 'Opportunistic Alternatives', 'Defensive Alternatives'])]
+        df_temp = df_temp[df_temp[('', 'Manager')].isin(['Private Equity', 'Opportunistic Alternatives', 'Attunga', 'Defensive Alternatives'])]
 
     with open('U:/CIO/#Data/output/investment/returns/' + str(asset_class) + '.tex', 'w') as tf:
         latex_string_temp = (

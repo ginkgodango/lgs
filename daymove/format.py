@@ -193,7 +193,8 @@ def rename_funds(df):
         'LGRC: Attunga Power and Enviro Fund Class E Nov 19 1.1 AA N MFH23EU': 'Attunga',
         'LGAU - LGS AR TCW': 'TCW',
         'LGQP: Attunga Power and Enviro Fund Main 1.1 AA N 32510EU': 'Attunga OA1',
-        'LGQP: Attunga Power and Enviro Fund Class E Nov 19 1.1 AA N MFH23EU': 'Attunga OA2'
+        'LGQP: Attunga Power and Enviro Fund Class E Nov 19 1.1 AA N MFH23EU': 'Attunga OA2',
+        'LGUP: JPM USD LIQ LVNAV FD MFC82EU': 'JPM USD Cash'
     }
 
     df['Fund'] = [

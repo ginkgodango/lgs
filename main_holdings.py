@@ -14,6 +14,7 @@ wellington_market_value = 141076226.90
 input_directory = 'U:/'
 output_directory = 'U:/'
 jpm_filepath = input_directory + 'CIO/#Data/input/jpm/holdings/2020/05/Priced Positions - All.csv'
+jpm_filepath = 'C:/Users/mnguyen/OneDrive - LGSS/Python Demo/Priced Positions - All.csv'
 wscf_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/05/wscf_holdings.xlsx'
 aqr_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/05/aqr_holdings.xls'
 delaware_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/05/delaware_holdings.xlsx'
