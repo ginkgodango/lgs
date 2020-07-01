@@ -134,20 +134,25 @@ df_lgs_dict = pd.read_excel(
     header=0
 )
 
+# Creates set containing fund managers that are currently open accounts.
 df_lgs_open = df_lgs_dict[df_lgs_dict['LGS Open'].isin([1])].reset_index(drop=True)
 df_lgs_open = df_lgs_open.rename(columns={'LGS Name': 'Manager'})
 lgs_open_set = set(list(df_lgs_open['Manager']))
 
+# Creates set containing strategies.
 df_lgs_strategy = df_lgs_dict[df_lgs_dict['LGS Strategy Aggregate'].isin([1])].reset_index(drop=True)
 df_lgs_strategy = df_lgs_strategy.rename(columns={'LGS Name': 'Manager'})
 lgs_strategy_set = set(list(df_lgs_strategy['Manager']))
 
+# Creates set containing liquidity accounts.
 df_lgs_liquidity = df_lgs_dict[df_lgs_dict['LGS Liquidity'].isin([1])].reset_index(drop=True)
 df_lgs_liquidity = df_lgs_liquidity.rename(columns={'LGS Name': 'Manager'})
 lgs_liquidity_set = set(list(df_lgs_liquidity['Manager']))
 
+# Creates set containing fund managers that have been checked.
 lgs_check_set = set(list(df_lgs_jpm['Manager']))
 
+# Creates set containing fund managers that are open accounts but are not checked.
 df_lgs_missing_completely = lgs_open_set - lgs_check_set - lgs_strategy_set - lgs_liquidity_set - {np.nan}
 
 
