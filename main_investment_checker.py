@@ -2,14 +2,23 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 
+# START USER INPUT
 lgs_filepath = 'U:/CIO/#Data/output/investment/checker/lgs_table.csv'
 jpm_filepath = 'U:/CIO/#Data/input/jpm/report/investment/LGSS Preliminary Performance 202005.xlsx'
 lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/04/New Dictionary_v10.xlsx'
 FYTD = 11
 report_date = dt.datetime(2020, 5, 31)
+# End USER INPUT
 
-# Reads LGS Tables
+# Reads LGS table
 df_lgs = pd.read_csv(lgs_filepath)
+
+# Reads LGS dictionary
+df_lgs_dict = pd.read_excel(
+    pd.ExcelFile(lgs_dictionary_filepath),
+    sheet_name='Sheet1',
+    header=0
+)
 
 # Reads JPM Performance Report
 df_jpm = pd.DataFrame()
@@ -67,6 +76,7 @@ df_lgs_jpm = pd.merge(
 df_later = df_lgs_jpm[df_lgs_jpm['Manager'].isin([np.nan])].reset_index(drop=True)
 df_lgs_jpm = df_lgs_jpm[~df_lgs_jpm['Manager'].isin([np.nan])].reset_index(drop=True)
 
+# Creates LGS to JPM column dictionary
 lgscolumn_to_jpmcolumn_dict = {
     'Market Value_x': 'Market Value_y',
     '1_Return': '1 Month',
@@ -78,6 +88,7 @@ lgscolumn_to_jpmcolumn_dict = {
     '84_Return': '7 Years'
 }
 
+# Performs the deviant check
 df_deviations = pd.DataFrame()
 deviants = []
 columns = []
@@ -119,8 +130,10 @@ df_deviations['Deviations'] = deviations
 df_lgs_missing = pd.DataFrame(lgs_missing, columns=['Manager', 'Column'])
 df_jpm_missing = pd.DataFrame(jpm_missing, columns=['Manager', 'Column'])
 
+# Calculates accuracy
 accuracy = round(((total_count - deviant_count)/total_count)*100, 2)
 
+# Prints accuracy results
 print('\nMissing during check from LGS', lgs_missing)
 print('\nMissing during check from JPM', jpm_missing)
 print('\nThe deviants are:\n')
@@ -128,12 +141,6 @@ print(df_deviations, '\n')
 print('Total Count: ', total_count, 'Deviant Count: ', deviant_count, 'Accuracy: ', accuracy, '%')
 
 # Checks for managers that have been completely missed.
-df_lgs_dict = pd.read_excel(
-    pd.ExcelFile(lgs_dictionary_filepath),
-    sheet_name='Sheet1',
-    header=0
-)
-
 # Creates set containing fund managers that are currently open accounts.
 df_lgs_open = df_lgs_dict[df_lgs_dict['LGS Open'].isin([1])].reset_index(drop=True)
 df_lgs_open = df_lgs_open.rename(columns={'LGS Name': 'Manager'})
