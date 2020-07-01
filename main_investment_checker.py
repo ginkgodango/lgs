@@ -155,6 +155,10 @@ lgs_check_set = set(list(df_lgs_jpm['Manager']))
 # Creates set containing fund managers that are open accounts but are not checked.
 df_lgs_missing_completely = lgs_open_set - lgs_check_set - lgs_strategy_set - lgs_liquidity_set - {np.nan}
 
+# Prints open accounts that are missing from LGS.
+print('\nMissing completely from LGS', df_lgs_missing_completely)
+
+
 
 # Import JPM_IAP, Accounts; By ID; Include Closed Accounts; Select All; Mode: Portfolio Only
 # jpm_iap_filepath = 'U:/CIO/#Investment_Report/Data/input/testing/jpm_iap/'
