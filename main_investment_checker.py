@@ -5,7 +5,7 @@ import pandas as pd
 # START USER INPUT
 lgs_filepath = 'U:/CIO/#Data/output/investment/checker/lgs_table.csv'
 jpm_filepath = 'U:/CIO/#Data/input/jpm/report/investment/LGSS Preliminary Performance 202005.xlsx'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/04/New Dictionary_v10.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/05/New Dictionary_v10.xlsx'
 FYTD = 11
 report_date = dt.datetime(2020, 5, 31)
 # End USER INPUT

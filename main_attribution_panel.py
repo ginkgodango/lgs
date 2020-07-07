@@ -6,25 +6,21 @@ from dateutil.relativedelta import relativedelta
 import matplotlib.pyplot as plt
 
 # START USER INPUT DATA
-jpm_main_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Main Returns_v2.xlsx'
-jpm_alts_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Alternatives Returns_v2.xlsx'
-
-jpm_main_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Main Benchmarks_v2.xlsx'
-jpm_alts_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Alternatives Benchmarks_v2.xlsx'
-
-jpm_main_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Main Market Values_v2.xlsx'
-jpm_alts_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Alternatives Market Values_v2.xlsx'
-
-jpm_strategy_returns_benchmarks_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/03/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks.xlsx'
-
-lgs_returns_benchmarks_filepath = 'U:/CIO/#Investment_Report/data/input/returns/returns_2020-03-31_attribution.csv'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/03/New Dictionary_v8.xlsx'
-lgs_allocations_filepath ='U:/CIO/#Data/input/lgs/allocations/asset_allocations_2020-03-31.csv'
+jpm_main_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Main Returns.xlsx'
+jpm_alts_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Alts Returns.xlsx'
+jpm_main_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Main Benchmarks_v2.xlsx'
+jpm_alts_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Alts Benchmarks.xlsx'
+jpm_main_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Main Market Values.xlsx'
+jpm_alts_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Alts Market Values.xlsx'
+jpm_strategy_returns_benchmarks_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/05/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks.xlsx'
+lgs_returns_benchmarks_filepath = 'U:/CIO/#Investment_Report/data/input/returns/returns_2020-05-31.csv'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/05/New Dictionary_v10.xlsx'
+lgs_allocations_filepath ='U:/CIO/#Data/input/lgs/allocations/asset_allocations_2020-05-31_attribution_v2.csv'
 
 output_directory = 'U:/CIO/#Data/output/attribution/tables/'
 
-FYTD = 9
-report_date = dt.datetime(2019, 3, 31)
+FYTD = 11
+report_date = dt.datetime(2020, 5, 31)
 # END USER INPUT DATA
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
@@ -228,6 +224,9 @@ df_combined['JPM Benchmark'] = df_combined['JPM Benchmark'] / 100
 
 # Selects sectors only
 df_sectors = df_combined[df_combined['LGS Sector Aggregate'].isin([1])].reset_index(drop=True)
+
+# Removes STFI and LA
+df_sectors = df_sectors[~df_sectors['LGS Name'].isin(['Short Term Fixed Interest', 'Liquid Alternatives'])].reset_index(drop=True)
 
 #df_jpm_sectors_unhedged = df_jpm_combined[df_jpm_combined['LGS Sector Aggregate Unhedged'].isin([1])].reset_index(drop=True)
 
@@ -975,4 +974,6 @@ with open(output_directory + 'selection_residual.tex', 'w') as tf:
 with open(output_directory + 'interaction.tex', 'w') as tf:
     tf.write(df_current2_table14.to_latex(index=False).replace('NaN', '').replace('-0.00', '0.00'))
 
-
+# Outputs table
+df_combined_all.to_csv('U:/CIO/#Data/output/attribution/table.csv', index=False)
+df_multiperiod2.to_csv('U:/CIO/#Data/output/attribution/table_multiperiod.csv', index=False)
