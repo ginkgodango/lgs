@@ -110,7 +110,7 @@ df_jpm_alts_benchmarks = df_jpm_alts_benchmarks.sort_values(['Manager', 'Date'])
 df_jpm_alts_benchmarks = df_jpm_alts_benchmarks.reset_index(drop=True)
 df_jpm_alts_benchmarks = df_jpm_alts_benchmarks.replace('-', np.NaN)
 
-df_jpm_benchmarks = pd.concat([df_jpm_main_benchmarks, df_jpm_alts_returns], axis=0).reset_index(drop=True)
+df_jpm_benchmarks = pd.concat([df_jpm_main_benchmarks, df_jpm_alts_benchmarks], axis=0).reset_index(drop=True)
 df_jpm_benchmarks = df_jpm_benchmarks.rename(columns={'Values': 'JPM Benchmark'})
 
 df_jpm_returns_benchmarks = pd.merge(

@@ -367,6 +367,26 @@ df_jpm_combined['12_Average_Market_Value'] = (
 )
 
 
+# df_test = df_jpm_combined[['Date', 'Manager', 'Market Value', 'LGS Sector Aggregate']]
+# df_test = df_test[df_test['LGS Sector Aggregate'].isin([0])]
+# df_test['Total Market Value'] = (
+#     df_test
+#     .groupby(['Date'])['Market Value']
+#     .sum()
+#     .reset_index(drop=True)
+# )
+# df_test = df_test[['Date', 'Total Market Value']]
+# df_test = df_test[~df_test['Total Market Value'].isin([np.nan])]
+#
+# df_jpm_combined_test = pd.merge(
+#     left=df_jpm_combined,
+#     right=df_test,
+#     left_on=['Date'],
+#     right_on=['Date'],
+#     how='outer'
+# )
+
+
 # df_jpm_main['Total Market_Value'] = (
 #     df_jpm_main[~df_jpm_main['LGS Sector Aggregate'].isin([1])]
 #     .groupby(['Date'])['Market Value']
