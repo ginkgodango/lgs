@@ -493,21 +493,21 @@ df_combined_all = df_combined_all.sort_values(['Date', 'Strategy', 'LGS Asset Cl
 # Fix AR Restructure
 
 # Overwrite PE, OA, DA
-# overwrite_weighted_asset_class_return = []
-# overwrite_weighted_asset_class_style_benchmark = []
-# overwrite_weighted_asset_class_benchmark = []
-# for i in range(0, len(df_combined_all)):
-#     if df_combined_all['LGS Asset Class Level 1'][i] in ['PE', 'OA', 'DA']:
-#         overwrite_weighted_asset_class_return.append(df_combined_all['JPM Return'][i])
-#         overwrite_weighted_asset_class_style_benchmark.append(df_combined_all['JPM Benchmark'][i])
-#         overwrite_weighted_asset_class_benchmark.append(df_combined_all['JPM Benchmark'][i])
-#     else:
-#         overwrite_weighted_asset_class_return.append(df_combined_all['Weighted Asset Class Return'][i])
-#         overwrite_weighted_asset_class_style_benchmark.append(df_combined_all['Weighted Asset Class Style Benchmark'][i])
-#         overwrite_weighted_asset_class_benchmark.append(df_combined_all['Weighted Asset Class Benchmark'][i])
-# df_combined_all['Weighted Asset Class Return'] = overwrite_weighted_asset_class_return
-# df_combined_all['Weighted Asset Class Style Benchmark'] = overwrite_weighted_asset_class_style_benchmark
-# df_combined_all['Weighted Asset Class Benchmark'] = overwrite_weighted_asset_class_benchmark
+overwrite_weighted_asset_class_return = []
+overwrite_weighted_asset_class_style_benchmark = []
+overwrite_weighted_asset_class_benchmark = []
+for i in range(0, len(df_combined_all)):
+    if df_combined_all['LGS Asset Class Level 1'][i] in ['PE', 'OA', 'DA']:
+        overwrite_weighted_asset_class_return.append(df_combined_all['JPM Return'][i])
+        overwrite_weighted_asset_class_style_benchmark.append(df_combined_all['JPM Benchmark'][i])
+        overwrite_weighted_asset_class_benchmark.append(df_combined_all['JPM Benchmark'][i])
+    else:
+        overwrite_weighted_asset_class_return.append(df_combined_all['Weighted Asset Class Return'][i])
+        overwrite_weighted_asset_class_style_benchmark.append(df_combined_all['Weighted Asset Class Style Benchmark'][i])
+        overwrite_weighted_asset_class_benchmark.append(df_combined_all['Weighted Asset Class Benchmark'][i])
+df_combined_all['Weighted Asset Class Return'] = overwrite_weighted_asset_class_return
+df_combined_all['Weighted Asset Class Style Benchmark'] = overwrite_weighted_asset_class_style_benchmark
+df_combined_all['Weighted Asset Class Benchmark'] = overwrite_weighted_asset_class_benchmark
 
 
 # Check sums
