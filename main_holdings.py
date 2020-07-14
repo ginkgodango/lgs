@@ -3,22 +3,21 @@ import pandas as pd
 import numpy as np
 
 # Begin User Input Data
-report_date = dt.datetime(2020, 5, 31)
+report_date = dt.datetime(2020, 6, 30)
 
-wscf_market_value = 178980587.10
-aqr_market_value = 177579773.30
-delaware_market_value = 149294044.60
-wellington_market_value = 141076226.90
+wscf_market_value = 175429763.90
+aqr_market_value = 175504877.30
+delaware_market_value = 157297090.30
+wellington_market_value = 150500516.62
 
 
 input_directory = 'U:/'
 output_directory = 'U:/'
-jpm_filepath = input_directory + 'CIO/#Data/input/jpm/holdings/2020/05/Priced Positions - All.csv'
-jpm_filepath = 'C:/Users/mnguyen/OneDrive - LGSS/Python Demo/Priced Positions - All.csv'
-wscf_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/05/wscf_holdings.xlsx'
-aqr_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/05/aqr_holdings.xls'
-delaware_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/05/delaware_holdings.xlsx'
-wellington_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/05/wellington_holdings.xlsx'
+jpm_filepath = input_directory + 'CIO/#Data/input/jpm/holdings/2020/06/Priced Positions - All.csv'
+wscf_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/06/wscf_holdings.xlsx'
+aqr_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/06/aqr_holdings.xls'
+delaware_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/06/delaware_holdings.xlsx'
+wellington_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/06/wellington_holdings.xlsx'
 tickers_filepath = input_directory + 'CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
 asx_filepath = input_directory + 'CIO/#Data/input/asx/ASX300/20191201-asx300.csv'
 
@@ -181,7 +180,7 @@ df_aqr['Date'] = report_date
 # Imports Delaware holdings data
 df_delaware = pd.read_excel(
         pd.ExcelFile(delaware_filepath),
-        sheet_name='EM SICAV holdings 4-30-2020',
+        sheet_name='EM SICAV holdings 5-31-2020',
         header=0,
         usecols=[
                 'Security SEDOL',

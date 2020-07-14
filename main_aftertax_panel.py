@@ -3,10 +3,10 @@ import numpy as np
 import datetime as dt
 
 # START USER INPUT DATA
-jpm_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/04/Historical Time Series - Monthly - Australian Equities After Tax_GOF.xlsx'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/04/New Dictionary_v9.xlsx'
-FYTD = 10
-report_date = dt.datetime(2020, 4, 30)
+jpm_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/06/Historical Time Series - Monthly - Australian Equities After Tax.xlsx'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/06/New Dictionary_v10.xlsx'
+FYTD = 12
+report_date = dt.datetime(2020, 6, 30)
 # END USER INPUT DATA
 
 # Imports the JPM time-series.

@@ -344,28 +344,55 @@ def collect_sectors(df):
 
 
 def reorder_sectors(df):
-    df = df.set_index('Sector')
+    # df = df.set_index('Sector')
+    #
+    # sector_order = [
+    #     'AUSTRALIAN EQUITIES',
+    #     'INTERNATIONAL EQUITY',
+    #     'GLOBAL PROPERTY',
+    #     'PROPERTY',
+    #     'BONDS',
+    #     'LIQUID ALTERNATIVES',
+    #     'SHORT TERM FIXED INTEREST',
+    #     'CASH',
+    #     'ACTIVE COMMODITIES SECTOR',
+    #     'LGSS AE OPTION OVERLAY SECTOR',
+    #     'LGSS LEGACY PE SECTOR',
+    #     "LGSS LEGACY DEF'D PESECTOR",
+    #     'LGS PRIVATE EQUITY SECTOR',
+    #     'LGS OPPORTUNISTIC ALTERNATIVES SECTOR',
+    #     'LGS DEFENSIVE ALTERNATIVES SECTOR',
+    #     'TOTAL LGS (LGSMAN)'
+    # ]
+    #
+    # df = df.loc[sector_order].reset_index(drop=True)
 
-    sector_order = [
-        'AUSTRALIAN EQUITIES',
-        'INTERNATIONAL EQUITY',
-        'GLOBAL PROPERTY',
-        'PROPERTY',
-        'BONDS',
-        'LIQUID ALTERNATIVES',
-        'SHORT TERM FIXED INTEREST',
-        'CASH',
-        'ACTIVE COMMODITIES SECTOR',
-        'LGSS AE OPTION OVERLAY SECTOR',
-        'LGSS LEGACY PE SECTOR',
-        "LGSS LEGACY DEF'D PESECTOR",
-        'LGS PRIVATE EQUITY SECTOR',
-        'LGS OPPORTUNISTIC ALTERNATIVES SECTOR',
-        'LGS DEFENSIVE ALTERNATIVES SECTOR',
-        'TOTAL LGS (LGSMAN)'
+    sector_to_order_dict = {
+        'AUSTRALIAN EQUITIES': 1,
+        'INTERNATIONAL EQUITY': 2,
+        'GLOBAL PROPERTY': 3,
+        'PROPERTY': 4,
+        'BONDS': 5,
+        'LIQUID ALTERNATIVES': 6,
+        'SHORT TERM FIXED INTEREST': 7,
+        'CASH': 8,
+        'ACTIVE COMMODITIES SECTOR': 9,
+        'LGSS AE OPTION OVERLAY SECTOR': 10,
+        'LGSS LEGACY PE SECTOR': 11,
+        "LGSS LEGACY DEF'D PESECTOR": 12,
+        'LGS PRIVATE EQUITY SECTOR': 13,
+        'LGS OPPORTUNISTIC ALTERNATIVES SECTOR': 14,
+        'LGS DEFENSIVE ALTERNATIVES SECTOR': 15,
+        'TOTAL LGS (LGSMAN)': 16
+    }
+
+    df['Sector Order'] = [
+        sector_to_order_dict[df['Sector'][i]] for i in range(0, len(df))
     ]
 
-    df = df.loc[sector_order].reset_index(drop=True)
+    df = df.sort_values(['Sector Order'], ascending=True)
+
+    df = df.drop(columns=['Sector', 'Sector Order'], axis=1)
 
     return df
 
