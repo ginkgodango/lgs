@@ -13,8 +13,8 @@ jpm_alts_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/06/Histo
 jpm_main_market_values_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/06/Historical Time Series - Monthly - Main Market Values.xlsx'
 jpm_alts_market_values_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/06/Historical Time Series - Monthly - Alts Market Values.xlsx'
 lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/06/New Dictionary_v10.xlsx'
-FYTD = 12
-report_date = dt.datetime(2020, 6, 30)
+FYTD = 11
+report_date = dt.datetime(2020, 5, 31)
 # END USER INPUT DATA
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]

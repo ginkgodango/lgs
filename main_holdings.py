@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 # Begin User Input Data
-report_date = dt.datetime(2020, 6, 30)
+report_date = dt.datetime(2020, 7, 31)
 
 wscf_market_value = 175429763.90
 aqr_market_value = 175504877.30
@@ -13,13 +13,13 @@ wellington_market_value = 150500516.62
 
 input_directory = 'U:/'
 output_directory = 'U:/'
-jpm_filepath = input_directory + 'CIO/#Data/input/jpm/holdings/2020/06/Priced Positions - All.csv'
+jpm_filepath = input_directory + 'CIO/#Data/input/jpm/holdings/2020/07/Priced Positions - All.csv'
 wscf_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/06/wscf_holdings.xlsx'
 aqr_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/06/aqr_holdings.xls'
 delaware_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/06/delaware_holdings.xlsx'
 wellington_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/06/wellington_holdings.xlsx'
 tickers_filepath = input_directory + 'CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
-asx_filepath = input_directory + 'CIO/#Data/input/asx/ASX300/20191201-asx300.csv'
+asx_filepath = input_directory + 'CIO/#Data/input/asx/ASX300/20200501-asx300.csv'
 
 aeq_filepath = input_directory + 'CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_AEQ_Manager Version.xlsx'
 ieq_filepath = input_directory + 'CIO/#Holdings/Data/input/exclusions/LGS Exclusions List_December 2018_IEQ_Manager Version.xlsx'
@@ -363,7 +363,8 @@ sedol_to_common_name_dict = {
         'B4MGBG6': 'HCA',
         'BMMV2K8': 'Tencent',
         '2046251': 'Apple',
-        '6066608': 'Amcor'
+        '6066608': 'Amcor',
+        'B44WZD7': 'Prologis'
 }
 # Selects top 10 holdings for AE and IE
 df_main_aeq_top10 = df_main_aeq.head(10)[['SEDOL', 'Market Value AUD', '(%) of Portfolio']]
