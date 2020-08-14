@@ -1,23 +1,24 @@
 import datetime as dt
 import pandas as pd
 import numpy as np
+import re
 
 # Begin User Input Data
 report_date = dt.datetime(2020, 7, 31)
 
-wscf_market_value = 175429763.90
-aqr_market_value = 175504877.30
-delaware_market_value = 157297090.30
-wellington_market_value = 150500516.62
+wscf_market_value = 182556619.40
+aqr_market_value = 177256476.10
+delaware_market_value = 160322537.40
+wellington_market_value = 151984267.20
 
 
 input_directory = 'U:/'
 output_directory = 'U:/'
 jpm_filepath = input_directory + 'CIO/#Data/input/jpm/holdings/2020/07/Priced Positions - All.csv'
-wscf_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/06/wscf_holdings.xlsx'
-aqr_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/06/aqr_holdings.xls'
-delaware_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/06/delaware_holdings.xlsx'
-wellington_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/06/wellington_holdings.xlsx'
+wscf_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/wscf_holdings.xlsx'
+aqr_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/aqr_holdings.xls'
+delaware_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/delaware_holdings.xlsx'
+wellington_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/wellington_holdings.xlsx'
 tickers_filepath = input_directory + 'CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
 asx_filepath = input_directory + 'CIO/#Data/input/asx/ASX300/20200501-asx300.csv'
 
@@ -26,6 +27,7 @@ ieq_filepath = input_directory + 'CIO/#Holdings/Data/input/exclusions/LGS Exclus
 aeq_exclusions_filepath = input_directory + 'CIO/#Holdings/Data/output/exclusions/aeq_exclusions_' + str(report_date.date()) + '.csv'
 ieq_exclusions_filepath = input_directory + 'CIO/#Holdings/Data/output/exclusions/ieq_exclusions_' + str(report_date.date()) + '.csv'
 # End User Input Data
+
 
 # Account Name to LGS Name dictionary
 australian_equity_managers_dict = {
@@ -50,7 +52,6 @@ international_equity_managers_dict = {
         'LGS INTERNATIONAL EQUITIES - WELLINGTON': 'Wellington',
         'LGS GLOBAL LISTED PROPERTY - RESOLUTION': 'Resolution',
 }
-
 
 
 # Imports JPM Mandates holdings data
@@ -180,7 +181,7 @@ df_aqr['Date'] = report_date
 # Imports Delaware holdings data
 df_delaware = pd.read_excel(
         pd.ExcelFile(delaware_filepath),
-        sheet_name='EM SICAV holdings 5-31-2020',
+        sheet_name='EM SICAV holdings 6-30-2020',
         header=0,
         usecols=[
                 'Security SEDOL',
@@ -274,13 +275,13 @@ df_main_all_aeq = df_main_all[df_main_all['Account Name'].isin(australian_equity
 df_main_all_ieq = df_main_all[df_main_all['Account Name'].isin(international_equity_managers_dict)].reset_index(drop=True)
 
 # Writes to excel file for JANA
-writer = pd.ExcelWriter(output_directory + 'CIO/#Holdings/Data/output/jana/aeq_holdings.xlsx', engine='xlsxwriter')
+writer = pd.ExcelWriter(output_directory + 'CIO/#Data/output/holdings/jana/aeq_holdings.xlsx', engine='xlsxwriter')
 account_to_dataframe_dict = dict(list(df_main_all_aeq.groupby('Account Name')))
 for account, dataframe in account_to_dataframe_dict.items():
     dataframe.to_excel(writer, sheet_name=australian_equity_managers_dict[account], index=False)
 writer.save()
 
-writer = pd.ExcelWriter(output_directory + 'CIO/#Holdings/Data/output/jana/ieq_holdings.xlsx', engine='xlsxwriter')
+writer = pd.ExcelWriter(output_directory + 'CIO/#Data/output/holdings/jana/ieq_holdings.xlsx', engine='xlsxwriter')
 account_to_dataframe_dict = dict(list(df_main_all_ieq.groupby('Account Name')))
 for account, dataframe in account_to_dataframe_dict.items():
     dataframe.to_excel(writer, sheet_name=international_equity_managers_dict[account], index=False)
@@ -671,3 +672,50 @@ df_main_relative_aeq = pd.merge(
 
 df_main_relative_aeq['Relative Weight'] = df_main_relative_aeq['Portfolio Weight'] - df_main_relative_aeq['Benchmark Weight']
 df_main_relative_aeq.to_csv(output_directory + 'CIO/#Data/output/holdings/relative_holdings_aeq.csv', index=False)
+
+# REGEX
+big4_banks_matches = [
+        'ANZ',
+        'AUSTRALIA AND NEW ZEALAND',
+        'AUSTRALIA & NEW ZEALAND',
+        'CBA',
+        'COMMONWEALTH BANK',
+        'NAB',
+        'NATIONAL AUSTRALIA BANK',
+        'WBC',
+        'WESTPAC',
+        'WESTPAC BANKING',
+]
+
+big4_bank_indicator = []
+big4_bank_market_value = []
+for i in range(0, len(df_main_all)):
+
+    if (
+            (any(word.lower() in df_main_all['Security Name'][i].lower() for word in big4_banks_matches))
+            and (df_main_all['Asset Type'][i] != 'UNKNOWN SECURITY TYPE')
+            and 'allianz' not in df_main_all['Security Name'][i].lower()
+    ):
+        big4_bank_indicator.append(1)
+
+        if df_main_all['Market Value AUD'][i] == 0:
+            big4_bank_market_value.append(df_main_all['Quantity'][i])
+        else:
+            big4_bank_market_value.append(df_main_all['Market Value AUD'][i])
+    else:
+        big4_bank_indicator.append(0)
+        big4_bank_market_value.append(0)
+
+df_main_all['Big4 Bank Indicator'] = big4_bank_indicator
+df_main_all['Big4 Bank Value AUD'] = big4_bank_market_value
+
+# df_main_all['Big4 Bank Value AUD'] = df_main_all['Big4 Bank Indicator'] * df_main_all['Market Value AUD']
+
+df_main_all_big4 = df_main_all[df_main_all['Big4 Bank Indicator'].isin([1])]
+
+# df_main_all.to_csv(output_directory + 'CIO/#Data/output/holdings/all_holdings_big4_banks.csv', index=False)
+
+writer = pd.ExcelWriter(output_directory + 'CIO/#Data/output/holdings/all_holdings_big4_banks.xlsx', engine='xlsxwriter')
+df_main_all.to_excel(writer, sheet_name='All', index=False)
+df_main_all_big4.to_excel(writer, sheet_name='Big4', index=False)
+writer.save()

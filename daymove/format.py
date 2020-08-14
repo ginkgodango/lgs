@@ -195,7 +195,9 @@ def rename_funds(df):
         'LGQP: Attunga Power and Enviro Fund Main 1.1 AA N 32510EU': 'Attunga OA1',
         'LGQP: Attunga Power and Enviro Fund Class E Nov 19 1.1 AA N MFH23EU': 'Attunga OA2',
         'LGUP: JPM USD LIQ LVNAV FD MFC82EU': 'JPM USD Cash',
-        'LGBT - Pendal': 'Pendal'
+        'LGBT - Pendal': 'Pendal',
+        'LGAY - LGS AUS EQ ALPHINITY': 'Alphinity',
+        'LGTN - LGS AUS EQ MTM 2020': 'Macquarie Transition 2020'
     }
 
     df['Fund'] = [
