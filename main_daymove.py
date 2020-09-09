@@ -5,17 +5,20 @@ import daymove.calculation
 import daymove.format
 
 password = "lgsinvestops@LGS"
-input_directory = 'U:/'
-filepath = 'CIO/#Data/input/jpm/report/daymove/2020/08/'
-filenames = sorted(os.listdir(input_directory + filepath))
-output_directory = 'U:/CIO/#Daymove/tables/'
+# filepath = 'U:/CIO/#Data/input/jpm/report/daymove/2020/09/'
+# filenames = sorted(os.listdir(filepath))
+# output_directory = 'U:/CIO/#Data/output/daymove/tables/'
+filepath = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/jpm/reports/daymove/2020/09/'
+filenames = sorted(os.listdir(filepath))
+output_directory = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/reports/daymove/tables/'
+
 
 filenames = filenames[:]
 
 df_main = pd.DataFrame()
 
 for filename in filenames:
-    df = daymove.extraction.load(input_directory + filepath + filename, password)
+    df = daymove.extraction.load(filepath + filename, password)
     df = daymove.extraction.clean(df)
     df = daymove.extraction.match_manager_to_sector(df)
     df = daymove.extraction.match_manager_to_benchmarks(df)
@@ -91,4 +94,4 @@ with open(output_directory + 'REPORT_DATE.tex', 'w') as tf:
 
 df_output = df_main.sort_values(['Sector', 'FUND', 'Date'])
 
-#df_output.to_csv('D:/automation/final/daymove/daymove_data.csv', index=False)
+# df_output.to_csv(output_directory + 'daymove_data.csv', index=False)

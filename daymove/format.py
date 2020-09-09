@@ -83,7 +83,8 @@ def filter_misc_funds(df):
         'LGQP:  Cash / Other',
         'LGQP:  UUT Sub Total',
         'LGQP:  Cash/Other',
-        'A'
+        'A',
+        'LGTN - LGS AUS EQ MTM 2020'
     ]
 
     df = df[~df['Fund'].isin(misc_filter)].reset_index(drop=True)

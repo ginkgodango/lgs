@@ -4,21 +4,23 @@ import numpy as np
 import re
 
 # Begin User Input Data
-report_date = dt.datetime(2020, 7, 31)
+report_date = dt.datetime(2020, 8, 31)
 
 wscf_market_value = 182556619.40
 aqr_market_value = 177256476.10
 delaware_market_value = 160322537.40
 wellington_market_value = 151984267.20
-
+qic_cash_market_value = 677011299.30
 
 input_directory = 'U:/'
 output_directory = 'U:/'
-jpm_filepath = input_directory + 'CIO/#Data/input/jpm/holdings/2020/07/Priced Positions - All.csv'
+jpm_filepath = input_directory + 'CIO/#Data/input/jpm/holdings/2020/08/Priced Positions - All.csv'
 wscf_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/wscf_holdings.xlsx'
 aqr_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/aqr_holdings.xls'
 delaware_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/delaware_holdings.xlsx'
 wellington_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/wellington_holdings.xlsx'
+qic_cash_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/qic_cash_holdings.xlsx'
+
 tickers_filepath = input_directory + 'CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
 asx_filepath = input_directory + 'CIO/#Data/input/asx/ASX300/20200501-asx300.csv'
 
@@ -39,6 +41,8 @@ australian_equity_managers_dict = {
         'LGS AUSTRALIAN EQUITIES - UBIQUE': 'Ubique',
         'LGS AUSTRALIAN EQUITIES - WSCF': 'First Sentier',
         'LGS AUSTRALIAN EQUITIES REBALANCE': 'Rebalance',
+        'LGS AUST EQUITIES - ALPHINITY': 'Alphinity'
+
 }
 international_equity_managers_dict = {
         'LGS INTERNATIONAL EQUITIES - WCM': 'WCM',
@@ -258,8 +262,40 @@ df_wellington['Account Number'] = 'WELLINGTON'
 df_wellington['Account Name'] = 'LGS INTERNATIONAL EQUITIES - WELLINGTON'
 df_wellington['Date'] = report_date
 
+df_qic_cash = pd.read_excel(
+        pd.ExcelFile(qic_cash_filepath),
+        sheet_name='Risk and Exposure',
+        header=4,
+        usecols=[
+                'ISIN',
+                'Security Description',
+                'Security Type',
+                'Currency',
+                'Market Value %'
+        ]
+)
+
+df_qic_cash = df_qic_cash.rename(
+        columns={
+                'Security Description': 'Security Name',
+                'Security Type': 'Asset Type'
+        }
+)
+
+df_qic_cash['Market Value Local'] = [np.nan for i in range(0,len(df_qic_cash))]
+df_qic_cash['Market Value AUD'] = df_qic_cash['Market Value %'] * qic_cash_market_value
+df_qic_cash['Quantity'] = [np.nan for i in range(0,len(df_qic_cash))]
+df_qic_cash['Purchase Price Local'] = [np.nan for i in range(0,len(df_qic_cash))]
+df_qic_cash['Purchase Price AUD'] = [np.nan for i in range(0,len(df_qic_cash))]
+df_qic_cash['Account Number'] = 'QIC Cash'
+df_qic_cash['Account Name'] = 'LGS CASH - QIC CASH'
+df_qic_cash['Date'] = report_date
+
+df_qic_cash = df_qic_cash.drop(columns=['Market Value %'], axis=1)
+df_qic_cash = df_qic_cash[~df_qic_cash['Security Name'].isin([np.nan])].reset_index(drop=True)
+
 # Joins all the dataframes
-df_main = pd.concat([df_jpm, df_wscf, df_aqr, df_delaware, df_wellington], axis=0, sort=True).reset_index(drop=True)
+df_main = pd.concat([df_jpm, df_wscf, df_aqr, df_delaware, df_wellington, df_qic_cash], axis=0, sort=True).reset_index(drop=True)
 
 # Outputs all of the holdings
 df_main_all = df_main.copy()
@@ -365,7 +401,8 @@ sedol_to_common_name_dict = {
         'BMMV2K8': 'Tencent',
         '2046251': 'Apple',
         '6066608': 'Amcor',
-        'B44WZD7': 'Prologis'
+        'B44WZD7': 'Prologis',
+        '2000019': 'Amazon'
 }
 # Selects top 10 holdings for AE and IE
 df_main_aeq_top10 = df_main_aeq.head(10)[['SEDOL', 'Market Value AUD', '(%) of Portfolio']]
@@ -484,6 +521,7 @@ df_tickers['TICKER'] = new_ticker_codes
 
 # Selects equity managers only
 equity_managers_list = [
+        'LGS AUST EQUITIES - ALPHINITY',
         'LGS AUSTRALIAN EQUITIES - BLACKROCK',
         'LGS AUSTRALIAN EQUITIES - ECP',
         'LGS AUSTRALIAN EQUITIES DNR CAPITAL',
@@ -673,50 +711,134 @@ df_main_relative_aeq = pd.merge(
 df_main_relative_aeq['Relative Weight'] = df_main_relative_aeq['Portfolio Weight'] - df_main_relative_aeq['Benchmark Weight']
 df_main_relative_aeq.to_csv(output_directory + 'CIO/#Data/output/holdings/relative_holdings_aeq.csv', index=False)
 
-# REGEX
-big4_banks_matches = [
-        'ANZ',
-        'AUSTRALIA AND NEW ZEALAND',
-        'AUSTRALIA & NEW ZEALAND',
-        'CBA',
-        'COMMONWEALTH BANK',
-        'NAB',
-        'NATIONAL AUSTRALIA BANK',
-        'WBC',
-        'WESTPAC',
-        'WESTPAC BANKING',
-]
-
-big4_bank_indicator = []
-big4_bank_market_value = []
-for i in range(0, len(df_main_all)):
-
-    if (
-            (any(word.lower() in df_main_all['Security Name'][i].lower() for word in big4_banks_matches))
-            and (df_main_all['Asset Type'][i] != 'UNKNOWN SECURITY TYPE')
-            and 'allianz' not in df_main_all['Security Name'][i].lower()
-    ):
-        big4_bank_indicator.append(1)
-
-        if df_main_all['Market Value AUD'][i] == 0:
-            big4_bank_market_value.append(df_main_all['Quantity'][i])
-        else:
-            big4_bank_market_value.append(df_main_all['Market Value AUD'][i])
-    else:
-        big4_bank_indicator.append(0)
-        big4_bank_market_value.append(0)
-
-df_main_all['Big4 Bank Indicator'] = big4_bank_indicator
-df_main_all['Big4 Bank Value AUD'] = big4_bank_market_value
-
-# df_main_all['Big4 Bank Value AUD'] = df_main_all['Big4 Bank Indicator'] * df_main_all['Market Value AUD']
-
-df_main_all_big4 = df_main_all[df_main_all['Big4 Bank Indicator'].isin([1])]
-
-# df_main_all.to_csv(output_directory + 'CIO/#Data/output/holdings/all_holdings_big4_banks.csv', index=False)
-
-writer = pd.ExcelWriter(output_directory + 'CIO/#Data/output/holdings/all_holdings_big4_banks.xlsx', engine='xlsxwriter')
-df_main_all.to_excel(writer, sheet_name='All', index=False)
-df_main_all_big4.to_excel(writer, sheet_name='Big4', index=False)
-writer.save()
+# # REGEX
+# big4_banks_matches = [
+#         'ANZ',
+#         'AUSTRALIA AND NEW ZEALAND',
+#         'AUSTRALIA & NEW ZEALAND',
+#         'CBA',
+#         'COMMONWEALTH BANK',
+#         'NAB',
+#         'NATIONAL AUSTRALIA BANK',
+#         'WBC',
+#         'WESTPAC',
+#         'WESTPAC BANKING',
+#         'WST'
+# ]
+#
+# anz_matches = [
+#         'ANZ',
+#         'AUSTRALIA AND NEW ZEALAND',
+#         'AUSTRALIA & NEW ZEALAND',
+# ]
+#
+# cba_matches = [
+#         'CBA',
+#         'COMMONWEALTH BANK',
+# ]
+#
+# nab_matches = [
+#         'NAB',
+#         'NATIONAL AUSTRALIA BANK',
+# ]
+#
+# wbc_matches = [
+#         'WBC',
+#         'WESTPAC',
+#         'WESTPAC BANKING',
+#         'WST'
+# ]
+#
+# big4_bank_indicator = []
+# big4_bank_market_value = []
+#
+# anz_indicator = []
+# anz_market_value = []
+# cba_indicator = []
+# cba_market_value = []
+# nab_indicator = []
+# nab_market_value = []
+# wbc_indicator = []
+# wbc_market_value = []
+#
+# for i in range(0, len(df_main_all)):
+#
+#     if (
+#             (any(word.lower() in df_main_all['Security Name'][i].lower() for word in big4_banks_matches))
+#             and (df_main_all['Asset Type'][i] != 'UNKNOWN SECURITY TYPE')
+#             and 'allianz' not in df_main_all['Security Name'][i].lower()
+#     ):
+#         big4_bank_indicator.append(1)
+#
+#         if df_main_all['Market Value AUD'][i] == 0:
+#             big4_bank_market_value.append(df_main_all['Quantity'][i])
+#         else:
+#             big4_bank_market_value.append(df_main_all['Market Value AUD'][i])
+#
+#         if any(word.lower() in df_main_all['Security Name'][i].lower() for word in anz_matches):
+#                 anz_indicator.append(1)
+#         else:
+#                 anz_indicator.append(0)
+#
+#         if any(word.lower() in df_main_all['Security Name'][i].lower() for word in cba_matches):
+#                 cba_indicator.append(1)
+#         else:
+#                 cba_indicator.append(0)
+#
+#         if any(word.lower() in df_main_all['Security Name'][i].lower() for word in nab_matches):
+#                 nab_indicator.append(1)
+#         else:
+#                 nab_indicator.append(0)
+#
+#         if any(word.lower() in df_main_all['Security Name'][i].lower() for word in wbc_matches):
+#                 wbc_indicator.append(1)
+#         else:
+#                 wbc_indicator.append(0)
+#
+#     else:
+#         big4_bank_indicator.append(0)
+#         big4_bank_market_value.append(0)
+#         anz_indicator.append(0)
+#         cba_indicator.append(0)
+#         nab_indicator.append(0)
+#         wbc_indicator.append(0)
+#
+# df_main_all['Big4 Bank Indicator'] = big4_bank_indicator
+# df_main_all['Big4 Bank Market Value AUD'] = big4_bank_market_value
+# df_main_all['ANZ Indicator'] = anz_indicator
+# df_main_all['CBA Indicator'] = cba_indicator
+# df_main_all['NAB Indicator'] = nab_indicator
+# df_main_all['WBC Indicator'] = wbc_indicator
+#
+# df_main_all['ANZ Market Value AUD'] = df_main_all['ANZ Indicator'] * df_main_all['Big4 Bank Market Value AUD']
+# df_main_all['CBA Market Value AUD'] = df_main_all['CBA Indicator'] * df_main_all['Big4 Bank Market Value AUD']
+# df_main_all['NAB Market Value AUD'] = df_main_all['NAB Indicator'] * df_main_all['Big4 Bank Market Value AUD']
+# df_main_all['WBC Market Value AUD'] = df_main_all['WBC Indicator'] * df_main_all['Big4 Bank Market Value AUD']
+#
+# # df_main_all['Big4 Bank Value AUD'] = df_main_all['Big4 Bank Indicator'] * df_main_all['Market Value AUD']
+#
+# df_main_all_big4 = df_main_all[df_main_all['Big4 Bank Indicator'].isin([1])]
+#
+# df_main_all_big4_sum = df_main_all_big4[
+#         [
+#                 'Big4 Bank Indicator',
+#                 'Big4 Bank Market Value AUD',
+#                 'ANZ Indicator',
+#                 'CBA Indicator',
+#                 'NAB Indicator',
+#                 'WBC Indicator',
+#                 'ANZ Market Value AUD',
+#                 'CBA Market Value AUD',
+#                 'NAB Market Value AUD',
+#                 'WBC Market Value AUD'
+#         ]
+# ].sum().reset_index(drop=False).T
+#
+# # df_main_all.to_csv(output_directory + 'CIO/#Data/output/holdings/all_holdings_big4_banks.csv', index=False)
+#
+# writer = pd.ExcelWriter(output_directory + 'CIO/#Data/output/holdings/all_holdings_big4_banks.xlsx', engine='xlsxwriter')
+# df_main_all.to_excel(writer, sheet_name='All', index=False)
+# df_main_all_big4.to_excel(writer, sheet_name='Big4', index=False)
+# df_main_all_big4_sum.to_excel(writer, sheet_name='Big4_sum', index=False, header=False)
+# writer.save()
 
