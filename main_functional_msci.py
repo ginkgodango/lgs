@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 import zipfile
 import os
-
+import time
 
 def read_msci(filepath):
     """
@@ -86,14 +86,20 @@ def parse_all_xml_to_dataframe(filepath):
 
 
 if __name__ == "__main__":
-    filepath_1 = r'C:\Users\mnguyen\LGSS\Investments Team - SandPits - SandPits\data\input\test\xml\20200203_20200228_core_ap_index_main_monthly.zip'.replace("\\", "/")
-    xml_list = create_xml_list_from_zip(filepath_1)
-    df1 = read_msci(filepath_1)
-    df2 = parse_all_xml_to_dataframe(filepath_1)
-    directory_1 = r'C:\Users\mnguyen\LGSS\Investments Team - SandPits - SandPits\data\input\test\xml'.replace("\\", "/")
-    df3 = read_msci_folder(directory_1)
-    directory_2 = r'C:\Users\mnguyen\LGSS\Investments Team - SandPits - SandPits\data\input\test\legacy'.replace("\\", "/")
-    df4 = read_msci_folder(directory_2)
+    # filepath_1 = r'C:\Users\mnguyen\LGSS\Investments Team - SandPits - SandPits\data\input\test\xml\20200203_20200228_core_ap_index_main_monthly.zip'.replace("\\", "/")
+    # xml_list = create_xml_list_from_zip(filepath_1)
+    # df1 = read_msci(filepath_1)
+    # df2 = parse_all_xml_to_dataframe(filepath_1)
+    # directory_1 = r'C:\Users\mnguyen\LGSS\Investments Team - SandPits - SandPits\data\input\test\xml'.replace("\\", "/")
+    # df3 = read_msci_folder(directory_1)
+    # directory_2 = r'C:\Users\mnguyen\LGSS\Investments Team - SandPits - SandPits\data\input\test\legacy'.replace("\\", "/")
+    # df4 = read_msci_folder(directory_2)
 
-    df5 = list(Pool(processes=4).map(lambda file: (file, read_msci(directory_1 + '/' + file)), os.listdir(directory_1)))
+    directory_5 = r'C:\Users\mnguyen\LGSS\Investments Team - SandPits - SandPits\data\input\test\parallel'.replace("\\", "/")
+    filepaths = [directory_5 + '/' + filename for filename in os.listdir(directory_5)]
+
+    start_time = time.time()
+    df5 = list(Pool(processes=1).map(read_msci, filepaths))
+    end_time = time.time()
+    print(end_time - start_time)
 
