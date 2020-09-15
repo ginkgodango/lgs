@@ -6,19 +6,19 @@ import re
 # Begin User Input Data
 report_date = dt.datetime(2020, 8, 31)
 
-wscf_market_value = 182556619.40
-aqr_market_value = 177256476.10
-delaware_market_value = 160322537.40
-wellington_market_value = 151984267.20
+wscf_market_value = 193710630.90
+aqr_market_value = 183401583.30
+delaware_market_value = 153895642.70
+wellington_market_value = 152475046.80
 qic_cash_market_value = 677011299.30
 
 input_directory = 'U:/'
 output_directory = 'U:/'
 jpm_filepath = input_directory + 'CIO/#Data/input/jpm/holdings/2020/08/Priced Positions - All.csv'
-wscf_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/wscf_holdings.xlsx'
-aqr_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/aqr_holdings.xls'
-delaware_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/delaware_holdings.xlsx'
-wellington_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/wellington_holdings.xlsx'
+wscf_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/08/wscf_holdings.xlsx'
+aqr_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/08/aqr_holdings.xls'
+delaware_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/08/delaware_holdings.xlsx'
+wellington_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/08/wellington_holdings.xlsx'
 qic_cash_filepath = input_directory + 'CIO/#Data/input/lgs/holdings/unitprices/2020/07/qic_cash_holdings.xlsx'
 
 tickers_filepath = input_directory + 'CIO/#Holdings/Data/input/tickers/tickers_201909.xlsx'
@@ -185,7 +185,7 @@ df_aqr['Date'] = report_date
 # Imports Delaware holdings data
 df_delaware = pd.read_excel(
         pd.ExcelFile(delaware_filepath),
-        sheet_name='EM SICAV holdings 6-30-2020',
+        sheet_name='EM SICAV holdings 7-31-2020',
         header=0,
         usecols=[
                 'Security SEDOL',
@@ -295,7 +295,7 @@ df_qic_cash = df_qic_cash.drop(columns=['Market Value %'], axis=1)
 df_qic_cash = df_qic_cash[~df_qic_cash['Security Name'].isin([np.nan])].reset_index(drop=True)
 
 # Joins all the dataframes
-df_main = pd.concat([df_jpm, df_wscf, df_aqr, df_delaware, df_wellington, df_qic_cash], axis=0, sort=True).reset_index(drop=True)
+df_main = pd.concat([df_jpm, df_wscf, df_aqr, df_delaware, df_wellington], axis=0, sort=True).reset_index(drop=True)
 
 # Outputs all of the holdings
 df_main_all = df_main.copy()
@@ -372,6 +372,10 @@ df_main_ieq = pd.merge(
 )
 df_main_ieq = df_main_ieq[df_main_ieq['_merge'].isin(['left_only', 'both'])].drop(columns=['_merge'], axis=1)
 
+# Remove AUD
+df_main_ieq = df_main_ieq[~df_main_ieq['SEDOL'].isin(['--'])].reset_index(drop=True)
+
+
 # Creates SEDOL to LGS friendly names dictionary for the top 10 holdings table for AE and IE.
 sedol_to_common_name_dict = {
         '6215035': 'CBA',
@@ -402,7 +406,8 @@ sedol_to_common_name_dict = {
         '2046251': 'Apple',
         '6066608': 'Amcor',
         'B44WZD7': 'Prologis',
-        '2000019': 'Amazon'
+        '2000019': 'Amazon',
+        '--': 'AUD'
 }
 # Selects top 10 holdings for AE and IE
 df_main_aeq_top10 = df_main_aeq.head(10)[['SEDOL', 'Market Value AUD', '(%) of Portfolio']]
@@ -710,6 +715,8 @@ df_main_relative_aeq = pd.merge(
 
 df_main_relative_aeq['Relative Weight'] = df_main_relative_aeq['Portfolio Weight'] - df_main_relative_aeq['Benchmark Weight']
 df_main_relative_aeq.to_csv(output_directory + 'CIO/#Data/output/holdings/relative_holdings_aeq.csv', index=False)
+
+
 
 # # REGEX
 # big4_banks_matches = [
