@@ -5,6 +5,7 @@ import zipfile
 import os
 import time
 import datetime
+import sys
 
 
 def read_msci(filepath):
@@ -22,7 +23,6 @@ def read_msci(filepath):
     )
 
 
-# Helper Functions
 def parse_xml_to_dataframe(filepath):
     """
     Parses the .xml file to dataframe file.
@@ -64,28 +64,61 @@ def file_matches(s, l):
     return list(filter(lambda x: x.endswith(s), l))
 
 
+def get_file_category(filename):
+    """
+    Extracts the file category from filename. E.g. 'yyyymmdd_yyyymmdd_category.zip' -> 'category.zip'
+    :param filename: name of zip file
+    :return: file category string
+    """
+
+    return (
+        None if len(filename) <= 8 else
+        filename[18:] if filename[8] == '_' and filename[18:] not in ('rif.zip', 'zip') else
+        filename[8:] if filename[8:] not in ('rif.zip', 'zip') else
+        None
+    )
+
+
+def read_combine_msci_files(filepaths):
+    """
+
+    :param filepaths:
+    :return:
+    """
+
+    return pd.concat(list(map(read_msci, filepaths))).reset_index(drop=True)
+
+
+def io_msci(category_filepaths_directory_tuple):
+    """
+
+    :param category_filepaths_directory_tuple:
+    :return:
+    """
+    category, filepaths, directory = category_filepaths_directory_tuple
+
+    try:
+
+        print(datetime.datetime.now(), 'Processing', len(filepaths), 'files:', category)
+        return read_combine_msci_files(filepaths).to_csv(directory + category[:-3] + 'csv', index=False)
+
+    except ValueError:
+
+        pass
+
+
 if __name__ == "__main__":
 
-    directory = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/test/parallel'
+    processors = 4
 
-    file_paths = set(map(lambda x: directory + '/' + x, os.listdir(directory)))
+    input_directory = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/test/mix/'
 
-    files_1 = list(filter(lambda x: x[8] == '_', os.listdir(directory)))
+    output_directory = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/vendors/msci/test/mix/'
 
-    files_2 = list(filter(lambda x: x[8] != '_', os.listdir(directory)))
+    file_paths = set(map(lambda x: input_directory + x, os.listdir(input_directory)))
 
-    file_categories = set(list(map(lambda x: x[18:], files_1)) + list(map(lambda x: x[8:], files_2)))
+    file_categories = set(map(lambda x: str(get_file_category(x)), os.listdir(input_directory)))
 
-    file_paths_grouped = list(map(lambda x: (x, file_matches(x, file_paths)), file_categories))
+    grouped_tuples = list(map(lambda x: (x, file_matches(x, file_paths), output_directory), file_categories))
 
-    for files in file_paths_grouped:
-
-        try:
-
-            print(datetime.datetime.now(), 'Processing', len(files[1]), 'files:', files[1])
-
-            df = pd.concat(list(Pool(processes=4).map(read_msci, files[1]))).reset_index(drop=True)
-
-        except ValueError:
-
-            continue
+    write = Pool(processes=processors).imap(io_msci, grouped_tuples)
