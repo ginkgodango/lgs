@@ -33,6 +33,7 @@ def get_total_size(ftp_dir):
 
 # ftp.quit()
 
+
 def load_msci(filepath):
     tree = ET.parse(filepath)
     root = tree.getroot()
@@ -128,6 +129,8 @@ with open('F:/download/history/Record_history.txt', 'w') as file:
 
 download_history_start = download_msci_history(ftp.pwd())
 
+# print(ftp.dir())
+# PermissionError: [Errno 13] Permission denied: 'C:/Users/mnguyen/Downloads/'
 
 # ftp.retrbinary("RETR " + filename ,open(A, 'wb').write)
 # with open('D:/somefile.txt', 'a') as file:
