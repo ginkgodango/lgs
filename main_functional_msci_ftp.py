@@ -63,13 +63,15 @@ def move_files(move_instruction):
 def download_from_ftp(transfer_instruction):
     """
 
-    :param transfer_instruction: (file, ftp_directory, lgs_directory)
+    :param transfer_instruction:
     :return:
     """
-    file, ftp_directory, lgs_directory = transfer_instruction
+    website, username, password, file, ftp_directory, lgs_directory = transfer_instruction
+    ftp = FTP(website)
+    ftp.login(username, password)
     print("Transferring:", file, "from", ftp_directory, "to", lgs_directory)
-
-    return ftp.retrbinary("RETR " + ftp_directory + file, open(lgs_directory + str(file), 'wb').write)
+    ftp.retrbinary("RETR " + ftp_directory + file, open(lgs_directory + str(file), 'wb').write)
+    ftp.quit()
 
 
 if __name__ == '__main__':
@@ -101,10 +103,10 @@ if __name__ == '__main__':
 
     mover = Pool(processes=4).imap(move_files, move_instructions)
 
-    transfer_instructions_download = list(map(lambda x: (x, "/download/", "U:/CIO/#Data/input/msci/download/"), new_files_download))
+    transfer_instructions_download = list(map(lambda x: ("ftp.msci.com", 'wnvyzpng', 'hxcksyyx', x, "../download/", "U:/CIO/#Data/input/msci/download/"), new_files_download))
 
-    transfer_instructions_history = list(map(lambda x: (x, "/download/", "U:/CIO/#Data/input/msci/download/history/"), new_files_history))
+    transfer_instructions_history = list(map(lambda x: ("ftp.msci.com", 'wnvyzpng', 'hxcksyyx', x, "../download/history/", "U:/CIO/#Data/input/msci/download/history/"), new_files_history))
 
-    transfer = Pool(processes=4).imap(download_from_ftp, transfer_instructions_download)
-    
-    # writer = Pool(process=4).imap()
+    transfer_download = Pool(processes=4).imap(download_from_ftp, transfer_instructions_download)
+
+    transfer_history = Pool(processes=4).imap(download_from_ftp, transfer_instructions_history)
