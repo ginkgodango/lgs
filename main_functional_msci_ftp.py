@@ -76,8 +76,8 @@ def download_from_ftp(transfer_instruction):
 
 if __name__ == '__main__':
 
-    directory_download = 'U:/CIO/#Data/input/msci/download'
-    directory_history = 'U:/CIO/#Data/input/msci/download/history'
+    directory_download = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/msci/download/'
+    directory_history = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/msci/download/history/'
     ftp = FTP("ftp.msci.com")
     ftp.login('wnvyzpng', 'hxcksyyx')
     print(ftp.getwelcome())
@@ -95,18 +95,18 @@ if __name__ == '__main__':
 
     moved_files = (msci_files_history - lgs_files_history).intersection(lgs_files_download)
 
-    new_files_download = (msci_files_download - lgs_files_download)
+    new_files_download = sorted(list((msci_files_download - lgs_files_download)))
 
-    new_files_history = (msci_files_history - lgs_files_history) - moved_files
+    new_files_history = sorted(list((msci_files_history - lgs_files_history) - moved_files))
 
     move_instructions = list(map(lambda x: (x, directory_download, directory_history), moved_files))
 
-    mover = Pool(processes=4).imap(move_files, move_instructions)
+    mover = Pool(processes=10).imap(move_files, move_instructions)
 
-    transfer_instructions_download = list(map(lambda x: ("ftp.msci.com", 'wnvyzpng', 'hxcksyyx', x, "../download/", "U:/CIO/#Data/input/msci/download/"), new_files_download))
+    transfer_instructions_download = list(map(lambda x: ("ftp.msci.com", 'wnvyzpng', 'hxcksyyx', x, "../download/", directory_download), new_files_download))
 
-    transfer_instructions_history = list(map(lambda x: ("ftp.msci.com", 'wnvyzpng', 'hxcksyyx', x, "../download/history/", "U:/CIO/#Data/input/msci/download/history/"), new_files_history))
+    transfer_instructions_history = list(map(lambda x: ("ftp.msci.com", 'wnvyzpng', 'hxcksyyx', x, "../download/history/", directory_history), new_files_history))
 
-    transfer_download = Pool(processes=4).imap(download_from_ftp, transfer_instructions_download)
+    transfer_download = Pool(processes=10).imap(download_from_ftp, transfer_instructions_download)
 
-    transfer_history = Pool(processes=4).imap(download_from_ftp, transfer_instructions_history)
+    transfer_history = Pool(processes=10).imap(download_from_ftp, transfer_instructions_history)
