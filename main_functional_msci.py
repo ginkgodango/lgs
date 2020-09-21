@@ -141,9 +141,9 @@ if __name__ == "__main__":
 
     file_paths_rest = file_paths_rest_download + file_paths_rest_history
 
-    file_categories_mtd = set(map(lambda x: str(get_file_category(x)), files_mtd_download + files_mtd_history))
+    file_categories_mtd = sorted(list(set(map(lambda x: str(get_file_category(x)), files_mtd_download + files_mtd_history))))
 
-    file_categories_rest = set(map(lambda x: str(get_file_category(x)), files_rest_download + files_rest_history))
+    file_categories_rest = sorted(list(set(map(lambda x: str(get_file_category(x)), files_rest_download + files_rest_history))))
 
     process_instructions_mtd = list(map(lambda x: (x, file_matches(x, file_paths_mtd), output_directory_mtd), file_categories_mtd))
 
@@ -151,12 +151,4 @@ if __name__ == "__main__":
 
     # write_mtd = Pool(processes=processors).imap(io_msci, process_instructions_mtd)
 
-    write_rest = Pool(processes=processors).imap(io_msci, process_instructions_rest)
-
-    # file_paths = set(map(lambda x: input_directory + x, os.listdir(input_directory)))
-    #
-    # file_categories = set(map(lambda x: str(get_file_category(x)), os.listdir(input_directory)))
-    #
-    # grouped_tuples = list(map(lambda x: (x, file_matches(x, file_paths), output_directory), file_categories))
-    #
-    # write = Pool(processes=processors).imap(io_msci, grouped_tuples)
+    # write_rest = Pool(processes=processors).imap(io_msci, process_instructions_rest)

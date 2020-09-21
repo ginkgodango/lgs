@@ -75,7 +75,7 @@ def download_from_ftp(transfer_instruction):
 
 
 if __name__ == '__main__':
-
+    processors = 10
     directory_download = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/msci/download/'
     directory_history = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/msci/download/history/'
     ftp = FTP("ftp.msci.com")
@@ -101,12 +101,12 @@ if __name__ == '__main__':
 
     move_instructions = list(map(lambda x: (x, directory_download, directory_history), moved_files))
 
-    mover = Pool(processes=10).imap(move_files, move_instructions)
+    mover = Pool(processes=processors).imap(move_files, move_instructions)
 
     transfer_instructions_download = list(map(lambda x: ("ftp.msci.com", 'wnvyzpng', 'hxcksyyx', x, "../download/", directory_download), new_files_download))
 
     transfer_instructions_history = list(map(lambda x: ("ftp.msci.com", 'wnvyzpng', 'hxcksyyx', x, "../download/history/", directory_history), new_files_history))
 
-    transfer_download = Pool(processes=10).imap(download_from_ftp, transfer_instructions_download)
+    transfer_download = Pool(processes=processors).imap(download_from_ftp, transfer_instructions_download)
 
-    transfer_history = Pool(processes=10).imap(download_from_ftp, transfer_instructions_history)
+    transfer_history = Pool(processes=processors).imap(download_from_ftp, transfer_instructions_history)
