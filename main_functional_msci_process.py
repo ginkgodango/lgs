@@ -3,7 +3,8 @@ import os
 import pandas as pd
 import xml.etree.ElementTree as ET
 import time
-from multiprocessing import Pool
+import multiprocessing
+
 
 def process_msci_zip(instruction):
     """
@@ -13,21 +14,24 @@ def process_msci_zip(instruction):
     """
     filename, input_dir, output_dir = instruction
 
-    create_folder(filename, output_dir)
+    create_folder_from_zip(filename, input_dir, output_dir)
 
     list(map(lambda x: io_msci(filename, input_dir, output_dir, x), create_xml_list_from_zip(filename, input_dir)))
 
     print('{timestamp} Processed: {output_directory}'.format(timestamp=time.ctime(), output_directory=folder_path(filename, output_dir)))
 
 
-def folder_path(filename, output_dir):
+def folder_path(filename, directory):
 
-    return output_dir + filename[:-4] + '/'
+    return directory + filename[:-4] + '/'
 
 
-def create_folder(filename, output_dir):
+def create_folder_from_zip(filename, input_dir, output_dir):
 
-    return os.makedirs(folder_path(filename, output_dir))
+    return (
+        os.makedirs(folder_path(filename, output_dir)) if len(create_xml_list_from_zip(filename, input_dir)) > 0 else
+        None
+    )
 
 
 def check_new_zip(s, output_dir):
@@ -66,15 +70,9 @@ def io_msci(zip_filename, input_dir, output_dir, xml_filename):
 
 if __name__ == '__main__':
 
-    # directory_zip_download = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/msci/download/'
-    # directory_zip_history = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/msci/download/history/'
-    # directory_unzip = 'C:/Users/Mnguyen/Data/msci/'
-    #
-    # zipfiles_download = os.listdir(directory_zip_download)
-    # zipfiles_history = os.listdir(directory_zip_history)
+    input_directory = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/msci/download/'
 
-    input_directory = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/test/multiple/'
-    output_directory = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/vendors/test/multiple/'
+    output_directory = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/vendors/msci/csv/'
 
     files_zip = list(filter(lambda x: x.endswith('.zip'), sorted(os.listdir(input_directory))))
 
@@ -82,4 +80,4 @@ if __name__ == '__main__':
 
     process_instructions = list(map(lambda x: (x, input_directory, output_directory), files_zip_new))
 
-    generate = Pool(processes=10).imap(process_msci_zip, process_instructions))
+    generate = multiprocessing.Pool(processes=10).imap(process_msci_zip, process_instructions)
