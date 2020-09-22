@@ -109,3 +109,7 @@ def backup(directory):
     zipfiles = list(filter(lambda x: x.endswith(tuple(xml_package_names_5)), os.listdir(directory)))
 
     return zipfiles
+
+def unzip(filename, input_dir, output_dir):
+
+    return zipfile.ZipFile(input_dir + filename, 'r').extractall(folder_path(filename, output_dir))
