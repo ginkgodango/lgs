@@ -72,11 +72,11 @@ if __name__ == '__main__':
 
     input_directory = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/msci/download/'
 
-    output_directory = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/vendors/msci/csv/'
+    output_directory = 'C:/Users/Mnguyen/Data/msci/csv/'
 
     files_zip = list(filter(lambda x: x.endswith('.zip'), sorted(os.listdir(input_directory))))
 
-    files_zip_new = list(filter(lambda x: check_new_zip(x, output_directory), os.listdir(input_directory)))
+    files_zip_new = list(filter(lambda x: check_new_zip(x, output_directory), files_zip))
 
     process_instructions = list(map(lambda x: (x, input_directory, output_directory), files_zip_new))
 
