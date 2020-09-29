@@ -6,21 +6,21 @@ from dateutil.relativedelta import relativedelta
 import matplotlib.pyplot as plt
 
 # START USER INPUT DATA
-jpm_main_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/06/Historical Time Series - Monthly - Main Returns.xlsx'
-jpm_alts_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/06/Historical Time Series - Monthly - Alts Returns.xlsx'
-jpm_main_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/06/Historical Time Series - Monthly - Main Benchmarks.xlsx'
-jpm_alts_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/06/Historical Time Series - Monthly - Alts Benchmarks.xlsx'
-jpm_main_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/06/Historical Time Series - Monthly - Main Market Values.xlsx'
-jpm_alts_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/06/Historical Time Series - Monthly - Alts Market Values.xlsx'
-jpm_strategy_returns_benchmarks_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/06/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks.xlsx'
-lgs_returns_benchmarks_filepath = 'U:/CIO/#Investment_Report/data/input/returns/returns_2020-06-30.csv'
-lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/06/New Dictionary_v10.xlsx'
-lgs_allocations_filepath ='U:/CIO/#Data/input/lgs/allocations/asset_allocations_2020-06-30_attribution.csv'
+jpm_main_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Main Returns.xlsx'
+jpm_alts_returns_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Alts Returns.xlsx'
+jpm_main_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Main Benchmarks.xlsx'
+jpm_alts_benchmarks_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Alts Benchmarks.xlsx'
+jpm_main_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Main Market Values.xlsx'
+jpm_alts_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Alts Market Values.xlsx'
+jpm_strategy_returns_benchmarks_mv_filepath = 'U:/CIO/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks.xlsx'
+lgs_returns_benchmarks_filepath = 'U:/CIO/#Data/input/lgs/returns/returns_2020-08-31.csv'
+lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/09/New Dictionary_v12.xlsx'
+lgs_allocations_filepath ='U:/CIO/#Data/input/lgs/allocations/asset_allocations_2020-08-31.csv'
 
 output_directory = 'U:/CIO/#Data/output/attribution/tables/'
 
-FYTD = 6
-report_date = dt.datetime(2020, 6, 30)
+FYTD = 2
+report_date = dt.datetime(2020, 8, 31)
 # END USER INPUT DATA
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
