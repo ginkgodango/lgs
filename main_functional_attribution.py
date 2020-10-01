@@ -50,7 +50,7 @@ def percentage_to_decimal(df, columns):
 
 def forward_date(df, date_name):
 
-    df[date_name] = list(map(lambda x: x + relativedelta(months=1, day=31), df_lgs_allocations[date_name]))
+    df[date_name] = list(map(lambda x: x + relativedelta(months=1, day=31), df[date_name]))
 
 
 if __name__ == "__main__":
@@ -69,12 +69,23 @@ if __name__ == "__main__":
     footnote_rows = 28
 
     df_lgs_dictionary = pd.read_excel(pd.ExcelFile(lgs_dictionary_path), sheet_name='Sheet1', header=0)
+    df_lgs_dictionary = df_lgs_dictionary[~df_lgs_dictionary['LGS Name'].isin(['Australian Fixed Interest', 'International Fixed Interest', 'Inflation Linked Bonds', 'Liquid Alternatives', 'Short Term Fixed Interest'])].reset_index(drop=True)
 
-    df_lgs_allocations = pd.read_csv(lgs_allocations_path, parse_dates=['Date'])
-
-    forward_date(df=df_lgs_allocations, date_name='Date')
-
-    percentage_to_decimal(df=df_lgs_allocations, columns=['Portfolio Weight', 'Dynamic Weight', 'Benchmark Weight'])
+    df_lgs_allocations1 = (pd.read_csv(lgs_allocations_path, parse_dates=['Date']).rename(columns={'Market Value': 'MV_s_a', 'Portfolio Weight': 'W_s_a_p', 'Dynamic Weight': 'W_s_a_d', 'Benchmark Weight': 'W_s_a_b'}))
+    forward_date(df=df_lgs_allocations1, date_name='Date')
+    percentage_to_decimal(df=df_lgs_allocations1, columns=['W_s_a_p', 'W_s_a_d', 'W_s_a_b'])
+    df_lgs_allocations2 = pd.merge(left=df_lgs_dictionary, right=df_lgs_allocations1, left_on=['JPM ReportStrategyName'], right_on=['Asset Class'])
+    df_lgs_allocations3 = df_lgs_allocations2[
+        [
+            'Date',
+            'Strategy',
+            'LGS Asset Class Level 1',
+            'MV_s_a',
+            'W_s_a_p',
+            'W_s_a_d',
+            'W_s_a_b'
+        ]
+    ]
 
     df_jpm_main_mv = jpm_wide_to_long(
         df=pd.read_excel(
@@ -86,7 +97,7 @@ if __name__ == "__main__":
         ),
         set_date_name='Date',
         set_index_name='JPM Account Id',
-        set_values_name='JPM Market Value'
+        set_values_name='MV_a_m'
     )
 
     df_jpm_alts_mv = jpm_wide_to_long(
@@ -99,7 +110,7 @@ if __name__ == "__main__":
         ),
         set_date_name='Date',
         set_index_name='JPM Account Id',
-        set_values_name='JPM Market Value'
+        set_values_name='MV_a_m'
     )
 
     df_jpm_main_returns = jpm_wide_to_long(
@@ -112,7 +123,7 @@ if __name__ == "__main__":
         ),
         set_date_name='Date',
         set_index_name='JPM Account Id',
-        set_values_name='JPM Return'
+        set_values_name='R_a_m_p'
     )
 
     df_jpm_alts_returns = jpm_wide_to_long(
@@ -125,7 +136,7 @@ if __name__ == "__main__":
         ),
         set_date_name='Date',
         set_index_name='JPM Account Id',
-        set_values_name='JPM Return'
+        set_values_name='R_a_m_p'
     )
 
     df_jpm_main_benchmarks = jpm_wide_to_long(
@@ -138,7 +149,7 @@ if __name__ == "__main__":
         ),
         set_date_name='Date',
         set_index_name='JPM Account Id',
-        set_values_name='JPM Benchmark'
+        set_values_name='R_a_m_b'
     )
 
     df_jpm_alts_benchmarks = jpm_wide_to_long(
@@ -151,7 +162,7 @@ if __name__ == "__main__":
         ),
         set_date_name='Date',
         set_index_name='JPM Account Id',
-        set_values_name='JPM Benchmark'
+        set_values_name='R_a_m_b'
     )
 
     df_jpms = [
@@ -162,16 +173,16 @@ if __name__ == "__main__":
 
     df_jpm = reduce(lambda x, y: pd.merge(left=x, right=y, on=['JPM Account Id', 'Date'], how='inner'), df_jpms)
 
-    percentage_to_decimal(df=df_jpm, columns=['JPM Return', 'JPM Benchmark'])
+    percentage_to_decimal(df=df_jpm, columns=['R_a_m_p', 'R_a_m_b'])
 
     df_combined1 = pd.merge(left=df_lgs_dictionary, right=df_jpm, on=['JPM Account Id'], how='inner').sort_values(['LGS Asset Class Level 1', 'JPM Account Id', 'Date'])
 
     df_managers_sum_mv = (
         df_combined1[df_combined1['LGS Sector Aggregate'].isin([0])]
-        .groupby(['LGS Asset Class Level 1', 'Date'])['JPM Market Value']
+        .groupby(['LGS Asset Class Level 1', 'Date'])['MV_a_m']
         .sum()
         .reset_index(drop=False)
-        .rename(columns={'JPM Market Value': 'Asset Class Sum Manager MV'})
+        .rename(columns={'MV_a_m': 'MV_a_sum_m'})
     )
 
     df_combined2 = pd.merge(
@@ -179,14 +190,14 @@ if __name__ == "__main__":
         right=df_managers_sum_mv,
         left_on=['LGS Asset Class Level 1', 'Date'],
         right_on=['LGS Asset Class Level 1', 'Date']
-    ).sort_values(['JPM Account Id', 'Date'])
+    ).sort_values(['JPM Account Id', 'Date']).reset_index(drop=True)
 
-    df_combined2['W_a_m'] = df_combined2['JPM Market Value'] / df_combined2['Asset Class Sum Manager MV']
+    df_combined2['W_a_m'] = df_combined2['MV_a_m'] / df_combined2['MV_a_sum_m']
 
     df_sector1 = (
         df_combined1[df_combined1['LGS Sector Aggregate'].isin([1])]
-        [['LGS Asset Class Level 1', 'Date', 'JPM Market Value', 'JPM Return', 'JPM Benchmark']]
-        .rename(columns={'JPM Market Value': 'Asset Class MV', 'JPM Return': 'R_a_p', 'JPM Benchmark': 'R_a_b'})
+        [['LGS Asset Class Level 1', 'Date', 'MV_a_m', 'R_a_m_p', 'R_a_m_b']]
+        .rename(columns={'MV_a_m': 'MV_a', 'R_a_m_p': 'R_a_p', 'R_a_m_b': 'R_a_b'})
     )
 
     df_combined3 = pd.merge(
@@ -194,33 +205,61 @@ if __name__ == "__main__":
         right=df_sector1,
         left_on=['LGS Asset Class Level 1', 'Date'],
         right_on=['LGS Asset Class Level 1', 'Date']
-    ).sort_values(['JPM Account Id', 'Date'])
+    ).sort_values(['JPM Account Id', 'Date']).reset_index(drop=True)
 
-    df_attribution = (
-        df_combined3[[
-            'LGS Name',
-            'LGS Benchmark',
-            'LGS Asset Class Level 1',
-            'LGS Sector Aggregate',
-            'LGS Asset Class Order',
-            'LGS Manager Order',
-            'Date',
-            'JPM Market Value',
-            'Asset Class Sum Manager MV',
-            'Asset Class MV',
-            'JPM Return',
-            'JPM Benchmark',
-            'W_a_m',
-            'R_a_p',
-            'R_a_b'
-        ]]
-        .rename(
-            columns={
-                'JPM Return': 'R_a_m_p',
-                'JPM Benchmark': 'R_a_m_s'
-            }
-        )
+    df_combined3['MV_a_diff'] = df_combined3['MV_a_sum_m'] - df_combined3['MV_a']
+
+    df_combined3['W_a_m_R_a_p'] = df_combined3['W_a_m'] * df_combined3['R_a_p']
+
+    df_combined3 = df_combined3[df_combined3['LGS Sector Aggregate'].isin([0])]
+
+    a = df_combined3.groupby(['LGS Asset Class Level 1', 'Date']).sum().rename(columns={'W_a_m_R_a_p': 'R_a_sum_m_p'})
+
+    df_combined4 = (
+        df_combined3[
+            [
+                'LGS Name',
+                'LGS Benchmark',
+                'LGS Asset Class Level 1',
+                'LGS Sector Aggregate',
+                'LGS Asset Class Order',
+                'LGS Manager Order',
+                'Date',
+                'MV_a_m',
+                'MV_a_sum_m',
+                'MV_a',
+                'MV_a_diff',
+                'W_a_m',
+                'R_a_m_p',
+                'R_a_m_b',
+                'R_a_p',
+                'R_a_b'
+            ]
+        ]
     )
 
-    
+    df_combined5 = df_combined4.copy().reset_index(drop=True)
 
+    average = ['W_a_m']
+
+    geometric = ['R_a_m_p', 'R_a_m_b', 'R_a_p', 'R_a_b']
+
+    horizons = [1, 3]
+
+    instructions_average = [(x, y) for x in average for y in horizons]
+
+    instructions_geometric = [(x, y) for x in geometric for y in horizons]
+
+    # a = rolling_geometric_link(df_combined5, 'R_a_m_p', 3, ['LGS Name']).rename(columns={'R_a_m_p': 'R_a_m_p_3'})
+
+    # average_horizon = []
+    # geometric_horizon = []
+    # for horizon, period in horizon_to_period_dict.items():
+    #
+    #     for a in average:
+    #
+    #         average_horizon.append(a + horizon)
+    #
+    #     for g in geometric:
+    #
+    #         geometric_horizon.append(g + horizon)
