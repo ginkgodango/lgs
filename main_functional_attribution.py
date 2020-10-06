@@ -30,6 +30,16 @@ def jpm_wide_to_long(df, set_date_name, set_index_name, set_values_name):
     )
 
 
+def df_rolling_geometric(df, column, period, grouping):
+
+    return pd.concat([rolling_geometric_link(df, column, period, grouping), pd.DataFrame(period, index=(range(0, len(df))), columns=['Period'])], axis=1)
+
+
+def df_rolling_average(df, column, period, grouping):
+
+    return pd.concat([rolling_average_link(df, column, period, grouping), pd.DataFrame(period, index=(range(0, len(df))), columns=['Period'])], axis=1)
+
+
 def rolling_geometric_link(df, column, period, grouping):
 
     return (
@@ -38,7 +48,7 @@ def rolling_geometric_link(df, column, period, grouping):
     )
 
 
-def rolling_mean(df, column, period, grouping):
+def rolling_average_link(df, column, period, grouping):
 
     return df.groupby(grouping)[column].rolling(period).mean().reset_index(drop=False)
 
@@ -213,11 +223,12 @@ if __name__ == "__main__":
 
     df_combined3 = df_combined3[df_combined3['LGS Sector Aggregate'].isin([0])]
 
-    a = df_combined3.groupby(['LGS Asset Class Level 1', 'Date']).sum().rename(columns={'W_a_m_R_a_p': 'R_a_sum_m_p'})
+    # a = df_combined3.groupby(['LGS Asset Class Level 1', 'Date']).sum().rename(columns={'W_a_m_R_a_p': 'R_a_sum_m_p'})
 
     df_combined4 = (
         df_combined3[
             [
+                'JPM Account Id',
                 'LGS Name',
                 'LGS Benchmark',
                 'LGS Asset Class Level 1',
@@ -236,9 +247,20 @@ if __name__ == "__main__":
                 'R_a_b'
             ]
         ]
-    )
+    ).reset_index(drop=True)
 
-    df_combined5 = df_combined4.copy().reset_index(drop=True)
+    df_fund_ids = df_combined4[
+            [
+                'JPM Account Id',
+                'LGS Name',
+                'Date',
+                'LGS Benchmark',
+                'LGS Asset Class Level 1',
+                'LGS Sector Aggregate',
+                'LGS Asset Class Order',
+                'LGS Manager Order'
+            ]
+        ].reset_index(drop=False).rename(columns={"index": 'level_1'})
 
     average = ['W_a_m']
 
@@ -246,20 +268,19 @@ if __name__ == "__main__":
 
     horizons = [1, 3]
 
-    instructions_average = [(x, y) for x in average for y in horizons]
+    multiperiod1 = list(map(lambda x: pd.concat(list(map(lambda y: df_rolling_average(df_combined4, x, y, ['JPM Account Id']), horizons)), axis=0), average))
 
-    instructions_geometric = [(x, y) for x in geometric for y in horizons]
+    multiperiod2 = list(map(lambda x: pd.concat(list(map(lambda y: df_rolling_geometric(df_combined4, x, y, ['JPM Account Id']), horizons)), axis=0), geometric))
 
-    # a = rolling_geometric_link(df_combined5, 'R_a_m_p', 3, ['LGS Name']).rename(columns={'R_a_m_p': 'R_a_m_p_3'})
+    multiperiod3 = multiperiod1 + multiperiod2
 
-    # average_horizon = []
-    # geometric_horizon = []
-    # for horizon, period in horizon_to_period_dict.items():
-    #
-    #     for a in average:
-    #
-    #         average_horizon.append(a + horizon)
-    #
-    #     for g in geometric:
-    #
-    #         geometric_horizon.append(g + horizon)
+    df_multiperiod = reduce(lambda x, y: pd.merge(left=x, right=y, on=['JPM Account Id', 'Period', 'level_1'], how='inner'), multiperiod3)
+
+    df_combined5 = pd.merge(
+        left=df_fund_ids,
+        right=df_multiperiod,
+        left_on=['JPM Account Id', 'level_1'],
+        right_on=['JPM Account Id', 'level_1'],
+        how='inner'
+    )
+    
