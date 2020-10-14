@@ -168,6 +168,11 @@ def process_wel(df, mv, columns):
     return df[columns]
 
 
+def swap(a, b, condition):
+
+    return a if condition else b
+
+
 columns_list = [
     'Portfolio Name',
     'Category Description',
@@ -206,46 +211,51 @@ ie_list = [
 
 if __name__ == '__main__':
 
+    # Set file directories.
     jpm_path = 'U:/CIO/#Data/input/jpm/holdings/2020/09/Detailed Valuation Report - Equities.csv'
     fsi_path = 'U:/CIO/#Data/input/lgs/holdings/unitprices/2020/09/wscf_holdings.xlsx'
     aqr_path = 'U:/CIO/#Data/input/lgs/holdings/unitprices/2020/09/aqr_holdings.xlsx'
     mac_path = 'U:/CIO/#Data/input/lgs/holdings/unitprices/2020/09/macquarie_holdings.xlsx'
     wel_path = 'U:/CIO/#Data/input/lgs/holdings/unitprices/2020/09/wellington_holdings.xlsx'
 
+    # Get market value from JPM Investment Accounting System.
     date = dt.datetime(2020, 8, 31)
     fsi_mv = 194719540.46
     aqr_mv = 182239774.63
     mac_mv = 151551731.17
     wel_mv = 149215529.22
 
+    # Reads in each file as a dataframe and cleans it.
     df_jpm = process_jpm(df=read_jpm(jpm_path), columns=columns_list)
     df_fsi = process_fsi(df=read_fsi(fsi_path), mv=fsi_mv, columns=columns_list)
     df_aqr = process_aqr(df=read_aqr(aqr_path), mv=aqr_mv, columns=columns_list)
     df_mac = process_mac(df=read_mac(mac_path), mv=mac_mv, columns=columns_list)
     df_wel = process_wel(df=read_wel(wel_path), mv=wel_mv, columns=columns_list)
 
-    df_all = pd.concat([df_jpm, df_fsi, df_aqr, df_mac, df_wel], axis=0).reset_index(drop=True)
+    # Joins all files into one dataframe.
+    df_all = pd.concat([df_jpm, df_fsi, df_aqr, df_mac, df_wel], axis=0).sort_values('Portfolio Name').reset_index(drop=True)
 
-    a = []
-    for i in range(len(df_all)):
-        if df_all['Category Description'][i] == 'Liquidity':
-            a.append(df_all['Security Name'][i])
-        else:
-            a.append(df_all['Security ID'][i])
-    df_all['Security ID'] = a
+    # Swaps the Security IDs of the Liquidity accounts with their Security Names. This solves the uniqueness problem.
+    df_all['Security ID'] = [str(swap(df_all['Security Name'][i], df_all['Security ID'][i], df_all['Category Description'][i] == 'Liquidity')) for i in range(len(df_all))]
 
+    # Creates df_info to merge back the Security Names after aggregating on Security ID.
     df_info = df_all[['Security ID', 'Security Name']].drop_duplicates(subset='Security ID', keep="first")
 
+    # Sums Realizable Value Base by Security ID
     df_ae = df_all[df_all['Portfolio Name'].isin(ae_list)].groupby('Security ID').sum()[['Realizable Value Base']].reset_index(drop=False).sort_values('Realizable Value Base', ascending=False)
     df_ie = df_all[df_all['Portfolio Name'].isin(ie_list)].groupby('Security ID').sum()[['Realizable Value Base']].reset_index(drop=False).sort_values('Realizable Value Base', ascending=False)
 
+    # Calculates the percentage of portfolio for each Security ID
     df_ae['% of Portfolio'] = (df_ae['Realizable Value Base'] / df_ae['Realizable Value Base'].sum()) * 100
     df_ie['% of Portfolio'] = (df_ie['Realizable Value Base'] / df_ie['Realizable Value Base'].sum()) * 100
 
-    df_ae_info = pd.merge(left=df_info, right=df_ae, on=['Security ID'], how='inner').sort_values('Realizable Value Base', ascending=False)
-    df_ie_info = pd.merge(left=df_info, right=df_ie, on=['Security ID'], how='inner').sort_values('Realizable Value Base', ascending=False)
+    # Merges the Security Name back onto the Security ID
+    df_ae_info = pd.merge(left=df_info, right=df_ae, on=['Security ID'], how='inner').sort_values('Realizable Value Base', ascending=False).reset_index(drop=True)
+    df_ie_info = pd.merge(left=df_info, right=df_ie, on=['Security ID'], how='inner').sort_values('Realizable Value Base', ascending=False).reset_index(drop=True)
 
-    # df_cps = df_jpm[['Portfolio Name', 'Security Name', 'Realizable Value Base']]
-    # df_sec1 = df_jpm[['Security ID', 'Local Currency', 'Security Name', 'Local Price']].drop_duplicates()
-    # df_sec2 = df_jpm.groupby('Security ID').sum()[['Unit Holding', 'Realizable Value Base']].reset_index(drop=False)
-    # df_sec3 = pd.merge(left=df_sec1, right=df_sec2, left_on=['Security ID'], right_on=['Security ID'], how='inner')
+    # Writes to Excel.
+    writer = pd.ExcelWriter('U:/CIO/#Data/output/holdings/portfolio_holdings.xlsx', engine='xlsxwriter')
+    df_ae_info.to_excel(writer, sheet_name='AE', index=False)
+    df_ie_info.to_excel(writer, sheet_name='IE', index=False)
+    df_all.to_excel(writer, sheet_name='All', index=False)
+    writer.save()
