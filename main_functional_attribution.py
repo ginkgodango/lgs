@@ -63,6 +63,15 @@ def forward_date(df, date_name):
     df[date_name] = list(map(lambda x: x + relativedelta(months=1, day=31), df[date_name]))
 
 
+def suffix_to_column(s):
+
+    return (
+        'R_s_p' if s[-2:] == '.1' else
+        'R_s_b' if s[-2:] == '.2' else
+        'MV_s'
+    )
+
+
 if __name__ == "__main__":
     lgs_dictionary_path = 'U:/CIO/#Data/input/lgs/dictionary/2020/09/New Dictionary_v12.xlsx'
     lgs_allocations_path = 'U:/CIO/#Data/input/lgs/allocations/asset_allocations_2020-08-31.csv'
@@ -283,4 +292,23 @@ if __name__ == "__main__":
         right_on=['JPM Account Id', 'level_1'],
         how='inner'
     )
-    
+
+    df_jpm_strategy = jpm_wide_to_long(
+        df=pd.read_excel(
+            jpm_strategy_returns_benchmarks_mv_path,
+            sheet_name='Sheet1',
+            skiprows=use_account_id,
+            skipfooter=footnote_rows,
+            header=1
+        ),
+        set_date_name='Date',
+        set_index_name='JPM Account Id',
+        set_values_name='values'
+    )
+
+    df_jpm_strategy['column_name'] = [suffix_to_column(df_jpm_strategy['JPM Account Id'][i]) for i in range(0, len(df_jpm_strategy))]
+
+    #df_jpm_strategy1 = df_jpm_strategy.set_index(['JPM Account Id', 'Date'])
+
+    df_jpm_strategy.pivot(index=['JPM Account Id', 'Date'], columns='column_name', values='values')
+

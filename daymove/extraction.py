@@ -37,7 +37,7 @@ def load(filename, password, sheet_number=1, start_row=3, start_column='A', end_
 
 def clean(df):
     # Replaces None with NaN
-    df.fillna(value=pd.np.nan, inplace=True)
+    df.fillna(value=np.nan, inplace=True)
 
     for column_name in df.columns:
         df = df.rename(columns={column_name: column_name.strip()})
@@ -63,6 +63,18 @@ def clean(df):
 
     for column_name in numerics:
         df[column_name] = pd.to_numeric(df[column_name])
+
+    # def clean_jpm_string(x):
+    #
+    #     return (
+    #         np.nan if x == "" else
+    #         float(x.replace("$", "").replace(",", "").replace("%", "")) if isinstance(x, str) else
+    #         float(x)
+    #     )
+    #
+    # for column_name in numerics:
+    #     print(column_name)
+    #     df[column_name] = [clean_jpm_string(df[column_name][i]) for i in range(len(df))]
 
     for column_name in numerics:
         column_values = []

@@ -6,10 +6,10 @@ import re
 # Begin User Input Data
 report_date = dt.datetime(2020, 8, 31)
 
-wscf_market_value = 193710630.90
-aqr_market_value = 183401583.30
-delaware_market_value = 153895642.70
-wellington_market_value = 152475046.80
+wscf_market_value = 194719540.46
+aqr_market_value = 182239774.63
+delaware_market_value = 151551731.17
+wellington_market_value = 149215529.22
 qic_cash_market_value = 677011299.30
 
 input_directory = 'U:/'
