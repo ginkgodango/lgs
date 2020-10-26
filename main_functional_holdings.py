@@ -1,16 +1,27 @@
 import datetime as dt
 import numpy as np
 import pandas as pd
+import os
 
 
-def read_jpm(s):
+def read_jpm_dvr(s):
 
     return pd.read_csv(s, skiprows=[0, 1, 2, 3])
 
 
-def process_jpm(df, columns):
+def process_jpm_dvr(df):
 
-    return df[columns]
+    return df
+
+
+def read_jpm_pp(s):
+
+    return pd.read_csv(s, skiprows=[0, 1, 2, 3])
+
+
+def process_jpm_pp(df):
+
+    return df[['Security ID', 'ISIN']].drop_duplicates().reset_index(drop=True)
 
 
 def read_fsi(s):
@@ -22,6 +33,7 @@ def read_fsi(s):
         header=0,
         usecols=[
             'Security SEDOL',
+            'Security ISIN',
             'Security Name',
             'Market Price (Local Currency)',
             'Unit Holdings',
@@ -36,6 +48,7 @@ def process_fsi(df, mv, columns):
     df = df.rename(
             columns={
                 'Security SEDOL': 'Security ID',
+                'Security ISIN': 'ISIN',
                 'Security Name': 'Security Name',
                 'Market Price (Local Currency)': 'Local Price',
                 'Unit Holdings': 'Unit Holding',
@@ -62,6 +75,7 @@ def read_aqr(s):
         header=0,
         usecols=[
             'Sedol',
+            'Isin',
             'Investment Description',
             'Price Local',
             'Quantity',
@@ -76,6 +90,7 @@ def process_aqr(df, mv, columns):
     df = df.rename(columns={
         'Asset Type': 'Category Description',
         'Sedol': 'Security ID',
+        'Isin': 'ISIN',
         'Investment Description': 'Security Name',
         'Price Local': 'Local Price',
         'Quantity': 'Unit Holding',
@@ -100,6 +115,7 @@ def read_mac(s):
         header=0,
         usecols=[
                 'Security SEDOL',
+                'Security ISIN',
                 'Security Description (Short)',
                 'Price (Local)',
                 'Shares/Par',
@@ -113,6 +129,7 @@ def process_mac(df, mv, columns):
 
     df = df.rename(columns={
         'Security SEDOL': 'Security ID',
+        'Security ISIN': 'ISIN',
         'Security Description (Short)': 'Security Name',
         'Price (Local)': 'Local Price',
         'Shares/Par': 'Unit Holding',
@@ -137,6 +154,7 @@ def read_wel(s):
         header=0,
         usecols=[
                 'SEDOL',
+                'ISIN',
                 'Security',
                 'Unit Price',
                 'Shares or Par Value',
@@ -151,6 +169,7 @@ def process_wel(df, mv, columns):
     df = df.rename(
         columns={
             'SEDOL': 'Security ID',
+            'ISIN': 'ISIN',
             'Security': 'Security Name',
             'Unit Price': 'Local Price',
             'Shares or Par Value': 'Unit Holding',
@@ -168,6 +187,12 @@ def process_wel(df, mv, columns):
     return df[columns]
 
 
+def read_tic(s):
+    return pd.read_excel(
+        pd.ExcelFile(s)
+    )
+
+
 def swap(a, b, condition):
 
     return a if condition else b
@@ -178,10 +203,17 @@ columns_list = [
     'Category Description',
     'Local Currency',
     'Security ID',
+    'ISIN',
     'Security Name',
     'Local Price',
     'Unit Holding',
     'Realizable Value Base'
+]
+
+swap_list = [
+    'Future',
+    'Liquidity',
+    'Forward Foreign Exchange'
 ]
 
 ae_list = [
@@ -209,34 +241,62 @@ ie_list = [
     'LGS IE WEL'
 ]
 
+columns_yahoo = [
+        'Symbol',
+        'Current Price',
+        'Date',
+        'Time',
+        'Change',
+        'Open',
+        'High',
+        'Low',
+        'Volume',
+        'Trade Date',
+        'Purchase Price',
+        'Quantity',
+        'Commission',
+        'High Limit',
+        'Low Limit',
+        'Comment'
+        ]
+
 if __name__ == '__main__':
 
     # Set file directories.
-    jpm_path = 'U:/CIO/#Data/input/jpm/holdings/2020/09/Detailed Valuation Report - Equities.csv'
-    fsi_path = 'U:/CIO/#Data/input/lgs/holdings/unitprices/2020/09/wscf_holdings.xlsx'
-    aqr_path = 'U:/CIO/#Data/input/lgs/holdings/unitprices/2020/09/aqr_holdings.xlsx'
-    mac_path = 'U:/CIO/#Data/input/lgs/holdings/unitprices/2020/09/macquarie_holdings.xlsx'
-    wel_path = 'U:/CIO/#Data/input/lgs/holdings/unitprices/2020/09/wellington_holdings.xlsx'
+    jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2020/09/Detailed Valuation Report - Equities.csv'
+    jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2020/09/Priced Positions - All.csv'
+    fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/09/wscf_holdings.xlsx'
+    aqr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/09/aqr_holdings.xlsx'
+    mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/09/macquarie_holdings.xlsx'
+    wel_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/09/wellington_holdings.xlsx'
+    ric_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/lgs/isin_ric.csv'
 
     # Get market value from JPM Investment Accounting System.
-    date = dt.datetime(2020, 8, 31)
-    fsi_mv = 194719540.46
-    aqr_mv = 182239774.63
-    mac_mv = 151551731.17
-    wel_mv = 149215529.22
+    date = dt.datetime(2020, 9, 30)
+    fsi_mv = 193019055.94
+    aqr_mv = 181609682.17
+    mac_mv = 155878826.44
+    wel_mv = 150660088.14
 
     # Reads in each file as a dataframe and cleans it.
-    df_jpm = process_jpm(df=read_jpm(jpm_path), columns=columns_list)
+    df_jpm_dvr = process_jpm_dvr(df=read_jpm_dvr(jpm_dvr_path))
+    df_jpm_pp = process_jpm_pp(df=read_jpm_pp(jpm_pp_path))
     df_fsi = process_fsi(df=read_fsi(fsi_path), mv=fsi_mv, columns=columns_list)
     df_aqr = process_aqr(df=read_aqr(aqr_path), mv=aqr_mv, columns=columns_list)
     df_mac = process_mac(df=read_mac(mac_path), mv=mac_mv, columns=columns_list)
     df_wel = process_wel(df=read_wel(wel_path), mv=wel_mv, columns=columns_list)
+    df_ric = pd.read_csv(ric_path)
+
+    # Merges ISINs onto SEDOLs
+    df_jpm_merge = pd.merge(left=df_jpm_dvr, right=df_jpm_pp, on=['Security ID'], how='outer', indicator=True)
+    df_jpm_final = df_jpm_merge[~df_jpm_merge['_merge'].isin(['right_only'])][columns_list]
 
     # Joins all files into one dataframe.
-    df_all = pd.concat([df_jpm, df_fsi, df_aqr, df_mac, df_wel], axis=0).sort_values('Portfolio Name').reset_index(drop=True)
+    df_all = pd.concat([df_jpm_final, df_fsi, df_aqr, df_mac, df_wel], axis=0).sort_values('Portfolio Name').reset_index(drop=True)
 
-    # Swaps the Security IDs of the Liquidity accounts with their Security Names. This solves the uniqueness problem.
-    df_all['Security ID'] = [str(swap(df_all['Security Name'][i], df_all['Security ID'][i], df_all['Category Description'][i] == 'Liquidity')) for i in range(len(df_all))]
+    # Swaps the Security IDs and ISINs of the Liquidity accounts with their Security Names. This solves the uniqueness problem.
+    df_all['Security ID'] = [str(swap(df_all['Security Name'][i], df_all['Security ID'][i], df_all['Category Description'][i] in ['Liquidity'])) for i in range(len(df_all))]
+    # df_all['ISIN'] = [str(swap(df_all['Security Name'][i], df_all['ISIN'][i], df_all['Category Description'][i] in swap_list))for i in range(len(df_all))]
 
     # Creates df_info to merge back the Security Names after aggregating on Security ID.
     df_info = df_all[['Security ID', 'Security Name']].drop_duplicates(subset='Security ID', keep="first")
@@ -254,8 +314,21 @@ if __name__ == '__main__':
     df_ie_info = pd.merge(left=df_info, right=df_ie, on=['Security ID'], how='inner').sort_values('Realizable Value Base', ascending=False).reset_index(drop=True)
 
     # Writes to Excel.
-    writer = pd.ExcelWriter('U:/CIO/#Data/output/holdings/portfolio_holdings.xlsx', engine='xlsxwriter')
-    df_ae_info.to_excel(writer, sheet_name='AE', index=False)
-    df_ie_info.to_excel(writer, sheet_name='IE', index=False)
-    df_all.to_excel(writer, sheet_name='All', index=False)
-    writer.save()
+    # writer = pd.ExcelWriter('U:/CIO/#Data/output/holdings/portfolio_holdings.xlsx', engine='xlsxwriter')
+    # df_ae_info.to_excel(writer, sheet_name='AE', index=False)
+    # df_ie_info.to_excel(writer, sheet_name='IE', index=False)
+    # df_all.to_excel(writer, sheet_name='All', index=False)
+    # writer.save()
+
+
+    # Converts columns to string
+    df_ric['ISIN'] = [str(df_ric['ISIN'][i]) for i in range(len(df_ric))]
+
+    # Merges the ISIN with RIC for Yahoo
+    df_all_isin = df_all[~df_all['ISIN'].isin([np.nan])].reset_index(drop=True)
+    df_yahoo_merge = pd.merge(left=df_all_isin, right=df_ric, on=['ISIN'], how='outer', indicator=True).sort_values(['Portfolio Name', 'RIC'])
+    df_yahoo_final = df_yahoo_merge[~df_yahoo_merge['_merge'].isin(['right_only'])].reset_index(drop=True)
+    df_yahoo_missing = df_yahoo_merge[df_yahoo_merge['_merge'].isin(['left_only'])].reset_index(drop=True)
+
+
+
