@@ -21,7 +21,7 @@ def read_jpm_pp(s):
 
 def process_jpm_pp(df):
 
-    return df[['Security ID', 'ISIN']].drop_duplicates().reset_index(drop=True)
+    return df[['Security ID', 'ISIN', 'Market Price']].drop_duplicates().reset_index(drop=True)
 
 
 def read_fsi(s):
@@ -50,7 +50,7 @@ def process_fsi(df, mv, columns):
                 'Security SEDOL': 'Security ID',
                 'Security ISIN': 'ISIN',
                 'Security Name': 'Security Name',
-                'Market Price (Local Currency)': 'Local Price',
+                'Market Price (Local Currency)': 'Market Price',
                 'Unit Holdings': 'Unit Holding',
                 'Market Value (Base Currency)': 'Realizable Value Base',
                 'Security Currency': 'Local Currency'
@@ -92,7 +92,7 @@ def process_aqr(df, mv, columns):
         'Sedol': 'Security ID',
         'Isin': 'ISIN',
         'Investment Description': 'Security Name',
-        'Price Local': 'Local Price',
+        'Price Local': 'Market Price',
         'Quantity': 'Unit Holding',
         'MV Base': 'Realizable Value Base',
         'Ccy': 'Local Currency'
@@ -131,7 +131,7 @@ def process_mac(df, mv, columns):
         'Security SEDOL': 'Security ID',
         'Security ISIN': 'ISIN',
         'Security Description (Short)': 'Security Name',
-        'Price (Local)': 'Local Price',
+        'Price (Local)': 'Market Price',
         'Shares/Par': 'Unit Holding',
         'Trading Currency': 'Local Currency',
         'Traded Market Value (AUD)': 'Realizable Value Base'
@@ -171,7 +171,7 @@ def process_wel(df, mv, columns):
             'SEDOL': 'Security ID',
             'ISIN': 'ISIN',
             'Security': 'Security Name',
-            'Unit Price': 'Local Price',
+            'Unit Price': 'Market Price',
             'Shares or Par Value': 'Unit Holding',
             'Report Currency': 'Local Currency',
             'Market Value': 'Realizable Value Base'
@@ -198,6 +198,18 @@ def swap(a, b, condition):
     return a if condition else b
 
 
+def ric_to_symbol(s):
+
+    return (
+        s[:-2] if s.endswith('.N') else
+        s[:-3] if s.endswith('.OQ') else
+        s[:-2] + '.SW' if s.endswith('.S') else
+        s[:-4] + '-A.ST' if s.endswith('a.ST') else
+        s[:-4] + '-B.ST' if s.endswith('b.ST') else
+        s
+    )
+
+
 columns_list = [
     'Portfolio Name',
     'Category Description',
@@ -205,7 +217,7 @@ columns_list = [
     'Security ID',
     'ISIN',
     'Security Name',
-    'Local Price',
+    'Market Price',
     'Unit Holding',
     'Realizable Value Base'
 ]
@@ -241,7 +253,7 @@ ie_list = [
     'LGS IE WEL'
 ]
 
-columns_yahoo = [
+yahoo_columns = [
         'Symbol',
         'Current Price',
         'Date',
@@ -298,6 +310,7 @@ if __name__ == '__main__':
     df_all['Security ID'] = [str(swap(df_all['Security Name'][i], df_all['Security ID'][i], df_all['Category Description'][i] in ['Liquidity'])) for i in range(len(df_all))]
     # df_all['ISIN'] = [str(swap(df_all['Security Name'][i], df_all['ISIN'][i], df_all['Category Description'][i] in swap_list))for i in range(len(df_all))]
 
+    # TOP HOLDINGS AUSTRALIAN EQUITY AND INTERNATIONAL EQUITY
     # Creates df_info to merge back the Security Names after aggregating on Security ID.
     df_info = df_all[['Security ID', 'Security Name']].drop_duplicates(subset='Security ID', keep="first")
 
@@ -320,15 +333,41 @@ if __name__ == '__main__':
     # df_all.to_excel(writer, sheet_name='All', index=False)
     # writer.save()
 
-
+    # YAHOO PROCESSING
     # Converts columns to string
     df_ric['ISIN'] = [str(df_ric['ISIN'][i]) for i in range(len(df_ric))]
+    df_ric['Symbol'] = [str(ric_to_symbol(df_ric['RIC'][i])) for i in range(len(df_ric))]
 
     # Merges the ISIN with RIC for Yahoo
     df_all_isin = df_all[~df_all['ISIN'].isin([np.nan])].reset_index(drop=True)
     df_yahoo_merge = pd.merge(left=df_all_isin, right=df_ric, on=['ISIN'], how='outer', indicator=True).sort_values(['Portfolio Name', 'RIC'])
-    df_yahoo_final = df_yahoo_merge[~df_yahoo_merge['_merge'].isin(['right_only'])].reset_index(drop=True)
+    df_yahoo_final1 = df_yahoo_merge[~df_yahoo_merge['_merge'].isin(['right_only'])].reset_index(drop=True)
     df_yahoo_missing = df_yahoo_merge[df_yahoo_merge['_merge'].isin(['left_only'])].reset_index(drop=True)
 
+    # Formats for Yahoo Schema
+    df_yahoo_final2 = df_yahoo_final1.rename(columns={
+        'Market Price': 'Purchase Price',
+        'Unit Holding': 'Quantity'
+    })
 
+    yahoo_price = []
+    for i in range(len(df_yahoo_final2)):
+        if df_yahoo_final2['Symbol'][i] is not np.nan and isinstance(df_yahoo_final2['Symbol'][i], str):
+            if df_yahoo_final2['Symbol'][i][-2:] == '.L':
+                print(df_yahoo_final2['Symbol'][i])
+                yahoo_price.append(df_yahoo_final2['Purchase Price'][i]*100)
+            else:
+                yahoo_price.append(df_yahoo_final2['Purchase Price'][i])
+        else:
+            yahoo_price.append(df_yahoo_final2['Purchase Price'][i])
+    df_yahoo_final2['Purchase Price'] = yahoo_price
 
+    for column in yahoo_columns:
+        if column not in df_yahoo_final2.columns:
+            df_yahoo_final2[column] = np.nan
+
+    df_yahoo_final3 = df_yahoo_final2[['Portfolio Name'] + yahoo_columns]
+    portfolio_to_df_dict = dict(list(df_yahoo_final3.groupby(['Portfolio Name'])))
+    for portfolio, df in portfolio_to_df_dict.items():
+        df = df.sort_values('Symbol', ascending=False)
+        df.to_csv('C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/holdings/yahoo/' + portfolio + '.csv', index=False)
