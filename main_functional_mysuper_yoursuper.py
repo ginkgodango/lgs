@@ -46,21 +46,22 @@ def process_up(df, reporting_date):
     return df[columns]
 
 
-def read_apra(path, sheet):
+def read_ap(path, sheet):
 
-    return pd.read_excel(pd.ExcelFile(apra_path), sheet_name='History')
+    return pd.read_excel(pd.ExcelFile(path), sheet_name=sheet)
 
 
-def process_apra(df, date_column):
+def process_ap(df, date_column):
 
-    # Changes leap years to normal years for merging on month-end
+    df = df.rename(columns={'Strategy': 'OptionType'})
+
     df[date_column] = [
         df[date_column][i] - pd.Timedelta(days=1) if (df[date_column][i].month == 2 and df[date_column][i].day == 29) else
         df[date_column][i]
         for i in range(len(df))
     ]
 
-    columns = ['Strategy', 'Date', 'AA Version', 'BN Version', 'APRA']
+    columns = ['OptionType', 'Date', 'AA Version', 'BN Version', 'APRA']
 
     return df[columns]
 
@@ -86,73 +87,43 @@ lightgreen = (175/256, 215/256, 145/256)
 
 if __name__ == '__main__':
 
-    up_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/lgs/unitprices/20200930 Unit Prices.csv'
-    apra_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/Email Messages/APRA_benchmark.xlsx'
-    lc_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jana/lifecycles/20200131 Lifecycles.xlsx'
-    FYTD = 3
     report_date = dt.datetime(2020, 9, 30)
+    up_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/lgs/unitprices/20200930 Unit Prices.csv'
+    ap_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/Email Messages/APRA_benchmark.xlsx'
+    lc_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jana/lifecycles/20200131 Lifecycles.xlsx'
 
     df_up = process_up(read_up(up_path, 'Date'), report_date)
-
-    df_apra = process_apra(read_apra(apra_path, 'History'), 'Date')
-
+    df_ap = process_ap(read_ap(ap_path, 'History'), 'Date')
     df_lc = process_lc(read_lc(lc_path, 'Sheet2'))
 
-    # df_lc = df_lc[df_lc['Lifecycle'].isin(['Lifecycle 1'])].reset_index(drop=True)
+    df_merge1 = pd.merge(left=df_up, right=df_ap, on=['OptionType', 'Date'], how='inner')
+    df_merge2 = pd.merge(left=df_lc, right=df_merge1, on=['OptionType'], how='inner')
 
-    # # LIFECYCLES
-    # # Merges age cohorts with lifecycle portfolios
-    # df_age = pd.merge(
-    #     left=df_up_monthly,
-    #     right=df_lc,
-    #     left_on=['OptionType'],
-    #     right_on=['OptionType']
-    # )
-    #
-    # df_age['1_Weighted_Return'] = df_age['1_Return'] * df_age['Weight']
-    # df_age['1_Weighted_Objective'] = df_age['1_Objective'] * df_age['Weight']
-    #
-    # df_age_final = df_age.groupby(['Age', 'Lifecycle', 'Date'])['1_Weighted_Return', '1_Weighted_Objective'].sum().reset_index(drop=False)
-    #
-    # # Creates horizon dictionary to loop over for horizon calculation
-    # member_horizon_period_dict = {
-    #     '1 Year': 12,
-    #     '2 Year': 24,
-    #     '3 Year': 36,
-    #     '4 Year': 48,
-    #     '5 Year': 60,
-    #     '6 Year': 72,
-    #     '7 Year': 84
-    # }
-    #
-    # # Calculates Life Cycle Returns
-    # for horizon, period in member_horizon_period_dict.items():
-    #
-    #     for return_type in ['Weighted_Return', 'Weighted_Objective']:
-    #
-    #         column_name = str(period) + '_' + return_type
-    #         return_name = str(period) + '_Weighted_Return'
-    #         objective_name = str(period) + '_Weighted_Objective'
-    #         excess_name = str(period) + '_Weighted_Excess'
-    #
-    #         df_age_final[column_name] = (
-    #             df_age_final
-    #             .groupby(['Age', 'Lifecycle'])['1_' + return_type]
-    #             .rolling(period)
-    #             .apply(lambda r: (np.prod(1+r)**(12/period))-1, raw=False)
-    #             .reset_index(drop=False)['1_' + return_type]
-    #         )
-    #
-    #     df_age_final[excess_name] = df_age_final[return_name] - df_age_final[objective_name]
-    #
-    # df_age_final = df_age_final.sort_values(['Lifecycle', 'Age', 'Date'])
-    #
-    # df_age_final.to_csv('U:/CIO/#Data/output/investment/mysuper/MySuper Lifecycles.csv', index=False)
-    #
-    # df_age_final['Year'] = [df_age_final['Date'][i].year for i in range(0, len(df_age_final))]
-    # df_age_final['Month'] = [df_age_final['Date'][i].month for i in range(0, len(df_age_final))]
-    #
-    #
+    df_merge2['wR_p'] = df_merge2['Weight'] * df_merge2['Return']
+    df_merge2['wR_b'] = df_merge2['Weight'] * df_merge2['APRA']
+
+    df_groupby1 = df_merge2.groupby(['Age', 'Lifecycle', 'AA Version', 'BN Version', 'Date'])[['wR_p', 'wR_b']].sum().reset_index(drop=False)
+
+    df_groupby1['wR_p_12'] = (
+        df_groupby1
+        .groupby(['Age', 'Lifecycle', 'AA Version', 'BN Version'])['wR_p']
+        .rolling(12)
+        .apply(lambda r: (np.prod(1+r))-1, raw=False)
+        .reset_index(drop=False)['wR_p']
+    )
+
+    df_groupby1['wR_b_12'] = (
+        df_groupby1
+        .groupby(['Age', 'Lifecycle', 'AA Version', 'BN Version'])['wR_b']
+        .rolling(12)
+        .apply(lambda r: (np.prod(1 + r)) - 1, raw=False)
+        .reset_index(drop=False)['wR_b']
+    )
+
+    df_groupby1['Year'] = [df_groupby1['Date'][i].year for i in range(len(df_groupby1))]
+    df_groupby1['Month'] = [df_groupby1['Date'][i].month for i in range(len(df_groupby1))]
+
+
     # simulate_columns = [
     #     'Lifecycle',
     #     'Date',
