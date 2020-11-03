@@ -96,6 +96,8 @@ if __name__ == '__main__':
     df_ap = process_ap(read_ap(ap_path, 'History'), 'Date')
     df_lc = process_lc(read_lc(lc_path, 'Sheet2'))
 
+    df_lc = df_lc[df_lc['Lifecycle'].isin(['Lifecycle 1', 'Lifecycle 5'])].reset_index(drop=True)
+
     df_merge1 = pd.merge(left=df_up, right=df_ap, on=['OptionType', 'Date'], how='inner')
     df_merge2 = pd.merge(left=df_lc, right=df_merge1, on=['OptionType'], how='inner')
 
@@ -123,123 +125,113 @@ if __name__ == '__main__':
     df_groupby1['Year'] = [df_groupby1['Date'][i].year for i in range(len(df_groupby1))]
     df_groupby1['Month'] = [df_groupby1['Date'][i].month for i in range(len(df_groupby1))]
 
+    df_simulate = df_groupby1.sort_values(['Lifecycle', 'AA Version', 'BN Version', 'Month', 'Year', 'Age']).reset_index(drop=True)
 
-    # simulate_columns = [
-    #     'Lifecycle',
-    #     'Date',
-    #     'Year',
-    #     'Month',
-    #     'Age',
-    #     '12_Weighted_Return',
-    #     '12_Weighted_Objective'
-    # ]
-    #
-    # df_simulate = df_age_final[simulate_columns]
-    # df_simulate = df_simulate.sort_values(['Lifecycle', 'Month', 'Year', 'Age']).reset_index(drop=True)
-    #
-    # lifespan = 10
-    # weighted_return_lag_columns = list()
-    # weighted_objective_lag_columns = list()
-    # for year in range(0, lifespan):
-    #     date_forward_column = 'Date Forward ' + str(year)
-    #     weighted_return_lag_column = '12_Weighted_Return Lag ' + str(year)
-    #     weighted_objective_lag_column = '12_Weighted_Objective Lag ' + str(year)
-    #     weighted_return_lag_columns.append(weighted_return_lag_column)
-    #     weighted_objective_lag_columns.append(weighted_objective_lag_column)
-    #
-    #     df_simulate_temp = df_simulate[['Lifecycle', 'Age', 'Date', '12_Weighted_Return', '12_Weighted_Objective']]
-    #     if year == 0:
-    #         df_simulate_temp[date_forward_column] = df_simulate_temp['Date']
-    #     else:
-    #         df_simulate_temp[date_forward_column] = df_simulate_temp['Date'].apply(lambda date: date + pd.DateOffset(years=year))
-    #
-    #     df_simulate_temp = df_simulate_temp.drop(columns=['Date'], axis=1)
-    #     df_simulate_temp = df_simulate_temp.rename(
-    #         columns={
-    #             '12_Weighted_Return': weighted_return_lag_column,
-    #             '12_Weighted_Objective': weighted_objective_lag_column
-    #         }
-    #     )
-    #
-    #     df_simulate = pd.merge(
-    #         left=df_simulate,
-    #         right=df_simulate_temp,
-    #         left_on=['Lifecycle', 'Age', 'Date'],
-    #         right_on=['Lifecycle', 'Age', date_forward_column],
-    #         how='left'
-    #     )
-    #
-    #     df_simulate[weighted_return_lag_column] = df_simulate.groupby(['Lifecycle', 'Date'])[weighted_return_lag_column].shift(year)
-    #     df_simulate[weighted_objective_lag_column] = df_simulate.groupby(['Lifecycle', 'Date'])[weighted_objective_lag_column].shift(year)
-    #
-    #     df_simulate = df_simulate.drop(columns=[date_forward_column], axis=1)
-    #
-    # # Converts df_simulate into panel
-    # df_simulate = df_simulate.sort_values(['Lifecycle', 'Date', 'Age'])
-    # df_simulate = df_simulate.drop(columns=['Year', 'Month', '12_Weighted_Return', '12_Weighted_Objective'], axis=1)
-    # df_simulate = pd.wide_to_long(df_simulate, stubnames=['12_Weighted_Return Lag ', '12_Weighted_Objective Lag '], i=['Lifecycle', 'Date', 'Age'], j='Lag')
-    # df_simulate = df_simulate.reset_index(drop=False)
-    # df_simulate = df_simulate.sort_values(['Lifecycle', 'Date', 'Age', 'Lag'], ascending=[True, True, True, False]).reset_index(drop=True)
-    # df_simulate = df_simulate.rename(columns={'12_Weighted_Return Lag ': '12_Weighted_Return', '12_Weighted_Objective Lag ': '12_Weighted_Objective'})
-    #
-    # for return_type in ['12_Weighted_Return', '12_Weighted_Objective']:
-    #     column_name = str(lifespan*12) + '_Lifecycle_' + return_type[12:]
-    #     df_simulate[column_name] = (
-    #         df_simulate
-    #             .groupby(['Lifecycle', 'Date', 'Age'])[return_type]
-    #             .rolling(lifespan)
-    #             .apply(lambda r: (np.prod(1 + r) ** (1 /lifespan)) - 1, raw=False)
-    #             .reset_index(drop=False)[return_type]
-    #     )
-    #
-    # df_simulate['Age Lag'] = df_simulate['Age'] - df_simulate['Lag']
-    #
-    # df_simulate.to_csv('U:/CIO/#Data/output/investment/mysuper/lifecycle_simulation_5years_panel.csv', index=False)
-    #
-    # df_simulate_chart_bar_summary = df_simulate[(df_simulate['Date'] == report_date) & (df_simulate['Lag'] == 0)]
-    # df_simulate_chart_bar_summary = df_simulate_chart_bar_summary[df_simulate_chart_bar_summary['Age'].isin([50, 55, 60, 65])]
-    # df_simulate_chart_bar_summary = ((df_simulate_chart_bar_summary[['Age', '120_Lifecycle_Return', '120_Lifecycle_Objective']].set_index('Age'))*100).round(2)
-    # df_simulate_chart_bar_summary = df_simulate_chart_bar_summary.rename(columns={'120_Lifecycle_Return': 'Return', '120_Lifecycle_Objective': 'Objective'})
-    # fig_simulate_chart_bar_summary = df_simulate_chart_bar_summary.plot(kind='bar', color=[darkgreen, lightgreen])
-    # # fig_simulate_chart_bar_summary.set_title('5 Year Return for Each Age Cohort')
-    # fig_simulate_chart_bar_summary.set_ylabel('Return (%)')
-    # fig_simulate_chart_bar_summary.set_xlabel('Age Cohort (Year)')
-    # plt.tight_layout()
-    # fig_bar = fig_simulate_chart_bar_summary.get_figure()
+    lifespan = 7
+    wR_p_lag_columns = list()
+    wR_b_lag_columns = list()
+    for year in range(0, lifespan):
+        date_forward_column = 'Date Forward ' + str(year)
+        wR_p_lag = 'wR_p_12_lag ' + str(year)
+        wR_b_lag = 'wR_b_12_lag ' + str(year)
+        wR_p_lag_columns.append(wR_p_lag)
+        wR_b_lag_columns.append(wR_b_lag)
+
+        df_simulate_temp = df_simulate[['Lifecycle', 'AA Version', 'BN Version', 'Age', 'Date', 'wR_p_12', 'wR_b_12']]
+        if year == 0:
+            df_simulate_temp[date_forward_column] = df_simulate_temp['Date']
+        else:
+            df_simulate_temp[date_forward_column] = df_simulate_temp['Date'].apply(lambda date: date + pd.DateOffset(years=year))
+
+        df_simulate_temp = df_simulate_temp.drop(columns=['Date'], axis=1)
+        df_simulate_temp = df_simulate_temp.rename(columns={'wR_p_12': wR_p_lag, 'wR_b_12': wR_b_lag})
+
+        df_simulate = pd.merge(
+            left=df_simulate,
+            right=df_simulate_temp,
+            left_on=['Lifecycle', 'AA Version', 'BN Version', 'Age', 'Date'],
+            right_on=['Lifecycle', 'AA Version', 'BN Version', 'Age', date_forward_column],
+            how='left'
+        )
+
+        df_simulate[wR_p_lag] = df_simulate.groupby(['Lifecycle', 'AA Version', 'BN Version', 'Date'])[wR_p_lag].shift(year)
+        df_simulate[wR_b_lag] = df_simulate.groupby(['Lifecycle', 'AA Version', 'BN Version', 'Date'])[wR_b_lag].shift(year)
+
+        df_simulate = df_simulate.drop(columns=[date_forward_column], axis=1)
+
+    # Converts df_simulate into panel
+    df_simulate = df_simulate.sort_values(['Lifecycle', 'AA Version', 'BN Version', 'Date', 'Age'])
+    df_simulate = df_simulate.drop(columns=['Year', 'Month', 'wR_p_12', 'wR_b_12'], axis=1)
+    df_simulate = pd.wide_to_long(df_simulate, stubnames=['wR_p_12_lag ', 'wR_b_12_lag '], i=['Lifecycle', 'AA Version', 'BN Version', 'Date', 'Age'], j='Lag')
+    df_simulate = df_simulate.reset_index(drop=False)
+    df_simulate = df_simulate.sort_values(['Lifecycle', 'AA Version', 'BN Version', 'Date', 'Age', 'Lag'], ascending=[True, True, True, True, True, False]).reset_index(drop=True)
+    df_simulate = df_simulate.rename(columns={'wR_p_12_lag ': 'wR_p_12', 'wR_b_12_lag ': 'wR_b_12'})
+
+    for return_type in ['wR_p_12', 'wR_b_12']:
+        column_name = str(lifespan*12) + '_Lifecycle_' + return_type[:4]
+        df_simulate[column_name] = (
+            df_simulate
+            .groupby(['Lifecycle', 'AA Version', 'BN Version', 'Date', 'Age'])[return_type]
+            .rolling(lifespan)
+            .apply(lambda r: (np.prod(1 + r) ** (1 /lifespan)) - 1, raw=False)
+            .reset_index(drop=False)[return_type]
+        )
+
+    df_simulate['Age Lag'] = df_simulate['Age'] - df_simulate['Lag']
+
+    df_simulate.to_csv('C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/Email Messages/yoursuper_simulation_data.csv', index=False)
+
+    df_simulate_chart_bar_summary = df_simulate[(df_simulate['Date'] == report_date) & (df_simulate['Lag'] == 0)]
+    df_simulate_chart_bar_summary = df_simulate_chart_bar_summary[df_simulate_chart_bar_summary['Age'].isin([50, 55, 60, 65])]
+    df_simulate_chart_bar_summary = ((df_simulate_chart_bar_summary[['Lifecycle', 'AA Version', 'BN Version', 'Age', '84_Lifecycle_wR_p', '84_Lifecycle_wR_b']].set_index(['Lifecycle', 'AA Version', 'BN Version', 'Age']))).round(8)
+    df_simulate_chart_bar_summary = df_simulate_chart_bar_summary.rename(columns={'84_Lifecycle_wR_p': 'Return', '84_Lifecycle_wR_b': 'Objective'})
+    fig_simulate_chart_bar_summary = df_simulate_chart_bar_summary.plot(kind='bar', color=[darkgreen, lightgreen])
+    # fig_simulate_chart_bar_summary.set_title('5 Year Return for Each Age Cohort')
+    fig_simulate_chart_bar_summary.set_ylabel('Return')
+    fig_simulate_chart_bar_summary.set_xlabel('Age Cohort (Year)')
+    plt.tight_layout()
+    fig_bar = fig_simulate_chart_bar_summary.get_figure()
     # fig_bar.savefig('U:/CIO/#Data/output/investment/mysuper/monitor.PNG', dpi=300)
-    #
-    # df_simulate_chart_cross_section = df_simulate[df_simulate['Date'] == report_date]
-    # df_simulate_chart_cross_section = df_simulate_chart_cross_section.drop(columns=['Date', 'Lag', '120_Lifecycle_Return', '120_Lifecycle_Objective'], axis=1)
-    # df_simulate_chart_cross_section = df_simulate_chart_cross_section[df_simulate_chart_cross_section['Age'].isin([50, 55, 60, 65])]
-    #
-    # lifecycle_to_cross_section_dict = dict(list(df_simulate_chart_cross_section.groupby(['Lifecycle'])))
-    # for lifecycle, df_cross_section in lifecycle_to_cross_section_dict.items():
-    #     df_cross_section = df_cross_section.drop(columns=['Lifecycle'], axis=1)
-    #     age_to_cross_section2_dict = dict(list(df_cross_section.groupby(['Age'])))
-    #
-    #     fig, axes = plt.subplots(nrows=2, ncols=2, sharex=False, sharey=True, figsize=(12.8, 7.2))
-    #     i = 0
-    #     j = 0
-    #     for age, df_cross_section2 in age_to_cross_section2_dict.items():
-    #         df_cross_section2 = df_cross_section2.drop(columns=['Age'], axis=1)
-    #         df_cross_section2 = df_cross_section2.set_index('Age Lag')
-    #         df_cross_section2 = df_cross_section2.rename(columns={'12_Weighted_Return': 'Return', '12_Weighted_Objective': 'Objective'})
-    #         df_cross_section2 = (df_cross_section2 * 100).round(2)
-    #         df_cross_section2.plot(ax=axes[i, j], kind='bar', color=[darkgreen, lightgreen])
-    #         axes[i, j].set_title('1 Year Return at Each Age for a ' + str(age) + ' Year Old')
-    #         axes[i, j].set_ylabel('Return (%)')
-    #         axes[i, j].set_xlabel('Age (Years)')
-    #         axes[i, j].legend(loc='upper left', title='')
-    #         if i == 0 and j == 0:
-    #             j += 1
-    #         elif i == 0 and j == 1:
-    #             i += 1
-    #             j -= 1
-    #         elif i == 1 and j == 0:
-    #             j += 1
-    #
-    #     fig.suptitle(lifecycle)
-    #     fig.tight_layout()
-    #     fig.subplots_adjust(top=0.9)
-    #     fig.savefig('U:/CIO/#Data/output/investment/mysuper/' + str(lifecycle) + '.png', dpi=300)
+
+    df_test = df_simulate_chart_bar_summary.copy()
+    df_test['Excess'] = df_test['Return'] - df_test['Objective']
+    fig = df_test[['Excess']].plot(kind='bar').get_figure()
+
+    df_test.to_csv('C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/Email Messages/yoursuper_simulation.csv', index=True)
+
+
+    df_simulate_chart_cross_section = df_simulate[df_simulate['Date'] == report_date]
+    df_simulate_chart_cross_section = df_simulate_chart_cross_section.drop(columns=['Date', 'Lag', '84_Lifecycle_wR_p', '84_Lifecycle_wR_b'], axis=1)
+    df_simulate_chart_cross_section = df_simulate_chart_cross_section[df_simulate_chart_cross_section['Age'].isin([50, 55, 60, 65])]
+
+    lifecycle_to_cross_section_dict = dict(list(df_simulate_chart_cross_section.groupby(['Lifecycle', 'AA Version', 'BN Version'])))
+    for lifecycle, df_cross_section in lifecycle_to_cross_section_dict.items():
+        df_cross_section = df_cross_section.drop(columns=['Lifecycle', 'AA Version', 'BN Version'], axis=1)
+        age_to_cross_section2_dict = dict(list(df_cross_section.groupby(['Age'])))
+
+        fig, axes = plt.subplots(nrows=2, ncols=2, sharex=False, sharey=True, figsize=(12.8, 7.2))
+        i = 0
+        j = 0
+        for age, df_cross_section2 in age_to_cross_section2_dict.items():
+            df_cross_section2 = df_cross_section2.drop(columns=['Age', 'wR_p', 'wR_b'], axis=1)
+            df_cross_section2 = df_cross_section2.set_index('Age Lag')
+            df_cross_section2 = df_cross_section2.rename(columns={'12_Weighted_Return': 'Return', '12_Weighted_Objective': 'Objective'})
+            df_cross_section2 = (df_cross_section2 * 100).round(2)
+            df_cross_section2.plot(ax=axes[i, j], kind='bar', color=[darkgreen, lightgreen])
+            axes[i, j].set_title('1 Year Return at Each Age for a ' + str(age) + ' Year Old')
+            axes[i, j].set_ylabel('Return (%)')
+            axes[i, j].set_xlabel('Age (Years)')
+            axes[i, j].legend(loc='upper left', title='')
+            if i == 0 and j == 0:
+                j += 1
+            elif i == 0 and j == 1:
+                i += 1
+                j -= 1
+            elif i == 1 and j == 0:
+                j += 1
+
+        fig.suptitle(lifecycle)
+        fig.tight_layout()
+        fig.subplots_adjust(top=0.9)
+        # fig.savefig('U:/CIO/#Data/output/investment/mysuper/' + str(lifecycle) + '.png', dpi=300)
 
