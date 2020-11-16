@@ -111,7 +111,7 @@ def read_mac(s):
 
     return pd.read_excel(
         pd.ExcelFile(s),
-        sheet_name='EM SICAV holdings 8-31-2020',
+        sheet_name='EM SICAV holdings 9-30-2020',
         header=0,
         usecols=[
                 'Security SEDOL',
@@ -150,16 +150,16 @@ def read_wel(s):
 
     return pd.read_excel(
         pd.ExcelFile(s),
-        sheet_name='wellington_holdings',
+        sheet_name='wel_holdings',
         header=0,
         usecols=[
                 'SEDOL',
                 'ISIN',
                 'Security',
-                'Unit Price',
+                'Unit Price (Local)',
                 'Shares or Par Value',
                 'Report Currency',
-                'Market Value',
+                'Market Value (Report Currency)',
         ]
 )
 
@@ -171,10 +171,10 @@ def process_wel(df, mv, columns):
             'SEDOL': 'Security ID',
             'ISIN': 'ISIN',
             'Security': 'Security Name',
-            'Unit Price': 'Market Price',
+            'Unit Price (Local)': 'Market Price',
             'Shares or Par Value': 'Unit Holding',
             'Report Currency': 'Local Currency',
-            'Market Value': 'Realizable Value Base'
+            'Market Value (Report Currency)': 'Realizable Value Base'
         }
     )
 
@@ -276,19 +276,19 @@ if __name__ == '__main__':
 
     # Set file directories.
     jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2020/10/Detailed Valuation Report - Equities.csv'
-    jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2020/09/Priced Positions - All.csv'
-    fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/09/wscf_holdings.xlsx'
-    aqr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/09/aqr_holdings.xlsx'
-    mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/09/macquarie_holdings.xlsx'
-    wel_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/09/wellington_holdings.xlsx'
+    jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2020/10/Priced Positions - All.csv'
+    fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/10/fsi_holdings.xlsx'
+    aqr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/10/aqr_holdings.xlsx'
+    mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/10/mac_holdings.xlsx'
+    wel_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/10/wel_holdings.xlsx'
     ric_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/lgs/isin_ric.csv'
 
     # Get market value from JPM Investment Accounting System.
     date = dt.datetime(2020, 10, 31)
-    fsi_mv = 193019055.94
-    aqr_mv = 181609682.17
-    mac_mv = 155878826.44
-    wel_mv = 150660088.14
+    fsi_mv = 194630227.81
+    aqr_mv = 178698409.64
+    mac_mv = 153617948.82
+    wel_mv = 151682217.00
 
     # Reads in each file as a dataframe and cleans it.
     df_jpm_dvr = process_jpm_dvr(df=read_jpm_dvr(jpm_dvr_path))
@@ -327,11 +327,11 @@ if __name__ == '__main__':
     df_ie_info = pd.merge(left=df_info, right=df_ie, on=['Security ID'], how='inner').sort_values('Realizable Value Base', ascending=False).reset_index(drop=True)
 
     # Writes to Excel.
-    # writer = pd.ExcelWriter('U:/CIO/#Data/output/holdings/portfolio_holdings.xlsx', engine='xlsxwriter')
-    # df_ae_info.to_excel(writer, sheet_name='AE', index=False)
-    # df_ie_info.to_excel(writer, sheet_name='IE', index=False)
-    # df_all.to_excel(writer, sheet_name='All', index=False)
-    # writer.save()
+    writer = pd.ExcelWriter('C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/holdings/portfolio_holdings.xlsx', engine='xlsxwriter')
+    df_ae_info.to_excel(writer, sheet_name='AE', index=False)
+    df_ie_info.to_excel(writer, sheet_name='IE', index=False)
+    df_all.to_excel(writer, sheet_name='All', index=False)
+    writer.save()
 
     # YAHOO PROCESSING
     # Converts columns to string

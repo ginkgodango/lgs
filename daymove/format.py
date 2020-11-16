@@ -198,7 +198,8 @@ def rename_funds(df):
         'LGUP: JPM USD LIQ LVNAV FD MFC82EU': 'JPM USD Cash',
         'LGBT - Pendal': 'Pendal',
         'LGAY - LGS AUS EQ ALPHINITY': 'Alphinity',
-        'LGTN - LGS AUS EQ MTM 2020': 'Macquarie Transition 2020'
+        'LGTN - LGS AUS EQ MTM 2020': 'Macquarie Transition 2020',
+        'LGQC - LGS Short Term FI QIC CREDIT': 'QIC Credit'
     }
 
     df['Fund'] = [
