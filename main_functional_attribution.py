@@ -72,6 +72,15 @@ def suffix_to_column(s):
     )
 
 
+def suffix_to_id(s):
+
+    return (
+        s[:-2] if s[-2:] == '.1' else
+        s[:-2] if s[-2:] == '.2' else
+        s
+    )
+
+
 if __name__ == "__main__":
     lgs_dictionary_path = 'U:/CIO/#Data/input/lgs/dictionary/2020/09/New Dictionary_v12.xlsx'
     lgs_allocations_path = 'U:/CIO/#Data/input/lgs/allocations/asset_allocations_2020-08-31.csv'
@@ -308,7 +317,7 @@ if __name__ == "__main__":
 
     df_jpm_strategy['column_name'] = [suffix_to_column(df_jpm_strategy['JPM Account Id'][i]) for i in range(0, len(df_jpm_strategy))]
 
-    #df_jpm_strategy1 = df_jpm_strategy.set_index(['JPM Account Id', 'Date'])
+    df_jpm_strategy['JPM Account Id'] = [suffix_to_id(df_jpm_strategy['JPM Account Id'][i]) for i in range(len(df_jpm_strategy))]
 
-    df_jpm_strategy.pivot(index=['JPM Account Id', 'Date'], columns='column_name', values='values')
+    df_jpm_strategy = df_jpm_strategy.pivot_table(index=['JPM Account Id', 'Date'], columns='column_name', values='values').reset_index(drop=False)
 

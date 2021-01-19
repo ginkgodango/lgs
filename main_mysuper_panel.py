@@ -3,14 +3,14 @@ import numpy as np
 import datetime as dt
 import matplotlib
 import matplotlib.pyplot as plt
-FYTD = 10
-report_date = dt.datetime(2020, 4, 30)
+FYTD = 11
+report_date = dt.datetime(2020, 11, 30)
 darkgreen = (75/256, 120/256, 56/256)
 middlegreen = (141/256, 177/256, 66/256)
 lightgreen = (175/256, 215/256, 145/256)
 
-lgs_unit_prices_filepath = 'U:/CIO/#Data/input/lgs/unitprices/20200430 Unit Prices.csv'
-rba_cpi_filepath = 'U:/CIO/#Data/input/rba/inflation/20200430 g1-data.csv'
+lgs_unit_prices_filepath = 'U:/Shared/Investment Operations/Performance/IC Paper Performance Review/#Data/input/lgs/unitprices/20201130 Unit Prices.csv'
+rba_cpi_filepath = 'U:/CIO/#Data/input/rba/inflation/20201130 g1-data.csv'
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
 use_accountid = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12]

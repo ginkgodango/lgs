@@ -111,7 +111,7 @@ def read_mac(s):
 
     return pd.read_excel(
         pd.ExcelFile(s),
-        sheet_name='EM SICAV holdings 9-30-2020',
+        sheet_name='EM SICAV holdings',
         header=0,
         usecols=[
                 'Security SEDOL',
@@ -275,26 +275,26 @@ yahoo_columns = [
 if __name__ == '__main__':
 
     # Set file directories.
-    jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2020/10/Detailed Valuation Report - Equities.csv'
-    jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2020/10/Priced Positions - All.csv'
-    fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/10/fsi_holdings.xlsx'
+    jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2020/12/Detailed Valuation Report - Equities.csv'
+    jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2020/12/Priced Positions - All.csv'
+    fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/12/fsi_holdings.xlsx'
     aqr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/10/aqr_holdings.xlsx'
-    mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/10/mac_holdings.xlsx'
-    wel_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/10/wel_holdings.xlsx'
+    mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/12/mac_holdings.xlsx'
+    wel_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/12/wel_holdings.xlsx'
     ric_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/lgs/isin_ric.csv'
 
     # Get market value from JPM Investment Accounting System.
-    date = dt.datetime(2020, 10, 31)
-    fsi_mv = 194630227.81
-    aqr_mv = 178698409.64
-    mac_mv = 153617948.82
-    wel_mv = 151682217.00
+    date = dt.datetime(2020, 12, 30)
+    fsi_mv = 225381994.42
+    # aqr_mv = 178698409.64
+    mac_mv = 167782436.38
+    wel_mv = 164548639.33
 
     # Reads in each file as a dataframe and cleans it.
     df_jpm_dvr = process_jpm_dvr(df=read_jpm_dvr(jpm_dvr_path))
     df_jpm_pp = process_jpm_pp(df=read_jpm_pp(jpm_pp_path))
     df_fsi = process_fsi(df=read_fsi(fsi_path), mv=fsi_mv, columns=columns_list)
-    df_aqr = process_aqr(df=read_aqr(aqr_path), mv=aqr_mv, columns=columns_list)
+    # df_aqr = process_aqr(df=read_aqr(aqr_path), mv=aqr_mv, columns=columns_list)
     df_mac = process_mac(df=read_mac(mac_path), mv=mac_mv, columns=columns_list)
     df_wel = process_wel(df=read_wel(wel_path), mv=wel_mv, columns=columns_list)
     df_ric = pd.read_csv(ric_path)
@@ -304,7 +304,7 @@ if __name__ == '__main__':
     df_jpm_final = df_jpm_merge[~df_jpm_merge['_merge'].isin(['right_only'])][columns_list]
 
     # Joins all files into one dataframe.
-    df_all = pd.concat([df_jpm_final, df_fsi, df_aqr, df_mac, df_wel], axis=0).sort_values('Portfolio Name').reset_index(drop=True)
+    df_all = pd.concat([df_jpm_final, df_fsi, df_mac, df_wel], axis=0).sort_values('Portfolio Name').reset_index(drop=True)
 
     # Swaps the Security IDs and ISINs of the Liquidity accounts with their Security Names. This solves the uniqueness problem.
     df_all['Security ID'] = [str(swap(df_all['Security Name'][i], df_all['Security ID'][i], df_all['Category Description'][i] in ['Liquidity'])) for i in range(len(df_all))]

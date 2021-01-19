@@ -76,8 +76,10 @@ def download_from_ftp(transfer_instruction):
 
 if __name__ == '__main__':
     processors = 10
-    directory_download = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/msci/download/'
-    directory_history = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/msci/download/history/'
+    # directory_download = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/msci/download/'
+    # directory_history = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/msci/download/history/'
+    directory_download = 'C:/Users/Mnguyen/Data/msci/download/'
+    directory_history = 'C:/Users/Mnguyen/Data/msci/download/history/'
     ftp = FTP("ftp.msci.com")
     ftp.login('wnvyzpng', 'hxcksyyx')
     print(ftp.getwelcome())

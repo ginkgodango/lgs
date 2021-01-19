@@ -84,7 +84,13 @@ def filter_misc_funds(df):
         'LGQP:  UUT Sub Total',
         'LGQP:  Cash/Other',
         'A',
-        'LGTN - LGS AUS EQ MTM 2020'
+        'LGTN - LGS AUS EQ MTM 2020',
+        'LGCX:  CHALLENGER INDX PE A MFR71EU',
+        'LGCX:  CHALLENGER INDX PE B MFR72EU',
+        'LGCX:  CHALLENGER INDX PE C MFR73EU',
+        'LGCX:  CHALLENGER INDX PE D MFR74EU',
+        'LGCX:  Cash/Other',
+        'LGCX:  UUT Sub Total'
     ]
 
     df = df[~df['Fund'].isin(misc_filter)].reset_index(drop=True)
@@ -102,8 +108,8 @@ def rename_funds(df):
         'LGBP - LGS Bonds Pimco': 'PIMCO ESG',
         'LGFW - LGS FI BRANDYWINE': 'Brandywine',
         'LGRA - LGS AFI AMP': 'AMP',
-        'LGBM - LGS BONDS MACQUARIE': 'Macquarie',
-        'TOTAL - Bonds': 'Bonds',
+        'LGBM - LGS BONDS MACQUARIE': 'Macquarie Bonds',
+        'TOTAL - Bonds': 'Bonds Aggregate',
         'LGAA:  CFS WHOLESALE SMALL 565977U': 'CFS',
         'LGBT - BT': 'Pendal',
         'LGAQ - LGS AUST EQUITIES DNR CAPITAL': 'DNR',
@@ -112,15 +118,15 @@ def rename_funds(df):
         'LG16 - LGS AUST EQUITIES RE UBIQUE': 'Ubique',
         'LGR1 - AUS SRI': 'Domestic SRI',
         'LGEC - LGS  AUSTRALIAN EQUITY RE ECP': 'ECP',
-        'TOTAL - Australian Equities': 'Australian Equities',
+        'TOTAL - Australian Equities': 'Australian Equity',
         'LGUN:  LOCAL GOVT PROP FUND  520875U': 'LGS Property',
         'LGUN:  INVESTA PROPERTY GRP  50312EU': 'Investa',
         'LGUN:  GPT WS SC FD NO 1&2  48559EU': 'GPT',
         'LGPM - LGS Property Trust': 'REITS',
         'LGCO - LGS PROPERTY CURRENCY OVERLAY': 'Property Currency Overlay',
-        'TOTAL - Property': 'Property',
+        'TOTAL - Property': 'Australian Property',
         'LGGR - GREIT Resolution Capital': 'Resolution',
-        'TOTAL - Global Property': 'Global Property',
+        'TOTAL - Global Property': 'International Property',
         'LGSV - LGS IE LSV GLOBAL VALUE': 'LSV',
         'LGMF - LGS INTL EQUITY MFS': 'MFS',
         'LGMX - LGS INTL EQUITY RE IMPAX': 'Impax',
@@ -135,7 +141,7 @@ def rename_funds(df):
         'LGOV -LGS NAB CURRENCY OVERLAY': 'NAB Overlay',
         'LGTM - LGS IE TM MACQUARIE 2019': 'Macquarie Transition',
         'LGTW - LGS IE WCM': 'WCM',
-        'TOTAL - International Equity': 'International Equities',
+        'TOTAL - International Equity': 'International Equity',
         'LGRC:  GAM ABS RETR BOND AU 33114DU': 'GAM',
         'LGRC: Attunga Power and Enviro Fund Main 1.1 AA N 32510EU': 'Attunga',
         'LGRC: CQS CRE MULTI AST FD 58645EU': 'CQS',
@@ -170,7 +176,7 @@ def rename_funds(df):
         'LGKP - LGS Short Team FI Kapstream': 'Kapstream',
         'LGAU - LGS AR TCW': 'TCW',
         'LGAU - LGS Short Term FI TCW': 'TCW',
-        'LGLA:  ARDEA REAL OUTCOME MFF50EU': 'Ardea',
+        'LGLA:  ARDEA REAL OUTCOME MFF50EU': 'Ardea Real',
         'LGLA: CQS CRE MULTI AST FD 58645EU': 'CQS',
         'TOTAL - SHORT TERM FIXED INTEREST': 'Short Term Fixed Interest',
         'LGIT – LGS GREEN INTRINSIC INV MGT': 'Intrinsic',
@@ -199,7 +205,9 @@ def rename_funds(df):
         'LGBT - Pendal': 'Pendal',
         'LGAY - LGS AUS EQ ALPHINITY': 'Alphinity',
         'LGTN - LGS AUS EQ MTM 2020': 'Macquarie Transition 2020',
-        'LGQC - LGS Short Term FI QIC CREDIT': 'QIC Credit'
+        'LGQC - LGS Short Term FI QIC CREDIT': 'QIC Credit',
+        'LGCX - LGS CHALLENGER INDEX FUND': 'Challenger',
+        'LGLA: GLOBAL LIQUIDITY REL MFS31EU': 'PGIM'
     }
 
     df['Fund'] = [
@@ -252,36 +260,37 @@ def aggregate_aqr(df):
 
 def rename_benchmarks(df):
     benchmark_to_name_dict = {
-        'ASX Accum Small Cap Ords Index': 'S&P/ASX Accum Small Cap',
-        'S&P/ASX Small Ords Accum Index': 'S&P/ASX Accum Small Cap',
-        'Aust Govt 10 Year bond yield + 4% ': 'Aus Gov 10 Yr Bond + 4.0%',
-        'Bloomberg AusBond Bank Bill Index': 'AusBond Bank Bill',
-        'Bloomberg AusBond Bank Bill Index + 1.0%p.a.': 'AusBond Bank Bill + 1.0%',
-        'Bloomberg AusBond Infl Govt 0+ Yr Index': 'AusBond Infl Govt 0+ Yr',
-        'Bloomberg Ausbond Composite Index': 'AusBond Composite',
-        'Bloomberg Commodity Index Australian Dollar Hedged Total Return': 'Bloomberg Commodity',
+        'ASX Accum Small Cap Ords Index': 'S&P/ASX Accumulation Small Cap Index',
+        'S&P/ASX Small Ords Accum Index': 'S&P/ASX Accumulation Small Cap Index',
+        'Aust Govt 10 Year bond yield + 4% ': 'Australian Government 10 Yr Bond Index + 4.0%',
+        'Bloomberg AusBond Bank Bill Index': 'Bloomberg AusBond Bank Bill Index',
+        'Bloomberg AusBond Bank Bill Index + 1.0%p.a.': 'Bloomberg AusBond Bank Bill Index + 1.0%',
+        'Bloomberg AusBond Infl Govt 0+ Yr Index': 'Bloomberg AusBond Inflation Govt 0+ Yr Index',
+        'Bloomberg Ausbond Composite Index': 'Bloomberg AusBond Composite Index',
+        'Bloomberg Commodity Index Australian Dollar Hedged Total Return': 'Bloomberg Commodity Index',
         'CASH + 1.5% P.A': 'Cash + 1.5%',
-        'EPRA/NARETT  (AUD)': 'EPRA/NARETT',
-        'MSCI ACWI EX AUS': 'MSCI ACWI ex Aus',
-        'S&P/ASX 100 Accum Index ': 'S&P/ASX 100 Accum',
-        'S&P 200 PROPERTY': 'S&P 200 Property',
-        'S&P 300 ACC INDEX': 'S&P/ASX 300 Accum',
-        'S&P/ASX 200 Accumulation Index': 'S&P/ASX 200 Accum',
-        'S&P/ASX Accum 100 Index': 'S&P/ASX 100 Accum',
-        'UBS BBINDEX 3 MONTH': 'UBS Bank Bill 3 Month',
-        'Mercer/IPD Australian Property Pooled Fund Index': 'Mercer/IPD Australian Property',
-        'MSCI World Value Ex Australia Net Index': 'MSCI World Value Ex Aus Net',
-        'Barclays Capital Global Agg Index (Hedged)': 'Barclays Capital Global Agg',
-        'Bloomberg AusBond Composite 0+ Yr Index': 'Ausbond Composite 0+ Yr',
-        'S&P/ASX 200 Accum Index': 'S&P/ASX 200 Accum',
-        'S&P/ASX 300 Accum Index': 'S&P/ASX 300 Accum',
-        'MSCI ACWI ex Australia': 'MSCI ACWI ex Aus',
-        'MSCI ACWI ex Australia(Net) 40% Hedged': 'MSCI ACWI ex Aus 40% Hedged',
-        'Bloomberg AusBond Bank Bill Index + 2.0%p.a.': 'AusBond Bank Bill + 2.0%',
-        'Bloomberg AusBond Bank Bill Index + 1.5%p.a.':  'AusBond Bank Bill + 1.5%',
-        'Bloomberg AusBond Bank Bill Index + 0.2%p.a.': 'AusBond Bank Bill + 0.2%',
+        'EPRA/NARETT  (AUD)': 'FTSE EPRA/Nareit Index (AUD)',
+        'MSCI ACWI EX AUS': 'MSCI ACWI ex Australia Index',
+        'S&P/ASX 100 Accum Index ': 'S&P/ASX 100 Accumulation Index',
+        'S&P 200 PROPERTY': 'S&P 200 Property Index',
+        'S&P 300 ACC INDEX': 'S&P/ASX 300 Accumulation Index',
+        'S&P/ASX 200 Accumulation Index': 'S&P/ASX 200 Accumulation Index',
+        'S&P/ASX Accum 100 Index': 'S&P/ASX 100 Accumulation Index',
+        'UBS BBINDEX 3 MONTH': 'UBS Bank Bill 3 Month Index',
+        'Mercer/IPD Australian Property Pooled Fund Index': 'Mercer/IPD Australian Property Pooled Fund Index',
+        'MSCI World Value Ex Australia Net Index': 'MSCI World Value Ex Australia Net Index',
+        'Barclays Capital Global Agg Index (Hedged)': 'Barclays Capital Global Aggregate Index (Hedged)',
+        'Bloomberg AusBond Composite 0+ Yr Index': 'Bloomberg Ausbond Composite 0+ Yr Index',
+        'S&P/ASX 200 Accum Index': 'S&P/ASX 200 Accumulation Index',
+        'S&P/ASX 300 Accum Index': 'S&P/ASX 300 Accumulation Index',
+        'MSCI ACWI ex Australia': 'MSCI ACWI ex Australia Index',
+        'MSCI ACWI ex Australia(Net) 40% Hedged': 'MSCI ACWI ex Australia Net Index 40% Hedged',
+        'Bloomberg AusBond Bank Bill Index + 2.0%p.a.': 'Bloomberg AusBond Bank Bill Index + 2.0%',
+        'Bloomberg AusBond Bank Bill Index + 1.5%p.a.':  'Bloomberg AusBond Bank Bill Index + 1.5%',
+        'Bloomberg AusBond Bank Bill Index + 0.2%p.a.': 'Bloomberg AusBond Bank Bill Index + 0.2%',
         'Zero': '',
-        'ZERO': 'MSCI ACWI ex Aus',
+        'ZERO': 'MSCI ACWI ex Australia Index',
+        'FTSE World Government Bond Index AUD': 'FTSE World Government Bond Index',
         np.nan: ''
     }
 
@@ -314,11 +323,11 @@ def fillna(df):
 def collect_sectors(df):
     sectors = [
         'Managed Cash',
-        'Bonds',
-        'Australian Equities',
-        'Property',
-        'Global Property',
-        'International Equities',
+        'Bonds Aggregate',
+        'Australian Equity',
+        'Australian Property',
+        'International Property',
+        'International Equity',
         'Absolute Return',
         'Liquid Alternatives',
         'Short Term Fixed Interest',
@@ -417,9 +426,9 @@ def create_latex_table(df):
     latex_string = (
         latex_string
         .replace('tabular', 'tabularx')
-        .replace('llrrll', 'p{4cm}p{5cm}R{2.2}R{2.2}R{2.2}R{2.2}')
-        .replace('llrlll', 'p{4cm}p{5cm}R{2.2}R{2.2}R{2.2}R{2.2}')
-        .replace('llllll', 'p{4cm}p{5cm}R{2.2}R{2.2}R{2.2}R{2.2}')
+        .replace('llrrll', 'p{7cm}p{9cm}R{2.2}R{2.2}R{2.2}R{2.2}')
+        .replace('llrlll', 'p{7cm}p{9cm}R{2.2}R{2.2}R{2.2}R{2.2}')
+        .replace('llllll', 'p{7cm}p{9cm}R{2.2}R{2.2}R{2.2}R{2.2}')
         .replace('\\{', '{')
         .replace('\\}', '}')
     )
