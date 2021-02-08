@@ -27,7 +27,26 @@ if __name__ == '__main__':
     ]
 
     comparison_list1 = [
-        
+        'LGIAsuper Accum - Aggressive',
+        'Local Government Super Accum - High Growth',
+        'Vision SS - Growth',
+        'Aware Super (previously First State Super) - Growth',
+        'LGIAsuper Accum - Diversified Growth',
+        'Local Government Super Accum - Balanced Growth',
+        'Vision SS - Balanced Growth',
+        'Aware Super (previously First State Super) - Balanced Growth',
+        'LGIAsuper Accum - Balanced',
+        'Local Government Super Accum - Balanced',
+        'Vision SS - Balanced',
+        'Aware Super (previously First State Super) - Conservative Growth',
+        'LGIAsuper Accum - Stable',
+        'Local Government Super Accum - Conservative',
+        'Vision SS - Conservative',
+        'Aware Super (previously First State Super) Tailored Super Plan - Cash Fund',
+        'LGIAsuper Accum - Cash',
+        'Local Government Super Accum - Managed Cash',
+        'Vision SS - Cash',
+        'Not for Profit Fund Median',
     ]
 
     column_dict = {
@@ -79,7 +98,9 @@ if __name__ == '__main__':
 
     df_1 = df_0[df_0['SR Index'].isin(sr_index_list)].reset_index(drop=True)
 
-    df_2 = df_1[df_1['Fund'].isin(comparison_list)].reset_index(drop=True)
+    # df_2 = df_1[df_1['Fund'].isin(comparison_list)].reset_index(drop=True)
+
+    df_2 = df_1[df_1['Option Name'].isin(comparison_list1)].reset_index(drop=True)
 
     df_3 = df_2[column_dict]
 
@@ -125,4 +146,9 @@ if __name__ == '__main__':
         with open('C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/reports/superratings/' + sr_index + '.tex', 'w') as tf:
 
             tf.write(df_temp4.to_latex(index=False, na_rep='', multicolumn_format='c'))
+
+
+        df_temp5 = df_temp0[['Fund', '7 Year %']].set_index('Fund').sort_values('7 Year %')
+        ax = df_temp5.plot.barh(color={"green"})
+        ax.figsize=(16.8, 3.6)
 
