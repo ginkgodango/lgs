@@ -278,6 +278,7 @@ def rename_benchmarks(df):
         'S&P/ASX Accum 100 Index': 'S&P/ASX 100 Accumulation Index',
         'UBS BBINDEX 3 MONTH': 'UBS Bank Bill 3 Month Index',
         'Mercer/IPD Australian Property Pooled Fund Index': 'Mercer/IPD Australian Property Pooled Fund Index',
+        'MSCI Emerging Markets EM Net Total Return AUD Index': 'MSCI Emerging Markets Net TR Index AUD',
         'MSCI World Value Ex Australia Net Index': 'MSCI World Value Ex Australia Net Index',
         'Barclays Capital Global Agg Index (Hedged)': 'Barclays Capital Global Aggregate Index (Hedged)',
         'Bloomberg AusBond Composite 0+ Yr Index': 'Bloomberg Ausbond Composite 0+ Yr Index',

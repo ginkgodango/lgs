@@ -1,0 +1,128 @@
+import pandas as pd
+import numpy as np
+
+def read_superratings(s):
+
+    return pd.read_excel(pd.ExcelFile(s))
+
+
+if __name__ == '__main__':
+
+    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2020/12/SuperRatings FCRS December 2020.xlsx'
+
+    sr_index_list = [
+        'SR50 Growth (77-90) Index',
+        'SR50 Balanced (60-76) Index',
+        'SR25 Conservative Balanced (41-59) Index',
+        'SR50 Capital Stable (20-40) Index',
+        'SR50 Cash Index'
+    ]
+
+    comparison_list = [
+        'Local Government Super',
+        'Aware Super',
+        'LGIAsuper',
+        'Vision SS',
+        'Not for Profit Fund Median'
+    ]
+
+    comparison_list1 = [
+        
+    ]
+
+    column_dict = {
+        'Fund': 'Fund',
+        'SR Index': 'SR Index',
+        'Size $Mill': '$Mill',
+        'Size Rank': 'Size Rank',
+        'Monthly Return %': '1 Month %',
+        'Monthly Return Rank': '1 Month Rank',
+        'Quarterly Return %': '3 Month %',
+        'Quarterly Return Rank': '3 Month Rank',
+        'FYTD %': 'FYTD %',
+        'FYTD Rank': 'FYTD Rank',
+        'Rolling 1 Year %': '1 Year %',
+        'Rolling 1 Year Rank': '1 Year Rank',
+        'Rolling 3 Year %': '3 Year %',
+        'Rolling 3 Year Rank': '3 Year Rank',
+        'Rolling 5 Year %': '5 Year %',
+        'Rolling 5 Year Rank': '5 Year Rank',
+        'Rolling 7 Year %': '7 Year %',
+        'Rolling 7 Year Rank': '7 Year Rank',
+        'Rolling 10 Year %': '10 Year %',
+        'Rolling 10 Year Rank': '10 Year Rank',
+    }
+
+    column_rank_list = [
+    'Size Rank',
+    'Monthly Return Rank',
+    'Quarterly Return Rank',
+    'FYTD Rank',
+    'Rolling 1 Year Rank',
+    'Rolling 3 Year Rank',
+    'Rolling 5 Year Rank',
+    'Rolling 7 Year Rank',
+    'Rolling 10 Year Rank',
+    ]
+
+    df_0 = read_superratings(file_path)
+
+    print("Reporting date: ", max(df_0['Date']).date())
+
+    df_0['Fund'] = [(str(x).split(' - '))[0] for x in df_0['Option Name']]
+    df_0['Fund'] = [(str(x).split(' ('))[0] for x in df_0['Fund']]
+    df_0['Fund'] = [(str(x).split(' Accum'))[0] for x in df_0['Fund']]
+
+    for column_rank in column_rank_list:
+
+        df_0[column_rank] = ['(' + str(int(x)) + ')' if pd.notna(x) else np.nan for x in df_0[column_rank]]
+
+    df_1 = df_0[df_0['SR Index'].isin(sr_index_list)].reset_index(drop=True)
+
+    df_2 = df_1[df_1['Fund'].isin(comparison_list)].reset_index(drop=True)
+
+    df_3 = df_2[column_dict]
+
+    df_4 = df_3.rename(columns=column_dict)
+
+    sr_index_to_df = dict(list(df_4.groupby(['SR Index'])))
+
+    for sr_index, df_temp0 in sr_index_to_df.items():
+
+        #df_temp1 = df_temp0.drop(columns=['SR Index'], axis=1)
+
+        df_temp1 = df_temp0[['Fund']]
+        df_temp2 = df_temp0[['$Mill', 'Size Rank']]
+        df_temp3 = df_temp0[[
+            '1 Month %',
+            '1 Month Rank',
+            '3 Month %',
+            '3 Month Rank',
+            'FYTD %',
+            'FYTD Rank',
+            '1 Year %',
+            '1 Year Rank',
+            '3 Year %',
+            '3 Year Rank',
+            '5 Year %',
+            '5 Year Rank',
+            '7 Year %',
+            '7 Year Rank',
+            '10 Year %',
+            '10 Year Rank'
+        ]]
+
+        columns_temp_multilevel1 = pd.MultiIndex.from_product([[''], ['Fund']])
+        columns_temp_multilevel2 = pd.MultiIndex.from_product([['Market Value'], ['$Mills', 'Rank']])
+        columns_temp_multilevel3 = pd.MultiIndex.from_product([['1 Month', '3 Month', 'FYTD', '1 Year', '3 Year', '5 Year', '7 Year', '10 Year'], ['%', 'Rank']])
+
+        df_temp1.columns = columns_temp_multilevel1
+        df_temp2.columns = columns_temp_multilevel2
+        df_temp3.columns = columns_temp_multilevel3
+
+        df_temp4 = pd.concat([df_temp1, df_temp2, df_temp3], axis=1)
+
+        with open('C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/reports/superratings/' + sr_index + '.tex', 'w') as tf:
+
+            tf.write(df_temp4.to_latex(index=False, na_rep='', multicolumn_format='c'))
+
