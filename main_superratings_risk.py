@@ -8,7 +8,7 @@ def read_superratings(s):
 
 if __name__ == '__main__':
 
-    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2020/12/SuperRatings FCRS December 2020.xlsx'
+    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2020/12/SR Super Volatility and Risk-Adjusted Return Survey - December 2020.xlsx'
 
     sr_index_list = [
         'SR50 Growth (77-90) Index',
@@ -54,34 +54,25 @@ if __name__ == '__main__':
         'SR Index': 'SR Index',
         'Size $Mill': '$Mill',
         'Size Rank': 'Size Rank',
-        'Monthly Return %': '1 Month %',
-        'Monthly Return Rank': '1 Month Rank',
-        'Quarterly Return %': '3 Month %',
-        'Quarterly Return Rank': '3 Month Rank',
-        'FYTD %': 'FYTD %',
-        'FYTD Rank': 'FYTD Rank',
-        'Rolling 1 Year %': '1 Year %',
-        'Rolling 1 Year Rank': '1 Year Rank',
-        'Rolling 3 Year %': '3 Year %',
-        'Rolling 3 Year Rank': '3 Year Rank',
-        'Rolling 5 Year %': '5 Year %',
-        'Rolling 5 Year Rank': '5 Year Rank',
-        'Rolling 7 Year %': '7 Year %',
-        'Rolling 7 Year Rank': '7 Year Rank',
-        'Rolling 10 Year %': '10 Year %',
-        'Rolling 10 Year Rank': '10 Year Rank',
+        'Sharpe Ratio 1 Year %': '1 Year %',
+        'Sharpe Ratio 1 Year Rank': '1 Year Rank',
+        'Sharpe Ratio 3 Year %': '3 Year %',
+        'Sharpe Ratio 3 Year Rank': '3 Year Rank',
+        'Sharpe Ratio 5 Year %': '5 Year %',
+        'Sharpe Ratio 5 Year Rank': '5 Year Rank',
+        'Sharpe Ratio 7 Year %': '7 Year %',
+        'Sharpe Ratio 7 Year Rank' : '7 Year Rank',
+        'Sharpe Ratio 10 Year %': '10 Year %',
+        'Sharpe Ratio 10 Year Rank': '10 Year Rank'
     }
 
     column_rank_list = [
-    'Size Rank',
-    'Monthly Return Rank',
-    'Quarterly Return Rank',
-    'FYTD Rank',
-    'Rolling 1 Year Rank',
-    'Rolling 3 Year Rank',
-    'Rolling 5 Year Rank',
-    'Rolling 7 Year Rank',
-    'Rolling 10 Year Rank',
+        'Size Rank',
+        'Sharpe Ratio 1 Year Rank',
+        'Sharpe Ratio 3 Year Rank',
+        'Sharpe Ratio 5 Year Rank',
+        'Sharpe Ratio 7 Year Rank',
+        'Sharpe Ratio 10 Year Rank',
     ]
 
     df_0 = read_superratings(file_path)
@@ -115,12 +106,6 @@ if __name__ == '__main__':
         df_temp1 = df_temp0[['Fund']]
         df_temp2 = df_temp0[['$Mill', 'Size Rank']]
         df_temp3 = df_temp0[[
-            '1 Month %',
-            '1 Month Rank',
-            '3 Month %',
-            '3 Month Rank',
-            'FYTD %',
-            'FYTD Rank',
             '1 Year %',
             '1 Year Rank',
             '3 Year %',
@@ -135,7 +120,7 @@ if __name__ == '__main__':
 
         columns_temp_multilevel1 = pd.MultiIndex.from_product([[''], ['Fund']])
         columns_temp_multilevel2 = pd.MultiIndex.from_product([['Market Value'], ['$Mills', 'Rank']])
-        columns_temp_multilevel3 = pd.MultiIndex.from_product([['1 Month', '3 Month', 'FYTD', '1 Year', '3 Year', '5 Year', '7 Year', '10 Year'], ['%', 'Rank']])
+        columns_temp_multilevel3 = pd.MultiIndex.from_product([['1 Year', '3 Year', '5 Year', '7 Year', '10 Year'], ['%', 'Rank']])
 
         df_temp1.columns = columns_temp_multilevel1
         df_temp2.columns = columns_temp_multilevel2
@@ -143,6 +128,6 @@ if __name__ == '__main__':
 
         df_temp4 = pd.concat([df_temp1, df_temp2, df_temp3], axis=1)
 
-        with open('C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/reports/superratings/returns/' + sr_index + '.tex', 'w') as tf:
+        with open('C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/reports/superratings/risk/' + sr_index + '.tex', 'w') as tf:
 
             tf.write(df_temp4.to_latex(index=False, na_rep='', multicolumn_format='c', float_format="{:0.2f}".format))

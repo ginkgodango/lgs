@@ -207,7 +207,8 @@ def rename_funds(df):
         'LGTN - LGS AUS EQ MTM 2020': 'Macquarie Transition 2020',
         'LGQC - LGS Short Term FI QIC CREDIT': 'QIC Credit',
         'LGCX - LGS CHALLENGER INDEX FUND': 'Challenger',
-        'LGLA: GLOBAL LIQUIDITY REL MFS31EU': 'PGIM'
+        'LGLA: GLOBAL LIQUIDITY REL MFS31EU': 'PGIM I',
+        'LGLA: GLOBAL LIQUIDITY REL MFT41EU': 'PGIM II'
     }
 
     df['Fund'] = [
