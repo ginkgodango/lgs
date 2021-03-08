@@ -5,7 +5,7 @@ import daymove.calculation
 import daymove.format
 
 password = "lgsinvestops@LGS"
-filepath = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/reports/daymove/2021/02/'
+filepath = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/reports/daymove/2021/03/'
 filenames = sorted(os.listdir(filepath))
 output_directory = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/reports/daymove/tables/'
 
@@ -63,6 +63,9 @@ sectors = [
     'LGS PRIVATE EQUITY SECTOR',
     'LGS OPPORTUNISTIC ALTERNATIVES SECTOR',
     'LGS DEFENSIVE ALTERNATIVES SECTOR',
+    'LGS PRIVATE CREDIT SECTOR',
+    'LGS GROWTH ALTERNATIVES SECTOR',
+    'LGS INFRASTRUCTURE SECTOR',
     'TOTAL LGS (LGSMAN)'
 ]
 
@@ -90,4 +93,4 @@ with open(output_directory + 'REPORT_DATE.tex', 'w') as tf:
 
 df_output = df_main.sort_values(['Sector', 'FUND', 'Date'])
 
-# df_output.to_csv(output_directory + 'daymove_data.csv', index=False)
+df_output.to_csv(output_directory + 'daymove_data.csv', index=False)

@@ -111,6 +111,9 @@ def match_manager_to_sector(df):
         'LGS PRIVATE EQUITY SECTOR',
         'LGS OPPORTUNISTIC ALTERNATIVES SECTOR',
         'LGS DEFENSIVE ALTERNATIVES SECTOR',
+        'LGS PRIVATE CREDIT SECTOR',
+        'LGS GROWTH ALTERNATIVES SECTOR',
+        'LGS INFRASTRUCTURE SECTOR',
         'TOTAL LGS (LGSMAN)'
     ]
 
@@ -199,6 +202,9 @@ def remove_nan_and_header_funds(df):
         'LGS PRIVATE EQUITY SECTOR',
         'LGS OPPORTUNISTIC ALTERNATIVES SECTOR',
         'LGS DEFENSIVE ALTERNATIVES SECTOR',
+        'LGS PRIVATE CREDIT SECTOR',
+        'LGS GROWTH ALTERNATIVES SECTOR',
+        'LGS INFRASTRUCTURE SECTOR',
     ]
     df = df[~df['FUND'].isin(nan_and_header)].reset_index(drop=True)
 

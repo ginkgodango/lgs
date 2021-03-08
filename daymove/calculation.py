@@ -8,10 +8,18 @@ def calculate_returns(df):
             (df['Prior Value'] + (0.5 * df['Net Cash Flow']))
     )
 
+    # LGS Daymove Report Return Calculation
+    # df['End of Day Return'] = (
+    #         (df['Current Value'] - df['Prior Value'] - df['Net Cash Flow']) /
+    #         (df['Prior Value'])
+    # )
+
+    # JPM Daymove Report Return Calculation
     df['End of Day Return'] = (
-            (df['Current Value'] - df['Prior Value'] - df['Net Cash Flow']) /
-            (df['Prior Value'])
+            (df['Current Value'] - df['Net Cash Flow'] - df['Prior Value']) / (df['Prior Value'] + df['Net Cash Flow'])
     )
+
+    # df['End of Day Return'] = df['Return']
 
     return df
 

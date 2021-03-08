@@ -90,7 +90,12 @@ def filter_misc_funds(df):
         'LGCX:  CHALLENGER INDX PE C MFR73EU',
         'LGCX:  CHALLENGER INDX PE D MFR74EU',
         'LGCX:  Cash/Other',
-        'LGCX:  UUT Sub Total'
+        'LGCX:  UUT Sub Total',
+        'LGQP - PRIVATE CREDIT REBAL',
+        'LGTR - GROWTH ALTERNATIVES REBAL',
+        'LGDD - INFRASTRUCTURE REBAL',
+        'LGTR:  Cash/Other',
+        'LGTR:  UUT Sub Total'
     ]
 
     df = df[~df['Fund'].isin(misc_filter)].reset_index(drop=True)
@@ -208,7 +213,12 @@ def rename_funds(df):
         'LGQC - LGS Short Term FI QIC CREDIT': 'QIC Credit',
         'LGCX - LGS CHALLENGER INDEX FUND': 'Challenger',
         'LGLA: GLOBAL LIQUIDITY REL MFS31EU': 'PGIM I',
-        'LGLA: GLOBAL LIQUIDITY REL MFT41EU': 'PGIM II'
+        'LGLA: GLOBAL LIQUIDITY REL MFT41EU': 'PGIM II',
+        'TOTAL - LGS Private Credit Sector': 'Private Credit',
+        'TOTAL - LGS Growth Alternatives Sector': 'Growth Alternatives',
+        'TOTAL - LGS Infrastructure Sector': 'Infrastructure',
+        'LGTR: Attunga Power and Enviro Fund Main 1.1 AA N 32510EU': 'Attunga GA1',
+        'LGTR: Attunga Power and Enviro Fund Class E Nov 19 1.1 AA N MFH23EU': 'Attunga GA2'
     }
 
     df['Fund'] = [
@@ -340,6 +350,9 @@ def collect_sectors(df):
         'Private Equities',
         'Opportunistic Alternatives',
         'Defensive Alternatives',
+        'Private Credit',
+        'Growth Alternatives',
+        'Infrastructure',
         'TOTAL LGS'
     ]
 
@@ -399,7 +412,10 @@ def reorder_sectors(df):
         'LGS PRIVATE EQUITY SECTOR': 13,
         'LGS OPPORTUNISTIC ALTERNATIVES SECTOR': 14,
         'LGS DEFENSIVE ALTERNATIVES SECTOR': 15,
-        'TOTAL LGS (LGSMAN)': 16
+        'LGS PRIVATE CREDIT SECTOR': 16,
+        'LGS GROWTH ALTERNATIVES SECTOR': 17,
+        'LGS INFRASTRUCTURE SECTOR': 18,
+        'TOTAL LGS (LGSMAN)': 19
     }
 
     df['Sector Order'] = [
