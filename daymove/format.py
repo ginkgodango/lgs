@@ -281,7 +281,7 @@ def rename_benchmarks(df):
         'Bloomberg Commodity Index Australian Dollar Hedged Total Return': 'Bloomberg Commodity Index',
         'CASH + 1.5% P.A': 'Cash + 1.5%',
         'EPRA/NARETT  (AUD)': 'FTSE EPRA/Nareit Index (AUD)',
-        'MSCI ACWI EX AUS': 'MSCI ACWI ex Australia Index',
+        'MSCI ACWI EX AUS': 'MSCI ACWI ex Australia Net TR Index',
         'S&P/ASX 100 Accum Index ': 'S&P/ASX 100 Accumulation Index',
         'S&P 200 PROPERTY': 'S&P 200 Property Index',
         'S&P 300 ACC INDEX': 'S&P/ASX 300 Accumulation Index',
@@ -290,19 +290,21 @@ def rename_benchmarks(df):
         'UBS BBINDEX 3 MONTH': 'UBS Bank Bill 3 Month Index',
         'Mercer/IPD Australian Property Pooled Fund Index': 'Mercer/IPD Australian Property Pooled Fund Index',
         'MSCI Emerging Markets EM Net Total Return AUD Index': 'MSCI Emerging Markets Net TR Index AUD',
-        'MSCI World Value Ex Australia Net Index': 'MSCI World Value Ex Australia Net Index',
+        'MSCI World Value Ex Australia Net Index': 'MSCI World Value Ex Australia Net TR Index',
         'Barclays Capital Global Agg Index (Hedged)': 'Barclays Capital Global Aggregate Index (Hedged)',
         'Bloomberg AusBond Composite 0+ Yr Index': 'Bloomberg Ausbond Composite 0+ Yr Index',
         'S&P/ASX 200 Accum Index': 'S&P/ASX 200 Accumulation Index',
         'S&P/ASX 300 Accum Index': 'S&P/ASX 300 Accumulation Index',
         'MSCI ACWI ex Australia': 'MSCI ACWI ex Australia Index',
-        'MSCI ACWI ex Australia(Net) 40% Hedged': 'MSCI ACWI ex Australia Net Index 40% Hedged',
+        'MSCI ACWI ex Australia(Net) 40% Hedged': 'MSCI ACWI ex Australia Net TR Index 40% Hedged',
         'Bloomberg AusBond Bank Bill Index + 2.0%p.a.': 'Bloomberg AusBond Bank Bill Index + 2.0%',
         'Bloomberg AusBond Bank Bill Index + 1.5%p.a.':  'Bloomberg AusBond Bank Bill Index + 1.5%',
         'Bloomberg AusBond Bank Bill Index + 0.2%p.a.': 'Bloomberg AusBond Bank Bill Index + 0.2%',
         'Zero': '',
         'ZERO': 'MSCI ACWI ex Australia Index',
         'FTSE World Government Bond Index AUD': 'FTSE World Government Bond Index',
+        'MSCI ACWI Ex AU Net Rt Index': 'MSCI ACWI ex Australia Net TR Index',
+        '50% MSCI ACWI ex AU Net 100% Hedg to AUD Index + 50 % Barclay Global Aggregate ex Tsy Hedged AUD': '50% MSCI ACWI ex AU + 50% Barclay Global Aggregate',
         np.nan: ''
     }
 
@@ -444,9 +446,9 @@ def create_latex_table(df):
     latex_string = (
         latex_string
         .replace('tabular', 'tabularx')
-        .replace('llrrll', 'p{7cm}p{9cm}R{2.2}R{2.2}R{2.2}R{2.2}')
-        .replace('llrlll', 'p{7cm}p{9cm}R{2.2}R{2.2}R{2.2}R{2.2}')
-        .replace('llllll', 'p{7cm}p{9cm}R{2.2}R{2.2}R{2.2}R{2.2}')
+        .replace('llrrll', 'p{7cm}p{10cm}R{2.2}R{2.2}R{2.2}R{2.2}')
+        .replace('llrlll', 'p{7cm}p{10cm}R{2.2}R{2.2}R{2.2}R{2.2}')
+        .replace('llllll', 'p{7cm}p{10cm}R{2.2}R{2.2}R{2.2}R{2.2}')
         .replace('\\{', '{')
         .replace('\\}', '}')
     )
