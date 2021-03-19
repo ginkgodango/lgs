@@ -12,6 +12,8 @@ out_file_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/Em
 map_sheet_name = 'JPM_HLD_IA'
 jpm_keys = ['Valuation Date', 'Portfolio ID', 'Security ID']
 ics_keys = ['AsAtDate', 'PortfolioCode', 'SecurityCode']
+tolerance_level = 0.01
+# End user variable set up
 
 # Reads in JPM to ICS map excel file in the map_file_path folder location and uses the sheet name map_sheet_name
 map_file_names = sorted(os.listdir(map_file_path))
@@ -70,16 +72,38 @@ df_jpm_map_ics_merge_fail_unique_keys = df_jpm_map_ics_merge_fail[jpm_keys].drop
 print('Merge sucess is', str(round(len(df_jpm_map_ics_merge_sucess)/min(len(df_jpm_map), len(df_ics_2)) * 100, 2)) + '% of maximum merge sucess possible.')
 
 # Checks for deviations between JPM and ICS for the sucessfully merged dataframe
+# value_match = []
+# for i in range(len(df_jpm_map_ics_merge_sucess)):
+#     if str(df_jpm_map_ics_merge_sucess['value_x'][i]) == str(df_jpm_map_ics_merge_sucess['value_y'][i]):
+#         value_match.append(1)
+#     else:
+#         value_match.append(0)
+# print("Value match accuracy for sucessfully merged rows is:", str(round(np.average(value_match) * 100, 2)) + '%')
+
 value_match = []
+absolute_deviation = []
 for i in range(len(df_jpm_map_ics_merge_sucess)):
-    if str(df_jpm_map_ics_merge_sucess['value_x'][i]) == str(df_jpm_map_ics_merge_sucess['value_x'][i]):
-        value_match.append(1)
+    jpm_value = df_jpm_map_ics_merge_sucess['value_x'][i]
+    ics_value = df_jpm_map_ics_merge_sucess['value_y'][i]
+    if isinstance(jpm_value, (int, float)) and isinstance(ics_value, (int, float)):
+        if abs(jpm_value - ics_value) >= tolerance_level:
+            value_match.append(0)
+            absolute_deviation.append(abs(jpm_value - ics_value))
+        else:
+            value_match.append(1)
+            absolute_deviation.append(abs(jpm_value - ics_value))
     else:
-        value_match.append(0)
+        if str(jpm_value) == str(ics_value):
+            value_match.append(1)
+            absolute_deviation.append(np.nan)
+        else:
+            value_match.append(0)
+            absolute_deviation.append(np.nan)
 print("Value match accuracy for sucessfully merged rows is:", str(round(np.average(value_match) * 100, 2)) + '%')
 
 # Adds the value match column to df_jpm_key_ics_merge_sucess.
 df_jpm_map_ics_merge_sucess['value_match'] = value_match
+df_jpm_map_ics_merge_sucess['absolute_deivation'] = absolute_deviation
 
 # Finds rows that did not have a value match but were sucessfully merged between JPM and ICS.
 df_jpm_map_ics_merge_sucess_value_match_fail = df_jpm_map_ics_merge_sucess[df_jpm_map_ics_merge_sucess['value_match'].isin([0])]
