@@ -24,7 +24,7 @@ def colour_red_light(x):
 
 if __name__ == '__main__':
 
-    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2021/01/SR Super Volatility and Risk-Adjusted Return Survey - January 2021.xlsx'
+    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2021/02/SR Super Volatility and Risk-Adjusted Return Survey - February 2021.xlsx'
 
     lgs_fund_list = [
         'Local Government Super Accum - High Growth',

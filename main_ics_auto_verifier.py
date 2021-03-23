@@ -5,13 +5,13 @@ from dateutil import parser
 
 # User variable set up.
 # Note: The script auto reads in all files in the file_path location. There is no need to specify filename.
-map_file_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/Email Messages/edm/holdings/map/'
-jpm_file_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/Email Messages/edm/holdings/jpm/'
-ics_file_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/Email Messages/edm/holdings/ics/'
-out_file_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/Email Messages/edm/holdings/out/'
-map_sheet_name = 'JPM_HLD_IA'
-jpm_keys = ['Valuation Date', 'Portfolio ID', 'SecurityCode', 'SourceCode', 'ValuationTypeId']
-ics_keys = ['AsAtDate', 'PortfolioCode', 'SecurityCode', 'SourceCode', 'ValuationTypeId']
+map_file_path = 'U:/Shared/Investment Operations/Projects/Investment Data Management/Go Live/Implementation/Athena JPM Data Validation testing/AutoVerifier/transactions/map/'
+jpm_file_path = 'U:/Shared/Investment Operations/Projects/Investment Data Management/Go Live/Implementation/Athena JPM Data Validation testing/AutoVerifier/transactions/jpm/'
+ics_file_path = 'U:/Shared/Investment Operations/Projects/Investment Data Management/Go Live/Implementation/Athena JPM Data Validation testing/AutoVerifier/transactions/ics/'
+out_file_path = 'U:/Shared/Investment Operations/Projects/Investment Data Management/Go Live/Implementation/Athena JPM Data Validation testing/AutoVerifier/transactions/out/'
+map_sheet_name = 'JPM_TLR'
+jpm_keys = ['Extract Date', 'Portfolio ID', 'Security Code', 'Trade Description', 'Transaction ID']
+ics_keys = ['BookingDate', 'PortfolioCode', 'SecurityCode', 'TypeCode', 'TransactionRef']
 tolerance_level = 0.01
 # End user variable set up
 
@@ -29,77 +29,67 @@ ics_file_names = sorted(os.listdir(ics_file_path))
 df_ics = pd.concat([pd.read_excel(pd.ExcelFile(ics_file_path + ics_file_name)) for ics_file_name in ics_file_names])
 
 # START ICS CALCULATED VALUES
-# ISNULL(IIF([Category Code] = 'ZF', [Security ID] + ISNULL(SUBSTRING([Security Name],1,1),''),
-# IIF([Category Code] = 'ZL', ISNULL([Symbol],[Security ID]),[Security ID])),'TBA')
-security_code_calculated = []
-for i in range(len(df_jpm)):
-    if df_jpm['Category Code'][i] == 'ZF':
-        if str(df_jpm['Security Name'][i]) != 'nan':
-            security_code_calculated.append(df_jpm['Security ID'][i] + df_jpm['Security Name'][i][:1])
+if map_sheet_name in ['JPM_HLD_IA']:
+    security_code_calculated = []
+    for i in range(len(df_jpm)):
+        if df_jpm['Category Code'][i] == 'ZF':
+            if str(df_jpm['Security Name'][i]) != 'nan':
+                security_code_calculated.append(df_jpm['Security ID'][i] + df_jpm['Security Name'][i][:1])
+            else:
+                security_code_calculated.append(df_jpm['Security ID'][i])
+        elif df_jpm['Category Code'][i] == 'ZL':
+            if str(df_jpm['Symbol'][i]) != 'nan':
+                security_code_calculated.append(df_jpm['Symbol'][i])
+            else:
+                security_code_calculated.append(df_jpm['Security ID'][i])
+        elif str(df_jpm['Security ID'][i]) == 'nan' and str(df_jpm['Symbol'][i]) == 'nan':
+            security_code_calculated.append('TBA')
         else:
             security_code_calculated.append(df_jpm['Security ID'][i])
-    elif df_jpm['Category Code'][i] == 'ZL':
-        if str(df_jpm['Symbol'][i]) != 'nan':
-            security_code_calculated.append(df_jpm['Symbol'][i])
-        else:
-            security_code_calculated.append(df_jpm['Security ID'][i])
-    elif str(df_jpm['Security ID'][i]) == 'nan' and str(df_jpm['Symbol'][i]) == 'nan':
-        security_code_calculated.append('TBA')
-    else:
-        security_code_calculated.append(df_jpm['Security ID'][i])
-df_jpm['SecurityCode'] = security_code_calculated
+    df_jpm['SecurityCode'] = security_code_calculated
 
-# "IIF([Category Code] = 'FI',[Sector Level 0 Name],
-# IIF([Category Subtype Code] = 'ZL01',[Sector Level 0 Name],
-# IIF([Category Subtype Code] = 'CO00',NULL,
-# IIF([Category Subtype Code] = 'PO00',NULL,
-# IIF([Category Code] = 'DS',[Security Type 1],
-# IIF([Sector Level 0 Name] IN ('Hedge Fund','Private Equity','Unit Trust','Unlisted Prop Trust'),[Sector Level 0 Name],[Category Subtype Code]))))))"
-security_instrument_type_code = []
-for i in range(len(df_jpm)):
-    if df_jpm['Category Code'][i] == 'FI':
-        security_instrument_type_code.append(df_jpm['Sector Level 0 Name'][i])
-    elif df_jpm['Category Subtype Code'][i] == 'ZL01':
-        security_instrument_type_code.append(df_jpm['Sector Level 0 Name'][i])
-    elif df_jpm['Category Subtype Code'][i] in ['CO00', 'PO00']:
-        security_instrument_type_code.append(np.nan)
-    elif df_jpm['Category Code'][i] == 'DS':
-        security_instrument_type_code.append(df_jpm['Security Type 1'][i])
-    elif df_jpm['Sector Level 0 Name'][i] in ['Hedge Fund', 'Private Equity', 'Unit Trust', 'Unlisted Prop Trust']:
-        security_instrument_type_code.append(df_jpm['Sector Level 0 Name'][i])
-    else:
-        security_instrument_type_code.append(df_jpm['Category Subtype Code'][i])
-df_jpm['SecurityInstrumentTypeCode'] = security_instrument_type_code
+    security_instrument_type_code = []
+    for i in range(len(df_jpm)):
+        if df_jpm['Category Code'][i] == 'FI':
+            security_instrument_type_code.append(df_jpm['Sector Level 0 Name'][i])
+        elif df_jpm['Category Subtype Code'][i] == 'ZL01':
+            security_instrument_type_code.append(df_jpm['Sector Level 0 Name'][i])
+        elif df_jpm['Category Subtype Code'][i] in ['CO00', 'PO00']:
+            security_instrument_type_code.append(np.nan)
+        elif df_jpm['Category Code'][i] == 'DS':
+            security_instrument_type_code.append(df_jpm['Security Type 1'][i])
+        elif df_jpm['Sector Level 0 Name'][i] in ['Hedge Fund', 'Private Equity', 'Unit Trust', 'Unlisted Prop Trust']:
+            security_instrument_type_code.append(df_jpm['Sector Level 0 Name'][i])
+        else:
+            security_instrument_type_code.append(df_jpm['Category Subtype Code'][i])
+    df_jpm['SecurityInstrumentTypeCode'] = security_instrument_type_code
 # END ICS CALCULATED VALUES
 
-
 # START ICS TRANSFORMATION
-# CASE WHEN SecurityInstrumentTypeCode = 'Unit Trust' and left(SecurityCode,2) = 'LG' and right(SecurityCode,2) = 'UP' then left(SecurityCode,4) else SecurityCode end
-security_code_transformed = []
-for i in range(len(df_jpm)):
-    if df_jpm['SecurityInstrumentTypeCode'][i] == 'Unit Trust' and df_jpm['SecurityCode'][i][:2] == 'LG' and df_jpm['SecurityCode'][i][-2:] == 'UP':
-        security_code_transformed.append(df_jpm['SecurityCode'][i][:4])
-    else:
-        security_code_transformed.append(df_jpm['SecurityCode'][i])
-df_jpm['SecurityCode'] = security_code_transformed
+if map_sheet_name in ['JPM_HLD_IA']:
+    security_code_transformed = []
+    for i in range(len(df_jpm)):
+        if df_jpm['SecurityInstrumentTypeCode'][i] == 'Unit Trust' and df_jpm['SecurityCode'][i][:2] == 'LG' and df_jpm['SecurityCode'][i][-2:] == 'UP':
+            security_code_transformed.append(df_jpm['SecurityCode'][i][:4])
+        else:
+            security_code_transformed.append(df_jpm['SecurityCode'][i])
+    df_jpm['SecurityCode'] = security_code_transformed
 
-#CASE WHEN LoadText07 LIKE ('%HC%') THEN 'JPMIA_HC' ELSE 'JPMIA' END
-source_code = []
-for i in range(len(df_jpm)):
-    if 'HC' in df_jpm['Valuation Type'][i]:
-        source_code.append('JPMIA_HC')
-    else:
-        source_code.append('JPMIA')
-df_jpm['SourceCode'] = source_code
+    source_code = []
+    for i in range(len(df_jpm)):
+        if 'HC' in df_jpm['Valuation Type'][i]:
+            source_code.append('JPMIA_HC')
+        else:
+            source_code.append('JPMIA')
+    df_jpm['SourceCode'] = source_code
 
-# CASE WHEN LoadText07 LIKE ('%HC%') THEN '1' ELSE '0' END
-valuation_type_id = []
-for i in range(len(df_jpm)):
-    if 'HC' in df_jpm['Valuation Type'][i]:
-        valuation_type_id.append(1)
-    else:
-        valuation_type_id.append(0)
-df_jpm['ValuationTypeId'] = valuation_type_id
+    valuation_type_id = []
+    for i in range(len(df_jpm)):
+        if 'HC' in df_jpm['Valuation Type'][i]:
+            valuation_type_id.append(1)
+        else:
+            valuation_type_id.append(0)
+    df_jpm['ValuationTypeId'] = valuation_type_id
 # END TRANSFORMATION
 
 # Remove whitespaces in ICS column headers
@@ -118,8 +108,8 @@ df_jpm_2 = df_jpm_1[df_jpm_1['variable'].isin(df_map_active_columns['Source Colu
 df_ics_2 = df_ics_1[df_ics_1['variable'].isin(df_map_active_columns['Destination Column'])]
 
 # Converts dates to same format
-df_jpm_2['Valuation Date'] = [parser.parse(str(x)).date() for x in df_jpm_2['Valuation Date']]
-df_ics_2['AsAtDate'] = [parser.parse(str(x)).date() for x in df_ics_2['AsAtDate']]
+df_jpm_2[jpm_keys[0]] = [parser.parse(str(x)).date() for x in df_jpm_2[jpm_keys[0]]]
+df_ics_2[ics_keys[0]] = [parser.parse(str(x)).date() for x in df_ics_2[ics_keys[0]]]
 
 # Merges keys onto df_jpm
 df_jpm_map = pd.merge(
