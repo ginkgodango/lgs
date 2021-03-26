@@ -305,6 +305,10 @@ def rename_benchmarks(df):
         'FTSE World Government Bond Index AUD': 'FTSE World Government Bond Index',
         'MSCI ACWI Ex AU Net Rt Index': 'MSCI ACWI ex Australia Net TR Index',
         '50% MSCI ACWI ex AU Net 100% Hedg to AUD Index + 50 % Barclay Global Aggregate ex Tsy Hedged AUD': '50% MSCI ACWI ex AU + 50% Barclay Global Aggregate',
+        'MSCI World Value Ex Australia Net TR Index AUD': 'MSCI World Value Ex Australia Net TR Index AUD',
+        'FTSE ET50 Index TR USD': 'FTSE ET50 Index TR USD',
+        'MSCI Emerging Markets EM Net TR Index AUD': 'MSCI Emerging Markets EM Net TR Index AUD',
+        'MSCI ACWI ex Australia Growh Net TR Index AUD': 'MSCI ACWI ex Australia Growth Net TR Index AUD',
         np.nan: ''
     }
 
