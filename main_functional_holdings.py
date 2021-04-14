@@ -373,4 +373,8 @@ if __name__ == '__main__':
         df = df.sort_values('Symbol', ascending=False)
         df.to_csv('C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/holdings/yahoo/' + portfolio + '.csv', index=False)
 
+    df_lgs_exclusions = pd.read_excel(pd.ExcelFile(lgs_exclusions_path))
 
+    lgs_exclusions_list = df_lgs_exclusions['Sedol'].to_list()
+
+    df_bad = df_all[df_all['Security ID'].isin(lgs_exclusions_list)]
