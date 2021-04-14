@@ -309,6 +309,7 @@ def rename_benchmarks(df):
         'FTSE ET50 Index TR USD': 'FTSE ET50 Index TR USD',
         'MSCI Emerging Markets EM Net TR Index AUD': 'MSCI Emerging Markets EM Net TR Index AUD',
         'MSCI ACWI ex Australia Growh Net TR Index AUD': 'MSCI ACWI ex Australia Growth Net TR Index AUD',
+        'MSCI World Ex Australia Net TR Index AUD': 'MSCI World Ex Australia Net TR Index AUD',
         np.nan: ''
     }
 

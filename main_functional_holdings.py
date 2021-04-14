@@ -275,20 +275,21 @@ yahoo_columns = [
 if __name__ == '__main__':
 
     # Set file directories.
-    jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2021/02/Detailed Valuation Report - Equities.csv'
-    jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2021/02/Priced Positions - All.csv'
-    fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/02/fsi_holdings.xlsx'
+    jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2021/03/Detailed Valuation Report - Equities.csv'
+    jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2021/03/Priced Positions - All.csv'
+    fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/03/fsi_holdings.xlsx'
     aqr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/01/aqr_holdings.xlsx'
-    mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/02/mac_holdings.xlsx'
-    wel_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/02/wel_holdings.xlsx'
+    mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/03/mac_holdings.xlsx'
+    wel_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/03/wel_holdings.xlsx'
     ric_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/lgs/isin_ric.csv'
+    lgs_exclusions_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/documents/lgs/reports/sri/LGS Exclusions List May 2020 - Internal.xlsx'
 
     # Get market value from JPM Investment Accounting System.
-    date = dt.datetime(2021, 2, 28)
-    fsi_mv = 228147267.6
+    date = dt.datetime(2021, 3, 31)
+    fsi_mv = 228374720.28
     # aqr_mv = 178698409.64
-    mac_mv = 176133018.68
-    wel_mv = 181523880.42
+    mac_mv = 178719894.54
+    wel_mv = 173188363.33
 
     # Reads in each file as a dataframe and cleans it.
     df_jpm_dvr = process_jpm_dvr(df=read_jpm_dvr(jpm_dvr_path))
@@ -371,3 +372,5 @@ if __name__ == '__main__':
     for portfolio, df in portfolio_to_df_dict.items():
         df = df.sort_values('Symbol', ascending=False)
         df.to_csv('C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/holdings/yahoo/' + portfolio + '.csv', index=False)
+
+
