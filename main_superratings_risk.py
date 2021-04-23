@@ -24,7 +24,7 @@ def colour_red_light(x):
 
 if __name__ == '__main__':
 
-    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2021/02/SR Super Volatility and Risk-Adjusted Return Survey - February 2021.xlsx'
+    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2021/03/SR Super Volatility and Risk-Adjusted Return Survey - March 2021.xlsx'
 
     lgs_fund_list = [
         'Local Government Super Accum - High Growth',
@@ -66,18 +66,22 @@ if __name__ == '__main__':
         'Local Government Super Accum - High Growth',
         'Vision SS - Growth',
         'Aware Super (previously First State Super) - Growth',
+        'Aware Super - Growth',
         'LGIAsuper Accum - Diversified Growth',
         'Local Government Super Accum - Balanced Growth',
         'Vision SS - Balanced Growth',
         'Aware Super (previously First State Super) - Balanced Growth',
+        'Aware Super - Balanced Growth',
         'LGIAsuper Accum - Balanced',
         'Local Government Super Accum - Balanced',
         'Vision SS - Balanced',
         'Aware Super (previously First State Super) - Conservative Growth',
+        'Aware Super - Conservative Growth',
         'LGIAsuper Accum - Stable',
         'Local Government Super Accum - Conservative',
         'Vision SS - Conservative',
         'Aware Super (previously First State Super) Tailored Super Plan - Cash Fund',
+        'Aware Super Tailored Super Plan - Cash Fund',
         'LGIAsuper Accum - Cash',
         'Local Government Super Accum - Managed Cash',
         'Vision SS - Cash',
@@ -112,6 +116,7 @@ if __name__ == '__main__':
 
     short_name_dict = {
         'Aware Super': 'Aware',
+        'Aware Super Tailored Super Plan': 'Aware',
         'LGIAsuper': 'LGIAsuper',
         'Local Government Super': 'LGS',
         'Vision SS': 'Vision',

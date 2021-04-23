@@ -278,18 +278,21 @@ if __name__ == '__main__':
     jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2021/03/Detailed Valuation Report - Equities.csv'
     jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2021/03/Priced Positions - All.csv'
     fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/03/fsi_holdings.xlsx'
-    aqr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/01/aqr_holdings.xlsx'
+    # aqr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/09/aqr_holdings.xlsx'
     mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/03/mac_holdings.xlsx'
     wel_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/03/wel_holdings.xlsx'
     ric_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/lgs/isin_ric.csv'
     lgs_exclusions_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/documents/lgs/reports/sri/LGS Exclusions List May 2020 - Internal.xlsx'
+    output_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/holdings/'
 
     # Get market value from JPM Investment Accounting System.
     date = dt.datetime(2021, 3, 31)
-    fsi_mv = 228374720.28
-    # aqr_mv = 178698409.64
-    mac_mv = 178719894.54
-    wel_mv = 173188363.33
+    fsi_mv = 230300923.19
+    # aqr_mv = 182206982.50
+    mac_mv = 177848020.47
+    wel_mv = 171870966.72
+    dsri_mv = 14007108.15
+    isri_mv = 24841225.60
 
     # Reads in each file as a dataframe and cleans it.
     df_jpm_dvr = process_jpm_dvr(df=read_jpm_dvr(jpm_dvr_path))
@@ -328,11 +331,10 @@ if __name__ == '__main__':
     df_ie_info = pd.merge(left=df_info, right=df_ie, on=['Security ID'], how='inner').sort_values('Realizable Value Base', ascending=False).reset_index(drop=True)
 
     # Writes to Excel.
-    writer = pd.ExcelWriter('C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/holdings/portfolio_holdings.xlsx', engine='xlsxwriter')
+    writer = pd.ExcelWriter(output_path + 'portfolio_holdings.xlsx', engine='xlsxwriter')
     df_ae_info.to_excel(writer, sheet_name='AE', index=False)
     df_ie_info.to_excel(writer, sheet_name='IE', index=False)
     df_all.to_excel(writer, sheet_name='All', index=False)
-    writer.save()
 
     # YAHOO PROCESSING
     # Converts columns to string
@@ -355,7 +357,7 @@ if __name__ == '__main__':
     for i in range(len(df_yahoo_final2)):
         if df_yahoo_final2['Symbol'][i] is not np.nan and isinstance(df_yahoo_final2['Symbol'][i], str):
             if df_yahoo_final2['Symbol'][i][-2:] == '.L':
-                print(df_yahoo_final2['Symbol'][i])
+                # print(df_yahoo_final2['Symbol'][i])
                 yahoo_price.append(df_yahoo_final2['Purchase Price'][i]*100)
             else:
                 yahoo_price.append(df_yahoo_final2['Purchase Price'][i])
@@ -371,10 +373,37 @@ if __name__ == '__main__':
     portfolio_to_df_dict = dict(list(df_yahoo_final3.groupby(['Portfolio Name'])))
     for portfolio, df in portfolio_to_df_dict.items():
         df = df.sort_values('Symbol', ascending=False)
-        df.to_csv('C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/holdings/yahoo/' + portfolio + '.csv', index=False)
+        df.to_csv(output_path + 'yahoo/' + portfolio + '.csv', index=False)
 
+    # Loads exclusions list
     df_lgs_exclusions = pd.read_excel(pd.ExcelFile(lgs_exclusions_path))
 
-    lgs_exclusions_list = df_lgs_exclusions['Sedol'].to_list()
+    # Creates list from the dataframe df_lgs_exclusions and selects column 'Sedol', converts every item to a string.
+    lgs_exclusions_list = [str(x) for x in df_lgs_exclusions['Sedol'].to_list()]
 
+    # Checks if we have any holdings in the restricted list
     df_bad = df_all[df_all['Security ID'].isin(lgs_exclusions_list)]
+    print("restricted holdings:", df_bad)
+
+    # Separate into AE and IE
+    df_ae_bad = df_bad[df_bad['Portfolio Name'].isin(ae_list)]
+    df_ie_bad = df_bad[df_bad['Portfolio Name'].isin(ie_list)]
+
+    # Adds the respective SRI market value
+    df_ae_bad['SRI Market Value'] = dsri_mv
+    df_ie_bad['SRI Market Value'] = isri_mv
+
+    # Calculates % of stock holding relative to SRI
+    df_ae_bad['% of SRI'] = (df_ae_bad['Realizable Value Base'] / df_ae_bad['SRI Market Value']) * 100
+    df_ie_bad['% of SRI'] = (df_ie_bad['Realizable Value Base'] / df_ie_bad['SRI Market Value']) * 100
+
+    df_ae_bad_20 = df_ae_bad[df_ae_bad['% of SRI'] > 20]
+    df_ie_bad_20 = df_ae_bad[df_ae_bad['% of SRI'] > 20]
+
+    # Outputs
+    df_bad.to_excel(writer, sheet_name='all_restricted_holdings', index=False)
+    df_ae_bad.to_excel(writer, sheet_name='ae_resticted_holding', index=False)
+    df_ie_bad.to_excel(writer, sheet_name='ie_restricted_holdings', index=False)
+    df_ae_bad_20.to_excel(writer, sheet_name='ae_restricted_20', index=False)
+    df_ie_bad_20.to_excel(writer, sheet_name='ie_restricted_20', index=False)
+    writer.save()
