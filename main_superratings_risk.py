@@ -145,8 +145,8 @@ if __name__ == '__main__':
 
     for column_rank in column_rank_list:
         df_1_a_25[column_rank] = [
-            colour_green_dark(x) if x != '-' and int(x) <= 7 else
-            colour_green_light(x) if x != '-' and int(x) <= 13 else
+            colour_green_dark(x) if x != '-' and int(x) <= 6 else
+            colour_green_light(x) if x != '-' and int(x) <= 9 else
             colour_red_light(x) if x != '-' else
             np.nan
             for x in df_1_a_25[column_rank]
@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
         df_1_a_50[column_rank] = [
             colour_green_dark(x) if x != '-' and int(x) <= 13 else
-            colour_green_light(x) if x != '-' and int(x) <= 25 else
+            colour_green_light(x) if x != '-' and int(x) <= 19 else
             colour_red_light(x) if x != '-' else
             np.nan
             for x in df_1_a_50[column_rank]
