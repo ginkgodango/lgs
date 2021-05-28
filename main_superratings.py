@@ -24,7 +24,7 @@ def colour_red_light(x):
 
 if __name__ == '__main__':
 
-    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2021/03/SuperRatings FCRS March 2021.xlsx'
+    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2021/04/SuperRatings FCRS April 2021.xlsx'
 
     lgs_fund_list = [
         'Local Government Super Accum - High Growth',
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     for column_rank in column_rank_list:
         df_1_a_25[column_rank] = [
             colour_green_dark(x) if x != '-' and int(x) <= 6 else
-            colour_green_light(x) if x != '-' and int(x) <= 9 else
+            colour_green_light(x) if x != '-' and int(x) <= 13 else
             colour_red_light(x) if x != '-' else
             np.nan
             for x in df_1_a_25[column_rank]
@@ -166,7 +166,7 @@ if __name__ == '__main__':
 
         df_1_a_50[column_rank] = [
             colour_green_dark(x) if x != '-' and int(x) <= 13 else
-            colour_green_light(x) if x != '-' and int(x) <= 19 else
+            colour_green_light(x) if x != '-' and int(x) <= 25 else
             colour_red_light(x) if x != '-' else
             np.nan
             for x in df_1_a_50[column_rank]
