@@ -44,7 +44,7 @@ if __name__ == '__main__':
         'Active Super MySuper - Balanced Growth'
     ]
 
-    remove_list = ['Top Quartile', 'Median', 'Bottom Quartile', 'Not for Profit Fund Median', 'Master Trust Median'] + list(set(df_0_a['SR Index']))
+    remove_list = ['Top Quartile', 'Median', 'Bottom Quartile', 'Not for Profit Fund Median', 'Master Trust Median', 'Number of Investment Options Ranked'] + list(set(df_0_a['SR Index']))
 
     df_0_b = df_0_a[~df_0_a['Option Name'].isin(remove_list)].reset_index(drop=True)
 
