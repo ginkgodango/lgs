@@ -24,7 +24,7 @@ def colour_red_light(x):
 
 if __name__ == '__main__':
 
-    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2021/03/SuperRatings FCRS March 2021.xlsx'
+    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2021/04/SR Super Volatility and Risk-Adjusted Return Survey - April 2021.xlsx'
 
     lgs_fund_list = [
         'Local Government Super Accum - High Growth',
@@ -93,34 +93,25 @@ if __name__ == '__main__':
         'SR Index': 'SR Index',
         'Size $Mill': '$Mill',
         'Size Rank': 'Size Rank',
-        'Monthly Return %': '1 Month %',
-        'Monthly Return Rank': '1 Month Rank',
-        'Quarterly Return %': '3 Month %',
-        'Quarterly Return Rank': '3 Month Rank',
-        'FYTD %': 'FYTD %',
-        'FYTD Rank': 'FYTD Rank',
-        'Rolling 1 Year %': '1 Year %',
-        'Rolling 1 Year Rank': '1 Year Rank',
-        'Rolling 3 Year %': '3 Year %',
-        'Rolling 3 Year Rank': '3 Year Rank',
-        'Rolling 5 Year %': '5 Year %',
-        'Rolling 5 Year Rank': '5 Year Rank',
-        'Rolling 7 Year %': '7 Year %',
-        'Rolling 7 Year Rank': '7 Year Rank',
-        'Rolling 10 Year %': '10 Year %',
-        'Rolling 10 Year Rank': '10 Year Rank',
+        'Sharpe Ratio 1 Year %': '1 Year %',
+        'Sharpe Ratio 1 Year Rank': '1 Year Rank',
+        'Sharpe Ratio 3 Year %': '3 Year %',
+        'Sharpe Ratio 3 Year Rank': '3 Year Rank',
+        'Sharpe Ratio 5 Year %': '5 Year %',
+        'Sharpe Ratio 5 Year Rank': '5 Year Rank',
+        'Sharpe Ratio 7 Year %': '7 Year %',
+        'Sharpe Ratio 7 Year Rank' : '7 Year Rank',
+        'Sharpe Ratio 10 Year %': '10 Year %',
+        'Sharpe Ratio 10 Year Rank': '10 Year Rank'
     }
 
     column_rank_list = [
-    'Size Rank',
-    'Monthly Return Rank',
-    'Quarterly Return Rank',
-    'FYTD Rank',
-    'Rolling 1 Year Rank',
-    'Rolling 3 Year Rank',
-    'Rolling 5 Year Rank',
-    'Rolling 7 Year Rank',
-    'Rolling 10 Year Rank',
+        'Size Rank',
+        'Sharpe Ratio 1 Year Rank',
+        'Sharpe Ratio 3 Year Rank',
+        'Sharpe Ratio 5 Year Rank',
+        'Sharpe Ratio 7 Year Rank',
+        'Sharpe Ratio 10 Year Rank',
     ]
 
     short_name_dict = {
@@ -146,6 +137,8 @@ if __name__ == '__main__':
 
     df_1 = df_0[df_0['SR Index'].isin(sr_index_list)].reset_index(drop=True)
 
+    # df_2 = df_1[df_1['Fund'].isin(comparison_list)].reset_index(drop=True)
+
     df_1_a = df_1[df_1['Option Name'].isin(lgs_fund_list)]
     df_1_b = df_1[~df_1['Option Name'].isin(lgs_fund_list)]
 
@@ -158,7 +151,7 @@ if __name__ == '__main__':
     for column_rank in column_rank_list:
         df_1_a_25[column_rank] = [
             colour_green_dark(x) if x != '-' and int(x) <= 6 else
-            colour_green_light(x) if x != '-' and int(x) <= 9 else
+            colour_green_light(x) if x != '-' and int(x) <= 13 else
             colour_red_light(x) if x != '-' else
             np.nan
             for x in df_1_a_25[column_rank]
@@ -166,7 +159,7 @@ if __name__ == '__main__':
 
         df_1_a_50[column_rank] = [
             colour_green_dark(x) if x != '-' and int(x) <= 13 else
-            colour_green_light(x) if x != '-' and int(x) <= 19 else
+            colour_green_light(x) if x != '-' and int(x) <= 25 else
             colour_red_light(x) if x != '-' else
             np.nan
             for x in df_1_a_50[column_rank]
@@ -178,7 +171,6 @@ if __name__ == '__main__':
 
     df_1 = pd.concat([df_1_a_colour, df_1_b]).sort_values(['index']).drop(columns=['index'], axis=1)
 
-    # df_2 = df_1[df_1['Fund'].isin(comparison_list)].reset_index(drop=True)
 
     df_2 = df_1[df_1['Option Name'].isin(comparison_list1)].reset_index(drop=True)
 
@@ -197,8 +189,6 @@ if __name__ == '__main__':
         df_temp1 = df_temp0[['Fund']]
         df_temp2 = df_temp0[['$Mill', 'Size Rank']]
         df_temp3 = df_temp0[[
-            'FYTD %',
-            'FYTD Rank',
             '1 Year %',
             '1 Year Rank',
             '3 Year %',
@@ -213,7 +203,7 @@ if __name__ == '__main__':
 
         columns_temp_multilevel1 = pd.MultiIndex.from_product([[''], ['Fund']])
         columns_temp_multilevel2 = pd.MultiIndex.from_product([['Market Value'], ['$Mills', 'Rank']])
-        columns_temp_multilevel3 = pd.MultiIndex.from_product([['FYTD', '1 Year', '3 Year', '5 Year', '7 Year', '10 Year'], ['Return', 'Rank']])
+        columns_temp_multilevel3 = pd.MultiIndex.from_product([['1 Year', '3 Year', '5 Year', '7 Year', '10 Year'], ['SR', 'Rank']])
 
         df_temp1.columns = columns_temp_multilevel1
         df_temp2.columns = columns_temp_multilevel2
@@ -221,12 +211,6 @@ if __name__ == '__main__':
 
         df_temp4 = pd.concat([df_temp1, df_temp3], axis=1)
 
-        with open('C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/reports/superratings/returns/' + sr_index + '.tex', 'w') as tf:
+        with open('C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/reports/superratings/risk/' + sr_index + '.tex', 'w') as tf:
 
             tf.write(df_temp4.to_latex(index=False, na_rep='', multicolumn_format='c', escape=False, float_format="{:0.2f}".format))
-
-
-        # df_temp5 = df_temp0[['Fund', '7 Year %']].set_index('Fund').sort_values('7 Year %')
-        # ax = df_temp5.plot.barh(color={"green"})
-        # ax.figsize=(16.8, 3.6)
-

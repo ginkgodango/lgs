@@ -5,28 +5,37 @@ from dateutil import parser
 
 # User variable set up.
 # Note: The script auto reads in all files in the file_path location. There is no need to specify filename.
-map_file_path = 'U:/Shared/Investment Operations/Projects/Investment Data Management/Go Live/Implementation/Athena JPM Data Validation testing/AutoVerifier/transactions/map/'
-jpm_file_path = 'U:/Shared/Investment Operations/Projects/Investment Data Management/Go Live/Implementation/Athena JPM Data Validation testing/AutoVerifier/transactions/jpm/'
-ics_file_path = 'U:/Shared/Investment Operations/Projects/Investment Data Management/Go Live/Implementation/Athena JPM Data Validation testing/AutoVerifier/transactions/ics/'
-out_file_path = 'U:/Shared/Investment Operations/Projects/Investment Data Management/Go Live/Implementation/Athena JPM Data Validation testing/AutoVerifier/transactions/out/'
-map_sheet_name = 'JPM_TLR'
-jpm_keys = ['Extract Date', 'Portfolio ID', 'Security Code', 'Trade Description', 'Transaction ID']
-ics_keys = ['BookingDate', 'PortfolioCode', 'SecurityCode', 'TypeCode', 'TransactionRef']
-tolerance_level = 0.01
+path = 'U:/Shared/Investment Operations/Projects/Investment Data Management/Go Live/Implementation/Athena Parallel Testing/LGS_P1_011_Daily Performance Report/daily_performance_report/'
+# path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/Email Messages/edm/daily_performance_report/'
+map_file_path = path + 'map/'
+jpm_file_path = path + 'jpm/'
+ics_file_path = path + 'ics/'
+out_file_path = path + 'out/'
+map_sheet_name = 'Sheet1'
+jpm_keys = ['Date', 'FUND']
+ics_keys = ['AsAtDate', 'HoldingCode']
+tolerance_level = 0.1
 # End user variable set up
 
 # Reads in JPM to ICS map excel file in the map_file_path folder location and uses the sheet name map_sheet_name
 map_file_names = sorted(os.listdir(map_file_path))
-df_map = pd.read_excel(pd.ExcelFile(map_file_path + map_file_names[0]), sheet_name=map_sheet_name, skiprows=[0, 1, 2])
-df_map_active_columns = df_map[~df_map['Source Column'].isin([np.nan]) & ~df_map['Destination Column'].isin([np.nan])][['Destination Column', 'Source Column']]
+df_map = pd.read_excel(pd.ExcelFile(map_file_path + map_file_names[0]), sheet_name=map_sheet_name, skiprows=[])
+# df_map_active_columns = df_map[~df_map['Source Column'].isin([np.nan]) & ~df_map['Destination Column'].isin([np.nan])][['Destination Column', 'Source Column']]
+df_map_active_columns = df_map.copy()
 
 # Reads in JPM files in the jpm_file_path folder location and then concatenates the JPM files into a single data frame.
 jpm_file_names = sorted(os.listdir(jpm_file_path))
 df_jpm = pd.concat([pd.read_csv(jpm_file_path + jpm_file_name) for jpm_file_name in jpm_file_names])
 
+# Converts JPM Market Value into millions
+df_jpm['MarketValue'] = [round(x/1000000, 2) for x in df_jpm['MarketValue']]
+df_jpm[['MTD', 'BenchmarkReturn', 'Active']] = df_jpm[['MTD', 'BenchmarkReturn', 'Active']]*100
+
 # Reads in ICS files in the ics_file_path folder location and then concatenates the ICS files into a single data frame.
 ics_file_names = sorted(os.listdir(ics_file_path))
-df_ics = pd.concat([pd.read_excel(pd.ExcelFile(ics_file_path + ics_file_name)) for ics_file_name in ics_file_names])
+df_ics = pd.concat([pd.read_csv(ics_file_path + ics_file_name) for ics_file_name in ics_file_names])
+
+df_ics[['MTD', 'BenchmarkReturn', 'Active']] = df_ics[['MTD', 'BenchmarkReturn', 'Active']]*100
 
 # START ICS CALCULATED VALUES
 if map_sheet_name in ['JPM_HLD_IA']:
@@ -104,19 +113,23 @@ df_jpm_1 = pd.melt(df_jpm.pivot_table(df_jpm, index=jpm_keys).reset_index(drop=F
 df_ics_1 = pd.melt(df_ics.pivot_table(df_ics, index=ics_keys).reset_index(drop=False), id_vars=ics_keys)
 
 # Keeps on columns used in 'Source Column' and 'Destination Column'.
-df_jpm_2 = df_jpm_1[df_jpm_1['variable'].isin(df_map_active_columns['Source Column'])]
-df_ics_2 = df_ics_1[df_ics_1['variable'].isin(df_map_active_columns['Destination Column'])]
+# df_jpm_2 = df_jpm_1[df_jpm_1['variable'].isin(df_map_active_columns['Source Column'])]
+# df_ics_2 = df_ics_1[df_ics_1['variable'].isin(df_map_active_columns['Destination Column'])]
+
+df_jpm_2 = df_jpm_1.copy()
+df_ics_2 = df_ics_1.copy()
 
 # Converts dates to same format
 df_jpm_2[jpm_keys[0]] = [parser.parse(str(x)).date() for x in df_jpm_2[jpm_keys[0]]]
 df_ics_2[ics_keys[0]] = [parser.parse(str(x)).date() for x in df_ics_2[ics_keys[0]]]
 
+
 # Merges keys onto df_jpm
 df_jpm_map = pd.merge(
     left=df_jpm_2,
     right=df_map_active_columns,
-    left_on='variable',
-    right_on='Source Column',
+    left_on='FUND',
+    right_on='FUND',
     how='inner'
 )
 
@@ -124,8 +137,8 @@ df_jpm_map = pd.merge(
 df_jpm_map_ics = pd.merge(
     left=df_jpm_map,
     right=df_ics_2,
-    left_on=jpm_keys + ['Destination Column'],
-    right_on=ics_keys + ['variable'],
+    left_on=['Date', 'HoldingCode', 'variable'],
+    right_on=['AsAtDate', 'HoldingCode', 'variable'],
     how='outer',
     indicator=True
 )
