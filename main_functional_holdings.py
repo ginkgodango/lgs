@@ -287,12 +287,12 @@ if __name__ == '__main__':
 
     # Get market value from JPM Investment Accounting System.
     date = dt.datetime(2021, 4, 30)
-    fsi_mv = 230300923.19
+    fsi_mv = 236288351.66
     # aqr_mv = 182206982.50
-    mac_mv = 177848020.47
-    wel_mv = 171870966.72
-    dsri_mv = 14007108.15
-    isri_mv = 24841225.60
+    mac_mv = 179047590.16
+    wel_mv = 175104813.71
+    dsri_mv = 14001821.13
+    isri_mv = 24873652.98
 
     # Reads in each file as a dataframe and cleans it.
     df_jpm_dvr = process_jpm_dvr(df=read_jpm_dvr(jpm_dvr_path))
