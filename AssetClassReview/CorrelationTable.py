@@ -1,3 +1,4 @@
+import datetime as dt
 import numpy as np
 import pandas as pd
 from functools import reduce
@@ -138,5 +139,6 @@ if __name__ == "__main__":
 
     df_AR = df_combined_1[df_combined_1['LGS Asset Class Level 1'].isin(['AR'])]
 
-    df_AR_corr = df_AR[['LGS Name', 'Date', 'R_a_m_p']]
+    df_AR_corr = df_AR[['LGS Name', 'Date', 'R_a_m_p']].pivot_table(index='Date', columns='LGS Name', values='R_a_m_p')
 
+    corr_matrix_36_month = df_AR_corr[-36:].corr()

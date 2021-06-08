@@ -12,8 +12,8 @@ conn = pyodbc.connect(
 )
 
 cursor = conn.cursor()
-# for table_name in cursor.tables(tableType='TABLE'):
-#     print(table_name)
+for table_name in cursor.tables(tableType='TABLE'):
+    print(table_name)
 
-# for table_name in cursor.tables(tableType='View'):
-#     print(table_name)
+for table_name in cursor.tables(tableType='View'):
+    print(table_name)
