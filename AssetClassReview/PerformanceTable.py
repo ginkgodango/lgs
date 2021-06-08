@@ -6,6 +6,17 @@ import seaborn as sns
 from functools import reduce
 
 
+def calculate_returns(df, columnName, time, groupByList):
+
+    if time <= 12:
+
+        return df.groupby(groupByList)[columnName].rolling(time).apply(lambda r: np.prod(1 + r) - 1, raw=False).reset_index(drop=False)[columnName]
+
+    elif time > 12:
+
+        return df.groupby(groupByList)[columnName].rolling(time).apply(lambda r: (np.prod(1 + r) ** (12 / time)) - 1, raw=False).reset_index(drop=False)[columnName]
+
+
 def jpm_wide_to_long(df, set_date_name, set_index_name, set_values_name):
     """
 
@@ -155,24 +166,4 @@ if __name__ == "__main__":
 
     df_jpm = reduce(lambda x, y: pd.merge(left=x, right=y, on=['JPM Account Id', 'Date'], how='inner'), df_jpms)
 
-    df_jpm['(R_a_m_p - R_a_m_b)'] = df_jpm['R_a_m_p'] - df_jpm['R_a_m_b']
-
-    df_combined_1 = pd.merge(left=df_lgs_dictionary, right=df_jpm, on=['JPM Account Id'], how='inner').sort_values(['LGS Asset Class Level 1', 'JPM Account Id', 'Date'])
-
-    df_combined_2 = df_combined_1[df_combined_1['LGS Open'].isin([1]) & df_combined_1['LGS Liquidity'].isin([0])]
-
-    groupby_dict = dict(list(df_combined_2.groupby(['LGS Asset Class Level 1'])))
-
-    for asset_class, df_temp in groupby_dict.items():
-
-        df_temp_1 = df_temp[['LGS Name', 'Date', 'R_a_m_p']].pivot_table(index='Date', columns='LGS Name', values='R_a_m_p')
-
-        plot_1 = asset_class_heatmap(df_temp_1, 36)
-
-        plot_1.figure.savefig("C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/correlations/returns/" + str(asset_class) + '.png', dpi=300)
-
-        df_temp_2 = df_temp[['LGS Name', 'Date', '(R_a_m_p - R_a_m_b)']].pivot_table(index='Date', columns='LGS Name', values='(R_a_m_p - R_a_m_b)')
-
-        plot_2 = asset_class_heatmap(df_temp_2, 36)
-
-        plot_2.figure.savefig("C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/correlations/excess_returns/" + str(asset_class) + '.png', dpi=300)
+    
