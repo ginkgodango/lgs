@@ -24,7 +24,7 @@ def colour_red_light(x):
 
 if __name__ == '__main__':
 
-    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2021/04/SuperRatings FCRS April 2021.xlsx'
+    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2021/04/SuperRatings FCRS April 2021_v2.xlsx'
 
     lgs_fund_list = [
         'Local Government Super Accum - High Growth',
@@ -32,6 +32,14 @@ if __name__ == '__main__':
         'Local Government Super Accum - Balanced',
         'Local Government Super Accum - Conservative',
         'Local Government Super Accum - Managed Cash'
+    ]
+
+    as_fund_list = [
+        'Active Super - High Growth',
+        'Active Super - Balanced Growth',
+        'Active Super - Balanced',
+        'Active Super - Conservative',
+        'Active Super - Managed Cash'
     ]
 
     sr_index_list = [
@@ -64,26 +72,31 @@ if __name__ == '__main__':
     comparison_list1 = [
         'LGIAsuper Accum - Aggressive',
         'Local Government Super Accum - High Growth',
+        'Active Super - High Growth',
         'Vision SS - Growth',
         'Aware Super (previously First State Super) - Growth',
         'Aware Super - Growth',
         'LGIAsuper Accum - Diversified Growth',
         'Local Government Super Accum - Balanced Growth',
+        'Active Super - Balanced Growth',
         'Vision SS - Balanced Growth',
         'Aware Super (previously First State Super) - Balanced Growth',
         'Aware Super - Balanced Growth',
         'LGIAsuper Accum - Balanced',
         'Local Government Super Accum - Balanced',
+        'Active Super - Balanced',
         'Vision SS - Balanced',
         'Aware Super (previously First State Super) - Conservative Growth',
         'Aware Super - Conservative Growth',
         'LGIAsuper Accum - Stable',
         'Local Government Super Accum - Conservative',
+        'Active Super - Conservative',
         'Vision SS - Conservative',
         'Aware Super (previously First State Super) Tailored Super Plan - Cash Fund',
         'Aware Super Tailored Super Plan - Cash Fund',
         'LGIAsuper Accum - Cash',
         'Local Government Super Accum - Managed Cash',
+        'Active Super - Managed Cash',
         'Vision SS - Cash',
         'Not for Profit Fund Median',
     ]
@@ -126,8 +139,9 @@ if __name__ == '__main__':
     short_name_dict = {
         'Aware Super': 'Aware',
         'Aware Super Tailored Super Plan': 'Aware',
-        'LGIAsuper': 'LGIAsuper',
+        'LGIAsuper': 'LGIA',
         'Local Government Super': 'LGS',
+        'Active Super': 'Active Super',
         'Vision SS': 'Vision',
         'Not for Profit Fund Median': 'NFP Median'
     }

@@ -6,15 +6,17 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
 # START USER INPUT DATA
-jpm_main_returns_filepath = 'U:/Shared/Investment Operations/Performance/IC Paper Performance Review/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Main Returns.xlsx'
-jpm_alts_returns_filepath = 'U:/Shared/Investment Operations/Performance/IC Paper Performance Review/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Alts Returns.xlsx'
-jpm_main_benchmarks_filepath = 'U:/Shared/Investment Operations/Performance/IC Paper Performance Review/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Main Benchmarks.xlsx'
-jpm_alts_benchmarks_filepath = 'U:/Shared/Investment Operations/Performance/IC Paper Performance Review/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Alts Benchmarks.xlsx'
-jpm_main_market_values_filepath = 'U:/Shared/Investment Operations/Performance/IC Paper Performance Review/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Main Market Values.xlsx'
-jpm_alts_market_values_filepath = 'U:/Shared/Investment Operations/Performance/IC Paper Performance Review/#Data/input/jpm/performance/2020/08/Historical Time Series - Monthly - Alts Market Values.xlsx'
-lgs_dictionary_filepath = 'U:/Shared/Investment Operations/Performance/IC Paper Performance Review/#Data/input/lgs/dictionary/2020/08/New Dictionary_v11.xlsx'
-FYTD = 2
-report_date = dt.datetime(2020, 8, 31)
+folder_path = "C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/performance/2021/04/"
+output_path = "C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/investment/"
+lgs_dictionary_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/lgs/dictionary/2021/03/New Dictionary_v21.xlsx'
+jpm_main_mv_path = folder_path + 'Historical Time Series - Monthly - Main Market Values.xlsx'
+jpm_alts_mv_path = folder_path + 'Historical Time Series - Monthly - Alts Market Values.xlsx'
+jpm_main_returns_path = folder_path + 'Historical Time Series - Monthly - Main Returns.xlsx'
+jpm_alts_returns_path = folder_path + 'Historical Time Series - Monthly - Alts Returns.xlsx'
+jpm_main_benchmarks_path = folder_path + 'Historical Time Series - Monthly - Main Benchmarks.xlsx'
+jpm_alts_benchmarks_path = folder_path + 'Historical Time Series - Monthly - Alts Benchmarks.xlsx'
+FYTD = 10
+report_date = dt.datetime(2021, 4, 30)
 # END USER INPUT DATA
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
@@ -51,7 +53,7 @@ def ts_to_panel(df_ts, date, set_index_column_name, set_value_column_name):
 
 # Reads in the jpm main returns historical time series
 df_jpm_main_returns = pd.read_excel(
-    pd.ExcelFile(jpm_main_returns_filepath),
+    pd.ExcelFile(jpm_main_returns_path),
     sheet_name='Sheet1',
     skiprows=use_accountid,
     skipfooter=footnote_rows,
@@ -68,7 +70,7 @@ df_jpm_main_returns = ts_to_panel(
 
 # Reads in the jpm alts returns historical time series
 df_jpm_alts_returns = pd.read_excel(
-    pd.ExcelFile(jpm_alts_returns_filepath),
+    pd.ExcelFile(jpm_alts_returns_path),
     sheet_name='Sheet1',
     skiprows=use_accountid,
     skipfooter=footnote_rows,
@@ -88,7 +90,7 @@ df_jpm_returns = pd.concat([df_jpm_alts_returns, df_jpm_main_returns], axis=0).r
 
 # Reads in the jpm main benchmarks historical time series
 df_jpm_main_benchmarks = pd.read_excel(
-    pd.ExcelFile(jpm_main_benchmarks_filepath),
+    pd.ExcelFile(jpm_main_benchmarks_path),
     sheet_name='Sheet1',
     skiprows=use_accountid,
     skipfooter=footnote_rows,
@@ -105,7 +107,7 @@ df_jpm_main_benchmarks = ts_to_panel(
 
 # Reads in the jpm alts benchmarks historical time series
 df_jpm_alts_benchmarks = pd.read_excel(
-    pd.ExcelFile(jpm_alts_benchmarks_filepath),
+    pd.ExcelFile(jpm_alts_benchmarks_path),
     sheet_name='Sheet1',
     skiprows=use_accountid,
     skipfooter=footnote_rows,
@@ -125,7 +127,7 @@ df_jpm_benchmarks = pd.concat([df_jpm_alts_benchmarks, df_jpm_main_benchmarks], 
 
 # Imports the JPM main market values time-series.
 df_jpm_main_mv = pd.read_excel(
-    pd.ExcelFile(jpm_main_market_values_filepath),
+    pd.ExcelFile(jpm_main_mv_path),
     sheet_name='Sheet1',
     skiprows=use_accountid,
     skipfooter=footnote_rows,
@@ -142,7 +144,7 @@ df_jpm_main_mv = ts_to_panel(
 
 # Imports the JPM alternatives market values time-series.
 df_jpm_alts_mv = pd.read_excel(
-    pd.ExcelFile(jpm_alts_market_values_filepath),
+    pd.ExcelFile(jpm_alts_mv_path),
     sheet_name='Sheet1',
     skiprows=use_accountid,
     skipfooter=footnote_rows,
@@ -230,7 +232,7 @@ df_jpm = pd.merge(
 
 # Reads LGS's dictionary
 df_lgs = pd.read_excel(
-    pd.ExcelFile(lgs_dictionary_filepath),
+    pd.ExcelFile(lgs_dictionary_path),
     sheet_name='Sheet1',
     header=0
 )
@@ -443,7 +445,7 @@ df_jpm_combined = df_jpm_combined.sort_values(['LGS Asset Class Order', 'LGS Man
 
 
 # CREATES LATEX TABLES AND CHARTS
-writer = pd.ExcelWriter('U:/CIO/#Data/output/investment/checker/investment_container.xlsx', engine='xlsxwriter')
+writer = pd.ExcelWriter(output_path + 'investment_container.xlsx', engine='xlsxwriter')
 
 # Selects rows as at report date and filters liquidity accounts
 df_jpm_table = df_jpm_combined[(df_jpm_combined['Date'] == report_date) & (df_jpm_combined['LGS Liquidity'] == 0)].reset_index(drop=True)
@@ -504,7 +506,7 @@ df_jpm_table_performance_sector = df_jpm_table_performance[df_jpm_table_performa
 df_jpm_table_performance_sector = df_jpm_table_performance_sector.drop(('', 'LGS Sector Aggregate'), axis=1)
 df_jpm_table_performance_sector = df_jpm_table_performance_sector.drop(('', 'LGS Asset Class Level 2'), axis=1)
 
-with open('U:/CIO/#Data/output/investment/returns/Sector.tex', 'w') as tf:
+with open(output_path + 'returns/Sector.tex', 'w') as tf:
     latex_string_temp = df_jpm_table_performance_sector.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRRRRRRR')
     tf.write(latex_string_temp)
 
@@ -519,7 +521,7 @@ for asset_class, df_temp in asset_class_to_performance_dict.items():
     if asset_class in ['PE', 'OA', 'DA']:
         df_temp = df_temp[df_temp[('', 'Manager')].isin(['Private Equity', 'Opportunistic Alternatives', 'Attunga', 'Defensive Alternatives'])]
 
-    with open('U:/CIO/#Data/output/investment/returns/' + str(asset_class) + '.tex', 'w') as tf:
+    with open(output_path + 'returns/' + str(asset_class) + '.tex', 'w') as tf:
         latex_string_temp = (
                 df_temp
                 .to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRRRRRRR')
@@ -535,7 +537,7 @@ df_jpm_table_risk = df_jpm_table[columns_lead + columns_risk + ['LGS Sector Aggr
 df_jpm_table_risk_sector = df_jpm_table_risk[df_jpm_table_risk['LGS Sector Aggregate'].isin([1])].reset_index(drop=True)
 df_jpm_table_risk_sector = df_jpm_table_risk_sector.drop(['LGS Sector Aggregate', 'LGS Asset Class Level 2'], axis=1)
 
-with open('U:/CIO/#Data/output/investment/risk/Sector.tex', 'w') as tf:
+with open(output_path + 'risk/Sector.tex', 'w') as tf:
     latex_string_temp = df_jpm_table_risk_sector.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRRRRRRR')
     tf.write(latex_string_temp)
 
@@ -549,7 +551,7 @@ for asset_class, df_temp in asset_class_to_risk_dict.items():
     if asset_class in ['AE', 'IE']:
         df_temp = df_temp[~df_temp['Manager'].isin(['Domestic SRI', 'International SRI'])]
 
-    with open('U:/CIO/#Data/output/investment/risk/' + str(asset_class) + '.tex', 'w') as tf:
+    with open(output_path + 'risk/' + str(asset_class) + '.tex', 'w') as tf:
         latex_string_temp = (
                 df_temp
                 .to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRR')
@@ -573,8 +575,8 @@ df_jpm_table_active_contribution_bottom = df_jpm_table_active_contribution[-10:]
 df_jpm_table_active_contribution_bottom = df_jpm_table_active_contribution_bottom.rename(columns={'12_Active_Contribution': 'Detraction'})
 
 df_jpm_table_active_contribution_combined = pd.concat([df_jpm_table_active_contribution_top, df_jpm_table_active_contribution_bottom], axis=1, sort=False)
-df_jpm_table_active_contribution_combined.to_csv('U:/CIO/#Data/output/investment/contributors/contributors.csv', index=False)
-with open('U:/CIO/#Data/output/investment/contributors/contributors.tex', 'w') as tf:
+df_jpm_table_active_contribution_combined.to_csv(output_path + 'contributors/contributors.csv', index=False)
+with open(output_path + 'contributors/contributors.tex', 'w') as tf:
     tf.write(df_jpm_table_active_contribution_combined.to_latex(index=False, na_rep='', column_format='lRlR'))
 
 df_jpm_table_active_contribution_combined.to_excel(writer, sheet_name='active contribution')
@@ -660,7 +662,7 @@ for asset_class in asset_classes:
 
     fig.tight_layout()
     fig.subplots_adjust(top=0.9)
-    fig.savefig('U:/CIO/#Data/output/investment/charts/' + str(asset_class) + '.png', dpi=300)
+    fig.savefig(output_path + 'charts/' + str(asset_class) + '.png', dpi=300)
 
 
 # Creates Manager Allocations table
@@ -678,7 +680,7 @@ df_jpm_manager_allocations1 = df_jpm_manager_allocations[:25].reset_index(drop=T
 df_jpm_manager_allocations2 = df_jpm_manager_allocations[25:].reset_index(drop=True)
 df_jpm_manager_allocations3 = pd.concat([df_jpm_manager_allocations1, df_jpm_manager_allocations2], axis=1)
 
-df_jpm_manager_allocations3.to_latex('U:/CIO/#Data/output/investment/manager/manager_allocations.tex', index=False, na_rep='', column_format='lRRRlRRR')
+df_jpm_manager_allocations3.to_latex(output_path + 'manager/manager_allocations.tex', index=False, na_rep='', column_format='lRRRlRRR')
 df_jpm_manager_allocations3.to_excel(writer, sheet_name='manager_allocations', index=False)
 
 # Creates sustainability esg table
@@ -790,12 +792,12 @@ df_jpm_table_esg = pd.concat(
 )
 
 # Outputs the esg table
-with open('U:/CIO/#Data/output/investment/sustainability/sustainability.tex', 'w') as tf:
+with open(output_path + 'sustainability/sustainability.tex', 'w') as tf:
     tf.write(df_jpm_table_esg.to_latex(index=False, na_rep='', multicolumn_format='c', column_format='lRRRRRRRRRRRR'))
 
 df_jpm_table_esg.to_excel(writer, sheet_name='sustainability')
 writer.save()
 
 # Outputs the tables for checking
-df_jpm_table.to_csv('U:/CIO/#Data/output/investment/checker/lgs_table.csv', index=False)
-df_jpm_combined.to_csv('U:/CIO/#Data/output/investment/checker/lgs_combined.csv', index=False)
+df_jpm_table.to_csv(output_path + 'checker/lgs_table.csv', index=False)
+df_jpm_combined.to_csv(output_path + 'checker/lgs_combined.csv', index=False)

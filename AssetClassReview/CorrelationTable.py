@@ -6,6 +6,25 @@ import seaborn as sns
 from functools import reduce
 
 
+def asset_class_heatmap(df, period):
+
+    df_period = df[-period:]
+
+    mask = np.triu(df_period.corr())
+
+    plt.figure(figsize=(12.8, 12.8))
+
+    return sns.heatmap(
+        df_period.corr(),
+        annot=True,
+        mask=mask,
+        cmap='coolwarm',
+        square=True,
+        linewidths=3,
+        cbar_kws={"shrink": .5}
+    )
+
+
 def jpm_wide_to_long(df, set_date_name, set_index_name, set_values_name):
     """
 
@@ -30,25 +49,6 @@ def jpm_wide_to_long(df, set_date_name, set_index_name, set_values_name):
             value_name=set_values_name)
             .sort_values([set_index_name, set_date_name])
             .reset_index(drop=True)
-    )
-
-
-def asset_class_heatmap(df, period):
-
-    df_period = df[-period:]
-
-    mask = np.triu(df_period.corr())
-
-    plt.figure(figsize=(12.8, 12.8))
-
-    return sns.heatmap(
-        df_period.corr(),
-        annot=True,
-        mask=mask,
-        cmap='coolwarm',
-        square=True,
-        linewidths=3,
-        cbar_kws={"shrink": .5}
     )
 
 
