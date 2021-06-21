@@ -275,24 +275,24 @@ yahoo_columns = [
 if __name__ == '__main__':
 
     # Set file directories.
-    jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2021/04/Detailed Valuation Report - Equities.csv'
-    jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2021/04/Priced Positions - All.csv'
-    fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/04/fsi_holdings.xlsx'
+    jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2021/05/Detailed Valuation Report - Equities.csv'
+    jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2021/05/Priced Positions - All.csv'
+    fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/05/fsi_holdings.xlsx'
     # aqr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/09/aqr_holdings.xlsx'
-    mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/04/mac_holdings.xlsx'
-    wel_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/04/wel_holdings.xlsx'
+    mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/05/mac_holdings.xlsx'
+    wel_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/05/wel_holdings.xlsx'
     ric_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/lgs/isin_ric.csv'
     lgs_exclusions_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/documents/lgs/reports/sri/LGS Exclusions List May 2020 - Internal.xlsx'
     output_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/holdings/'
 
     # Get market value from JPM Investment Accounting System.
-    date = dt.datetime(2021, 4, 30)
-    fsi_mv = 236288351.66
+    date = dt.datetime(2021, 5, 31)
+    fsi_mv = 240650865.44
     # aqr_mv = 182206982.50
-    mac_mv = 179047590.16
-    wel_mv = 175104813.71
-    dsri_mv = 14001821.13
-    isri_mv = 24873652.98
+    mac_mv = 180371777.97
+    wel_mv = 180850804.58
+    dsri_mv = 14036090.76
+    isri_mv = 24914205.32
 
     # Reads in each file as a dataframe and cleans it.
     df_jpm_dvr = process_jpm_dvr(df=read_jpm_dvr(jpm_dvr_path))

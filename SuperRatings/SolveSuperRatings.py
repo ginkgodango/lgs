@@ -108,3 +108,21 @@ if __name__ == '__main__':
         columns={'Rolling 2 Year %': 'Return', 'Rolling 2 Year Rank': 'Rank'})
 
     df_7 = pd.concat([df_6_HG, df_6_BG, df_6_BA, df_6_CO, df_6_MC]).reset_index(drop=True)
+
+    horizons = ['7 Year', '5 Year', '3 Year', '2 Year', '2 Year']
+
+    df_10 = df_7.copy()
+
+    df_10['Horizon'] = horizons
+
+    df_10 = df_10[['Option Name', 'Horizon', 'Return', 'Rank']]
+
+    option_names = [x.split("-")[1] for x in df_10['Option Name']]
+
+    df_10['Option Name'] = option_names
+
+    with open(
+            'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/reports/superratings/summary/summary.tex',
+            'w') as tf:
+        tf.write(
+            df_10.to_latex(index=False, na_rep='', multicolumn_format='c', escape=False))
