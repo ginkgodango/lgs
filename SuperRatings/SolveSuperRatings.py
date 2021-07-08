@@ -14,11 +14,11 @@ if __name__ == '__main__':
 
     folderPath = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/All/'
 
-    df_0 = pd.read_csv(folderPath + 'SuperRatings-FCRS-202104.csv', parse_dates=['Date'])
+    df_0 = pd.read_csv(folderPath + 'SuperRatings-FCRS-202105.csv', parse_dates=['Date'])
 
-    df_1 = pd.read_csv(folderPath + 'SuperRatings-FCRS-202104.csv', parse_dates=['Date'])[['Option Name', 'Product Type', 'Date', 'SR Index', 'Rolling 3 Year %']]
+    df_1 = pd.read_csv(folderPath + 'SuperRatings-FCRS-202105.csv', parse_dates=['Date'])[['Option Name', 'Product Type', 'Date', 'SR Index', 'Rolling 3 Year %']]
 
-    df_2 = pd.read_csv(folderPath + 'SuperRatings-FCRS-201904.csv', parse_dates=['Date'])[['Option Name', 'Product Type', 'Date', 'SR Index', 'Rolling 1 Year %']]
+    df_2 = pd.read_csv(folderPath + 'SuperRatings-FCRS-201905.csv', parse_dates=['Date'])[['Option Name', 'Product Type', 'Date', 'SR Index', 'Rolling 1 Year %']]
 
     df_1['R_0_3'] = [string_to_float(str(x)) / 100 for x in df_1['Rolling 3 Year %']]
 

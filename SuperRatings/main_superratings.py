@@ -24,7 +24,7 @@ def colour_red_light(x):
 
 if __name__ == '__main__':
 
-    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2021/04/SuperRatings FCRS April 2021_v2.xlsx'
+    file_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/superratings/2021/05/SuperRatings FCRS May 2021.xlsx'
 
     lgs_fund_list = [
         'Local Government Super Accum - High Growth',
@@ -160,8 +160,8 @@ if __name__ == '__main__':
 
     df_1 = df_0[df_0['SR Index'].isin(sr_index_list)].reset_index(drop=True)
 
-    df_1_a = df_1[df_1['Option Name'].isin(lgs_fund_list)]
-    df_1_b = df_1[~df_1['Option Name'].isin(lgs_fund_list)]
+    df_1_a = df_1[df_1['Option Name'].isin(as_fund_list)]
+    df_1_b = df_1[~df_1['Option Name'].isin(as_fund_list)]
 
     df_1_a = df_1_a.reset_index(drop=False)
     df_1_b = df_1_b.reset_index(drop=False)

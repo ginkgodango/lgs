@@ -275,8 +275,8 @@ yahoo_columns = [
 if __name__ == '__main__':
 
     # Set file directories.
-    jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2021/05/Detailed Valuation Report - Equities.csv'
-    jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2021/05/Priced Positions - All.csv'
+    jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2021/06/Detailed Valuation Report - Equities.csv'
+    jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2021/06/Priced Positions - All.csv'
     fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/05/fsi_holdings.xlsx'
     # aqr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/09/aqr_holdings.xlsx'
     mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/05/mac_holdings.xlsx'
@@ -286,7 +286,7 @@ if __name__ == '__main__':
     output_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/holdings/'
 
     # Get market value from JPM Investment Accounting System.
-    date = dt.datetime(2021, 5, 31)
+    date = dt.datetime(2021, 6, 30)
     fsi_mv = 240650865.44
     # aqr_mv = 182206982.50
     mac_mv = 180371777.97
