@@ -275,24 +275,24 @@ yahoo_columns = [
 if __name__ == '__main__':
 
     # Set file directories.
-    jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2021/06/Detailed Valuation Report - Equities.csv'
+    jpm_dvr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/investment_accounting/2021/06/Detailed Valuation Report - Equities_v3.csv'
     jpm_pp_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/custody/2021/06/Priced Positions - All.csv'
-    fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/05/fsi_holdings.xlsx'
+    fsi_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/06/fsi_holdings.xlsx'
     # aqr_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2020/09/aqr_holdings.xlsx'
-    mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/05/mac_holdings.xlsx'
-    wel_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/05/wel_holdings.xlsx'
+    mac_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/06/mac_holdings.xlsx'
+    wel_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/managers/2021/06/wel_holdings.xlsx'
     ric_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/lgs/isin_ric.csv'
     lgs_exclusions_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/documents/lgs/reports/sri/LGS Exclusions List May 2020 - Internal.xlsx'
     output_path = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/output/lgs/holdings/'
 
     # Get market value from JPM Investment Accounting System.
     date = dt.datetime(2021, 6, 30)
-    fsi_mv = 240650865.44
+    fsi_mv = 245809896.02
     # aqr_mv = 182206982.50
-    mac_mv = 180371777.97
-    wel_mv = 180850804.58
-    dsri_mv = 14036090.76
-    isri_mv = 24914205.32
+    mac_mv = 185163825.36
+    wel_mv = 185951379.93
+    dsri_mv = 14047536.03
+    isri_mv = 24948313.94
 
     # Reads in each file as a dataframe and cleans it.
     df_jpm_dvr = process_jpm_dvr(df=read_jpm_dvr(jpm_dvr_path))

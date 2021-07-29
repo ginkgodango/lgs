@@ -53,8 +53,8 @@ def jpm_wide_to_long(df, set_date_name, set_index_name, set_values_name):
 
 
 if __name__ == "__main__":
-    folder_path = "C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/performance/2021/04/"
-    lgs_dictionary_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/lgs/dictionary/2021/03/New Dictionary_v21.xlsx'
+    folder_path = "C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/performance/2021/05/"
+    lgs_dictionary_path = 'C:/Users/mnguyen/LGSS/Investments Team - SandPits - SandPits/data/archive/input/dictionary/2021/05/New New Dictionary_v21.xlsx'
     jpm_main_mv_path = folder_path + 'Historical Time Series - Monthly - Main Market Values.xlsx'
     jpm_alts_mv_path = folder_path + 'Historical Time Series - Monthly - Alts Market Values.xlsx'
     jpm_main_returns_path = folder_path + 'Historical Time Series - Monthly - Main Returns.xlsx'

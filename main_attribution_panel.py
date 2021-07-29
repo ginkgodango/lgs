@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 # lgs_dictionary_filepath = 'U:/CIO/#Data/input/lgs/dictionary/2020/12/New Dictionary_v17.xlsx'
 # lgs_allocations_filepath ='U:/CIO/#Data/input/lgs/allocations/asset_allocations_2021-02-28.csv'
 
-jpm_input_directory = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/performance/2021/05/'
+jpm_input_directory = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/input/vendors/jpm/markets/performance/2021/06/'
 jpm_main_returns_filepath = jpm_input_directory + 'Historical Time Series - Monthly - Main Returns.xlsx'
 jpm_alts_returns_filepath = jpm_input_directory + 'Historical Time Series - Monthly - Alts Returns_v2.xlsx'
 jpm_main_benchmarks_filepath = jpm_input_directory + 'Historical Time Series - Monthly - Main Benchmarks.xlsx'
@@ -27,14 +27,14 @@ jpm_alts_mv_filepath = jpm_input_directory + 'Historical Time Series - Monthly -
 jpm_strategy_returns_benchmarks_mv_filepath = jpm_input_directory + 'Historical Time Series - Monthly - Strategy Market Values Returns and Benchmarks.xlsx'
 
 lgs_input_directory = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/archive/input/'
-lgs_returns_benchmarks_filepath = lgs_input_directory + 'returns/returns_2021-05-31.csv'
+lgs_returns_benchmarks_filepath = lgs_input_directory + 'returns/returns_2021-06-30.csv'
 lgs_dictionary_filepath = lgs_input_directory + 'dictionary/2021/05/New New Dictionary_v21.xlsx'
 lgs_allocations_filepath = lgs_input_directory + 'allocations/new_asset_allocations_2021-05-31.csv'
 
 output_directory = 'C:/Users/Mnguyen/LGSS/Investments Team - SandPits - SandPits/data/archive/output/attribution/tables/'
 
-FYTD = 11
-report_date = dt.datetime(2021, 5, 31)
+FYTD = 12
+report_date = dt.datetime(2021, 6, 30)
 # END USER INPUT DATA
 
 use_managerid = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12]
@@ -314,7 +314,7 @@ df_lgs_allocations = pd.read_csv(
         parse_dates=['Date']
         )
 
-# df_lgs_allocations['Date'] = [df_lgs_allocations['Date'][i] + relativedelta(months=1, day=31) for i in range(0, len(df_lgs_allocations))]
+df_lgs_allocations['Date'] = [df_lgs_allocations['Date'][i] + relativedelta(months=1, day=31) for i in range(0, len(df_lgs_allocations))]
 
 df_lgs_allocations['Portfolio Weight'] = df_lgs_allocations['Portfolio Weight'] / 100
 df_lgs_allocations['Dynamic Weight'] = df_lgs_allocations['Dynamic Weight'] / 100
